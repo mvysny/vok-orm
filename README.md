@@ -173,7 +173,7 @@ The class is as follows:
  * @property category the beverage category [Category.id]
  * @property count times tasted, 1..99
  */
-data class Review(override var id: Long? = null,
+open class Review(override var id: Long? = null,
                   var score: Int = 1,
                   var beverageName: String = "",
                   var date: LocalDate = LocalDate.now(),
@@ -184,8 +184,9 @@ data class Review(override var id: Long? = null,
 }
 ```
 
-Now if we want to delete a category, we would need to null the category for all reviews, otherwise
-we will get a foreign constraint violation. It's quite easy, just override the `delete()` method in the
+Now if we want to delete a category, we would need to null the `Review.category` column for all reviews that
+are linked to that very category, otherwise
+we will get a foreign constraint violation. It's quite easy: just override the `delete()` method in the
 Category class as follows:
 
 ```kotlin
@@ -204,7 +205,7 @@ data class Category(...) {
 }
 ```
 
-> **Note:** we simply use the Sql2o API for more complex query.
+> **Note:** for all slightly more complex queries we simply use the Sql2o API and we pass in the SQL command as a String.
 
 We can also add more complex finders to the Review:
 
@@ -233,9 +234,45 @@ the entities are just classes, and we can invoke `db{}` freely from anywhere.
 
 ### Joins
 
-todo
+When we display a list of reviews, we want an actual category names, not just the category IDs. Since Sql2o
+will only care about the SELECT column names, all we have to do is to extend the `Review` class and add the `categoryName`
+field; then write a SELECT that will return all of the `Review` fields, and, additionally, the `categoryName` field.
 
-## A Full Example
+```kotlin
+open class ReviewWithCategory : Review() {
+    var categoryName: String? = null
+}
+```
+
+Now we can add a function into `Review`'s companion object:
+
+```kotlin
+fun findReviews(): List<ReviewWithCategory> = db {
+    con.createQuery("""select r.*, IFNULL(c.name, 'Undefined') as categoryName
+        FROM Review r left join Category c on r.category = c.id
+        ORDER BY r.name""")
+            .executeAndFetch(ReviewWithCategory::class.java)
+}
+```
+
+Of course we can take Sql2o's mapping capabilities to full power: we can craft any SELECT we want,
+and then we can create a holder class that will not be an entity itself, but will merely hold the result of that SELECT.
+The only thing that matters is that the class will have properties named exactly as the fields in the SELECT statement:
+
+```kotlin
+data class Beverage(var name: String = "", var category: String? = null) {
+    companion object {
+        fun findAll(): List<Beverage> = db {
+            con.createQuery("select r.beverageName as name, c.name as category from Review r left join Category c on r.category = c.id")
+                .executeAndFetch(Beverage::class.java)
+        }
+    }
+}
+```
+
+We just have to make sure that all of the `Beverage`'s fields are pre-initialized, so that the `Beverage` class has a zero-arg constructor.
+
+## A main() method Example
 
 Using the vok-orm library from a JavaSE main method:
 
