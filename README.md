@@ -93,9 +93,109 @@ an appropriate INSERT/UPDATE statement.
 
 After you're done, call `VokOrm.destroy()` to close the pool.
 
-> You can use this library from anywhere - you don't need JavaEE or Spring app, you can call it from a plain JavaSE
-main method.
+> You can use this library from anywhere. You don't need to be running inside of the JavaEE or Spring container -
+you can use this library from a plain JavaSE main method.
 
 ### Finding Categories
 
+The finder methods are quite like a factory methods, producing instances of Categories. The best place for such
+methods is on the Category class itself. We can write all of the necessary finders ourselves, by using the `db{}`
+method as stated above; however vok-orm already provides a set of handy methods for you. All you need
+is for the companion object to implement the `Dao` interface:
+
+```kotlin
+data class Category(override var id: Long? = null, var name: String = "") : Entity<Long> {
+    companion object : Dao<Category>
+}
+```
+
+Since Category's companion object implements the `Dao` interface, Category will now be fitted with lots of static extension methods
+that are attached to the [Dao](src/main/kotlin/com/github/vokorm/Dao.kt) interface itself:
+
+* `Category.findAll()` will return a list of all categories
+* `Category[25L]` will fetch a category with ID of 25, failing if there is no such category
+* `Category.findById(25L)` will fetch a category with ID of 25, returning null if there is no such category
+* `Category.deleteAll()` will delete all categories
+* `Category.count()` will return the number of rows in the Category table.
+* `Category.findBy { "name = :name1 or name = :name2"("name1" to "Beer", "name2" to "Cider") }` will find all categories with the name of "Beer" or "Cider".
+  This is an example of a parametrized select, from which you only need to provide the WHERE clause.
+
+You can of course use the Sql2o connection yourself, to execute any kind of SELECT statements as you like; you can then
+define finder methods into the Category companion object. For example:
+
+```kotlin
+data class Category(override var id: Long? = null, var name: String = "") : Entity<Long> {
+    companion object : Dao<Category> {
+        fun findByName(name: String): Category? = findBy(1) { Category::name eq name } .firstOrNull()
+        fun findByNameOrThrow(name: String): Category = findByName(name) ?: throw IllegalArgumentException("No category named $name")
+        fun existsWithName(name: String): Boolean = findByName(name) != null
+    }
+}
+```  
+
+### Adding Reviews
+
 todo
+
+## A full example
+
+```kotlin
+data class Person(
+    override var id: Long? = null,
+    var name: String,
+    var age: Int,
+    var dateOfBirth: LocalDate? = null,
+    var recordCreatedAt: Instant? = null
+) : Entity<Long> {
+    override fun save() {
+        if (id == null) {
+            if (modified == null) modified = Instant.now()
+        }
+        super.save()
+    }
+    
+    companion object : Dao<Person>
+}
+
+fun main(args: Array<String>) {
+    VokOrm.dataSourceConfig.apply {
+        minimumIdle = 0
+        maximumPoolSize = 30
+        this.jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
+        this.username = "sa"
+        this.password = ""
+    }
+    VokOrm.init()
+    db {
+        con.createQuery(
+            """create table if not exists Test (
+            id bigint primary key auto_increment,
+            name varchar not null,
+            age integer not null,
+            dateOfBirth date,
+            recordCreatedAt timestamp
+             )"""
+        ).executeUpdate()
+    }
+    
+    // runs SELECT * FROM Person
+    // prints []
+    println(Person.findAll())
+    
+    // runs INSERT INTO Person (name, age, modified) values (:p1, :p2, :p3)
+    Person(name = "John", age = 42).save()
+    
+    // runs SELECT * FROM Person
+    // prints [Person(id=1, name=John, age=42, dateOfBirth=null, recordCreatedAt=2011-12-03T10:15:30Z)]
+    println(Person.findAll())
+    
+    // runs SELECT * FROM Person where id=:id
+    // prints John
+    println(Person[1L].name)
+    
+    // mass-saves 11 persons in a single transaction.
+    db { (0..10).forEach { Person(name = "person $it", age = it).save() } }
+    
+    VokOrm.destroy()
+}
+```

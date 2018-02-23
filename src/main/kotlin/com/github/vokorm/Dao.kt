@@ -199,7 +199,7 @@ fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, block: SqlWhereBuild
 }
 
 /**
- * Allows you to find rows by given where clause:
+ * Allows you to find rows by given where clause, with the maximum of [limit] rows:
  *
  * ```
  * Person.findBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
@@ -213,12 +213,12 @@ fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, block: SqlWhereBuild
  * db { con.createQuery("select * from Foo where name = :name").addParameter("name", name).executeAndFetch(Person::class.java) }
  * ```
  */
-inline fun <reified T: Any> DaoOfAny<T>.findBy(limit: Int, noinline block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
+inline fun <reified T: Any> DaoOfAny<T>.findBy(limit: Int = Int.MAX_VALUE, noinline block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
     db { con.findBy(T::class.java, limit, block) }
 
 
 /**
- * Allows you to find rows by given where clause:
+ * Allows you to find rows by given `where` clause, with the maximum of [limit] rows:
  *
  * ```
  * Person.findBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
@@ -232,5 +232,5 @@ inline fun <reified T: Any> DaoOfAny<T>.findBy(limit: Int, noinline block: SqlWh
  * db { con.createQuery("select * from Foo where name = :name").addParameter("name", name).executeAndFetch(Person::class.java) }
  * ```
  */
-inline fun <ID, reified T: Entity<ID>> Dao<T>.findBy(limit: Int, noinline block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
+inline fun <ID, reified T: Entity<ID>> Dao<T>.findBy(limit: Int = Int.MAX_VALUE, noinline block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
     db { con.findBy(T::class.java, limit, block) }
