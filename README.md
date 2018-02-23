@@ -303,9 +303,9 @@ fun main(args: Array<String>) {
     VokOrm.dataSourceConfig.apply {
         minimumIdle = 0
         maximumPoolSize = 30
-        this.jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
-        this.username = "sa"
-        this.password = ""
+        jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
+        username = "sa"
+        password = ""
     }
     VokOrm.init()
     db {
