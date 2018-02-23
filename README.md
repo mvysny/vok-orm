@@ -4,9 +4,14 @@
 
 A very simple object-relational mapping library. Built around the following ideas:
 
-* The database is the source of truth; JVM objects are nothing more but helpers to work with the data
-* The objects only hold values and they are populated from JDBC result set.
-* The objects do not track modifications and do not automatically store the values back into the database. The programmer needs to do that manually.
+* The database is the source of truth; JVM objects are nothing more but helpers to help working with the data in the JVM, in a type-safe way.
+* The entities are populated by the means of reflection. For every column in the result set a setter is invoked, to populate the data.
+* The entities are POJOs: they do not track modifications and do not automatically store modified values back into the database. They are not runtime-enhanced and can be final.
+* A switch from one type of database to another never happens. The programmer therefore wants to exploit the full potential of that database, by writing SQLs tailored for that particular database.
+  `vok-orm` should not attempt to generate SELECTs on behalf of the programmer (except for the very basic ones related to CRUD);
+  instead it should simply allow SELECTs to be passed as Strings, and then map the result simply to an object of programmer's choosing.
+* The simplicity is preferred over anything else, even over type safety. If you want a type-safe database mapping library,
+  try [Exposed](https://github.com/JetBrains/Exposed).
 
 Please read [Do-It-Yourself ORM as an Alternative to Hibernate](https://blog.philipphauer.de/do-it-yourself-orm-alternative-hibernate-drawbacks/)
 for the complete explanation of ideas behind this framework.

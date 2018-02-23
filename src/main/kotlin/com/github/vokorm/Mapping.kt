@@ -20,7 +20,7 @@ annotation class Table(val dbname: String = "")
 annotation class Ignore
 
 /**
- * Establishes a very simple mapping between an object and a database table, and adds useful utility methods [save]
+ * Allows you to fetch rows of a database table, and adds useful utility methods [save]
  * and [delete].
  *
  * Automatically will try to store/update/retrieve all non-transient fields declared by this class and all superclasses; either use
@@ -29,6 +29,7 @@ annotation class Ignore
  * Note that [Sql2o] works with all pojos and does not require any annotation/interface. Thus, if your table has no primary
  * key or there is other reason you don't want to use this interface, you can still use your class with [db], you'll only
  * lose those utility methods.
+ * @param ID the type of the primary key. All finder methods will only accept this type of ids.
  */
 interface Entity<ID: Any> : Serializable {
     /**

@@ -39,7 +39,7 @@ fun <T: Any> Connection.getCount(clazz: Class<T>): Long {
 }
 
 /**
- * Just let your entity's companion class to implement this interface, say:
+ * Data access object, provides instances of given [Entity]. To use, just let your [Entity]'s companion class implement this interface, say:
  *
  * ```
  * data class Person(...) : Entity<Long> {
@@ -48,14 +48,38 @@ fun <T: Any> Connection.getCount(clazz: Class<T>): Long {
  * ```
  *
  * You can now use `Person.findAll()`, `Person[25]` and other nice methods :)
+ * @param T the type of the [Entity] provided by this Dao
  */
-interface Dao<T: Any>
+interface Dao<T: Entity<*>>
 
 /**
- * Finds all instances of given entity. Fails if there is no table in the database with the name of [databaseTableName]. The list is eager
- * and thus it's useful for smallish tables only.
+ * Sometimes you don't want a class to be an entity for some reason (e.g. when it doesn't have a primary key),
+ * but still it's mapped to a table and you would want to have Dao support for that class.
+ * Just let your class's companion class implement this interface, say:
+ *
+ * ```
+ * data class Log(...) {
+ *   companion class : DaoUntyped<Log>
+ * }
+ * ```
+ *
+ * You can now use `Person.findAll()`, `Person[25]` and other nice methods; the type of the ID will however not be known
+ * hence the methods will accept the `Any` type.
+ * @param T the type of the class provided by this Dao
  */
-inline fun <reified T: Any> Dao<T>.findAll(): List<T> = db { con.findAll<T>(T::class.java) }
+interface DaoOfAny<T: Any>
+
+/**
+ * Finds all rows in given table. Fails if there is no table in the database with the name of [databaseTableName]. The list is eager
+ * and thus it's useful for small-ish tables only.
+ */
+inline fun <reified T: Any> DaoOfAny<T>.findAll(): List<T> = db { con.findAll(T::class.java) }
+
+/**
+ * Finds all rows in given table. Fails if there is no table in the database with the name of [databaseTableName]. The list is eager
+ * and thus it's useful for small-ish tables only.
+ */
+inline fun <ID, reified T: Entity<ID>> Dao<T>.findAll(): List<T> = db { con.findAll(T::class.java) }
 
 /**
  * Retrieves entity with given [id]. Fails if there is no such entity. See [Dao] on how to add this to your entities.
@@ -65,10 +89,10 @@ inline operator fun <ID: Any, reified T: Entity<ID>> Dao<T>.get(id: ID): T =
     db { con.getById(T::class.java, id) }
 
 /**
- * Retrieves entity with given [id]. Fails if there is no such entity. See [Dao] on how to add this to your entities.
+ * Retrieves entity with given [id]. Fails if there is no such entity. See [DaoOfAny] on how to add this to your entities.
  * @throws IllegalArgumentException if there is no entity with given id.
  */
-inline operator fun <reified T: Any> Dao<T>.get(id: Any): T = db { con.getById(T::class.java, id) }
+inline operator fun <reified T: Any> DaoOfAny<T>.get(id: Any): T = db { con.getById(T::class.java, id) }
 
 /**
  * Retrieves entity with given [id]. Returns null if there is no such entity.
@@ -79,17 +103,27 @@ inline fun <ID: Any, reified T : Entity<ID>> Dao<T>.findById(id: ID): T? =
 /**
  * Retrieves entity with given [id]. Returns null if there is no such entity.
  */
-inline fun <reified T : Any> Dao<T>.findById(id: Any): T? = db { con.findById(T::class.java, id) }
+inline fun <reified T : Any> DaoOfAny<T>.findById(id: Any): T? = db { con.findById(T::class.java, id) }
 
 /**
  * Deletes all rows from given database table.
  */
-inline fun <reified T: Any> Dao<T>.deleteAll(): Unit = db { con.deleteAll(T::class.java) }
+inline fun <reified T: Any> DaoOfAny<T>.deleteAll(): Unit = db { con.deleteAll(T::class.java) }
+
+/**
+ * Deletes all rows from given database table.
+ */
+inline fun <reified T: Entity<*>> Dao<T>.deleteAll(): Unit = db { con.deleteAll(T::class.java) }
 
 /**
  * Counts all rows in given table.
  */
-inline fun <reified T: Any> Dao<T>.count(): Long = db { con.getCount(T::class.java) }
+inline fun <reified T: Entity<*>> Dao<T>.count(): Long = db { con.getCount(T::class.java) }
+
+/**
+ * Counts all rows in given table.
+ */
+inline fun <reified T: Any> DaoOfAny<T>.count(): Long = db { con.getCount(T::class.java) }
 
 fun <T: Any> Connection.deleteById(clazz: Class<T>, id: Any) {
     createQuery("delete from ${clazz.databaseTableName} where id=:id")
@@ -100,7 +134,12 @@ fun <T: Any> Connection.deleteById(clazz: Class<T>, id: Any) {
 /**
  * Deletes row with given ID. Does nothing if there is no such row.
  */
-inline fun <reified T: Any> Dao<T>.deleteById(id: Any): Unit = db { con.deleteById(T::class.java, id) }
+inline fun <reified T: Entity<*>> Dao<T>.deleteById(id: Any): Unit = db { con.deleteById(T::class.java, id) }
+
+/**
+ * Deletes row with given ID. Does nothing if there is no such row.
+ */
+inline fun <reified T: Any> DaoOfAny<T>.deleteById(id: Any): Unit = db { con.deleteById(T::class.java, id) }
 
 fun <T: Any> Connection.deleteBy(clazz: Class<T>, block: SqlWhereBuilder<T>.()-> Filter<T>) {
     val filter = block(SqlWhereBuilder())
@@ -113,21 +152,34 @@ fun <T: Any> Connection.deleteBy(clazz: Class<T>, block: SqlWhereBuilder<T>.()->
  * Allows you to delete rows by given where clause:
  *
  * ```
- * Person.deleteBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters
- * Person.deleteBy { Person::name eq "Rubedo" }  // fancy type-safe criteria
+ * Person.deleteBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, preferred
+ * Person.deleteBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
  * ```
  *
- * I'm not sure whether this is actually any good - it's too fancy, too smart, too bloody complex. Only useful when
- * you need to construct queries programatically. But if you want more complex stuff or even joins, fall back and just write
- * SQL:
+ * If you want more complex stuff or even joins, fall back and just write SQL:
  *
  * ```
  * db { con.createQuery("delete from Foo where name = :name").addParameter("name", name).executeUpdate() }
  * ```
- *
- * Way easier to understand.
  */
-inline fun <reified T: Any> Dao<T>.deleteBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Unit =
+inline fun <reified T: Entity<*>> Dao<T>.deleteBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Unit =
+    db { con.deleteBy(T::class.java, block) }
+
+/**
+ * Allows you to delete rows by given where clause:
+ *
+ * ```
+ * Person.deleteBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, preferred
+ * Person.deleteBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
+ * ```
+ *
+ * If you want more complex stuff or even joins, fall back and just write SQL:
+ *
+ * ```
+ * db { con.createQuery("delete from Foo where name = :name").addParameter("name", name).executeUpdate() }
+ * ```
+ */
+inline fun <reified T: Any> DaoOfAny<T>.deleteBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Unit =
     db { con.deleteBy(T::class.java, block) }
 
 /**
@@ -150,19 +202,35 @@ fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, block: SqlWhereBuild
  * Allows you to find rows by given where clause:
  *
  * ```
- * Person.findBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters
- * Person.findBy { Person::name eq "Rubedo" }  // fancy type-safe criteria
+ * Person.findBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
+ * Person.findBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically
  * ```
  *
- * I'm not sure whether this is actually any good - it's too fancy, too smart, too bloody complex. Only useful when
- * you need to construct queries programatically. But if you want more complex stuff or even joins, fall back and just write
+ * If you want more complex stuff or even joins, fall back and just write
  * SQL:
  *
  * ```
  * db { con.createQuery("select * from Foo where name = :name").addParameter("name", name).executeAndFetch(Person::class.java) }
  * ```
- *
- * Way easier to understand.
  */
-inline fun <reified T: Any> Dao<T>.findBy(limit: Int, noinline block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
+inline fun <reified T: Any> DaoOfAny<T>.findBy(limit: Int, noinline block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
+    db { con.findBy(T::class.java, limit, block) }
+
+
+/**
+ * Allows you to find rows by given where clause:
+ *
+ * ```
+ * Person.findBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
+ * Person.findBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically
+ * ```
+ *
+ * If you want more complex stuff or even joins, fall back and just write
+ * SQL:
+ *
+ * ```
+ * db { con.createQuery("select * from Foo where name = :name").addParameter("name", name).executeAndFetch(Person::class.java) }
+ * ```
+ */
+inline fun <ID, reified T: Entity<ID>> Dao<T>.findBy(limit: Int, noinline block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
     db { con.findBy(T::class.java, limit, block) }
