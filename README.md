@@ -30,6 +30,18 @@ The reasons why we have decided not to use JPA are summed in these links:
 
 JPA promises simplicity but delivers complexity under the hood which leaks in various ways. Therefore, we have decided to revisit the persistency layer from scratch.
 
+## Usage
+
+Just add the following lines to your Gradle script:
+```groovy
+repositories {
+    maven { url "https://dl.bintray.com/mvysny/github" }
+}
+dependencies {
+    testCompile("com.github.vokorm:vokorm:0.1")
+}
+```
+
 ## Usage examples
 
 Say that we have a table containing a list of beverage categories, such as Cider or Beer. The H2 DDL for such table is simple:
@@ -135,9 +147,97 @@ data class Category(override var id: Long? = null, var name: String = "") : Enti
 
 ### Adding Reviews
 
+Let's add the second table, the "Review" table. The Review table lists reviews for drinks from a particular category.
+The DDL is as follows:
+```sql92
+create TABLE REVIEW (
+  id bigint auto_increment PRIMARY KEY,
+  beverageName VARCHAR(200) not null,
+  score TINYINT NOT NULL,
+  date DATE not NULL,
+  category BIGINT,
+  count TINYINT not null
+);
+alter table Review add CONSTRAINT r_score_range CHECK (score >= 1 and score <= 5);
+alter table Review add FOREIGN KEY (category) REFERENCES Category(ID);
+alter table Review add CONSTRAINT r_count_range CHECK (count >= 1 and count <= 99);
+create INDEX idx_review_name ON Review(name);
+```
+
+The class is as follows:
+```kotlin
+/**
+ * Represents a beverage review.
+ * @property score the score, 1..5, 1 being worst, 5 being best
+ * @property date when the review was done
+ * @property category the beverage category [Category.id]
+ * @property count times tasted, 1..99
+ */
+data class Review(override var id: Long? = null,
+                  var score: Int = 1,
+                  var beverageName: String = "",
+                  var date: LocalDate = LocalDate.now(),
+                  var category: Long? = null,
+                  var count: Int = 1) : Entity<Long> {
+
+    companion object : Dao<Review>                  
+}
+```
+
+Now if we want to delete a category, we would need to null the category for all reviews, otherwise
+we will get a foreign constraint violation. It's quite easy, just override the `delete()` method in the
+Category class as follows:
+
+```kotlin
+data class Category(...) {
+    ...
+    override fun delete() {
+        db {
+            if (id != null) {
+                con.createQuery("update Review set category = NULL where category=:catId")
+                        .addParameter("catId", id!!)
+                        .executeUpdate()
+            }
+            super.delete()
+        }
+    }
+}
+```
+
+> **Note:** we simply use the Sql2o API for more complex query.
+
+We can also add more complex finders to the Review:
+
+```kotlin
+    companion object : Dao<Review> {
+        /**
+         * Computes the total sum of [count] for all reviews belonging to given [categoryId].
+         * @return the total sum, 0 or greater.
+         */
+        fun getTotalCountForReviewsInCategory(categoryId: Long): Long = db {
+            val scalar: Any? = con.createQuery("select sum(r.count) from Review r where r.category = :catId")
+                    .addParameter("catId", categoryId)
+                    .executeScalar()
+            (scalar as Number?)?.toLong() ?: 0L
+        }
+    }
+```
+
+Then we can retrofit the Category itself, by adding an extension method to compute this value:
+```kotlin
+fun Category.getTotalCountForReviews(): Long = Review.getTotalCountForReviewsInCategory(id!!)
+```
+
+Note how freely and simply we can add useful business logic methods to entities. It's simply because
+the entities are just classes, and we can invoke `db{}` freely from anywhere.
+
+### Joins
+
 todo
 
-## A full example
+## A Full Example
+
+Using the vok-orm library from a JavaSE main method:
 
 ```kotlin
 data class Person(
