@@ -63,6 +63,10 @@ data class Category(override var id: Long? = null, var name: String = "") : Enti
 ```
 (the `id` is nullable since it will be null until the category is actually created in the database).
 
+> The Category class (or any entity class for that matter) must have all fields pre-initialized, so that Kotlin creates a zero-arg constructor.
+Zero-arg constructor is mandated by Sql2o, in order for Sql2o to be able to construct
+instances of entity class for every row returned.
+
 By implementing the `Entity<Long>` interface, we are telling vok-orm that the primary key is of type `Long`; this will be important later on when using Dao.
 The [Entity](src/main/kotlin/com/github/vokorm/Mapping.kt) interface brings in two useful methods:
 
@@ -105,7 +109,7 @@ an appropriate INSERT/UPDATE statement.
 
 After you're done, call `VokOrm.destroy()` to close the pool.
 
-> You can use this library from anywhere. You don't need to be running inside of the JavaEE or Spring container -
+> You can call methods of this library from anywhere. You don't need to be running inside of the JavaEE or Spring container -
 you can use this library from a plain JavaSE main method.
 
 ### Finding Categories
@@ -205,7 +209,7 @@ data class Category(...) {
 }
 ```
 
-> **Note:** for all slightly more complex queries we simply use the Sql2o API and we pass in the SQL command as a String.
+> **Note:** for all slightly more complex queries it's a good practice to simply use the Sql2o API - we will simply pass in the SQL command as a String to Sql2o.
 
 We can also add more complex finders to the Review:
 
@@ -224,7 +228,7 @@ We can also add more complex finders to the Review:
     }
 ```
 
-Then we can retrofit the Category itself, by adding an extension method to compute this value:
+Then we can retrofit the Category itself with this functionality, by adding an extension method to compute this value:
 ```kotlin
 fun Category.getTotalCountForReviews(): Long = Review.getTotalCountForReviewsInCategory(id!!)
 ```
@@ -234,9 +238,9 @@ the entities are just classes, and we can invoke `db{}` freely from anywhere.
 
 ### Joins
 
-When we display a list of reviews, we want an actual category names, not just the category IDs. Since Sql2o
+When we display a list of reviews (say, in a Vaadin Grid), we want an actual category names, not just the numeric category IDs. Since Sql2o
 will only care about the SELECT column names, all we have to do is to extend the `Review` class and add the `categoryName`
-field; then write a SELECT that will return all of the `Review` fields, and, additionally, the `categoryName` field.
+field. Then we need to write a SELECT that will return all of the `Review` fields, and, additionally, the `categoryName` field:
 
 ```kotlin
 open class ReviewWithCategory : Review() {
