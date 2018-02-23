@@ -38,7 +38,7 @@ repositories {
     maven { url "https://dl.bintray.com/mvysny/github" }
 }
 dependencies {
-    testCompile("com.github.vokorm:vokorm:0.1")
+    compile("com.github.vokorm:vok-orm:0.1")
 }
 ```
 
