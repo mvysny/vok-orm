@@ -1,4 +1,4 @@
-package com.github.vok.framework.sql2o
+package com.github.vokorm
 
 import org.sql2o.Connection
 
@@ -61,7 +61,8 @@ inline fun <reified T: Any> Dao<T>.findAll(): List<T> = db { con.findAll<T>(T::c
  * Retrieves entity with given [id]. Fails if there is no such entity. See [Dao] on how to add this to your entities.
  * @throws IllegalArgumentException if there is no entity with given id.
  */
-inline operator fun <ID: Any, reified T: Entity<ID>> Dao<T>.get(id: ID): T = db { con.getById(T::class.java, id) }
+inline operator fun <ID: Any, reified T: Entity<ID>> Dao<T>.get(id: ID): T =
+    db { con.getById(T::class.java, id) }
 
 /**
  * Retrieves entity with given [id]. Fails if there is no such entity. See [Dao] on how to add this to your entities.
@@ -72,7 +73,8 @@ inline operator fun <reified T: Any> Dao<T>.get(id: Any): T = db { con.getById(T
 /**
  * Retrieves entity with given [id]. Returns null if there is no such entity.
  */
-inline fun <ID: Any, reified T : Entity<ID>> Dao<T>.findById(id: ID): T? = db { con.findById(T::class.java, id) }
+inline fun <ID: Any, reified T : Entity<ID>> Dao<T>.findById(id: ID): T? =
+    db { con.findById(T::class.java, id) }
 
 /**
  * Retrieves entity with given [id]. Returns null if there is no such entity.
@@ -100,7 +102,7 @@ fun <T: Any> Connection.deleteById(clazz: Class<T>, id: Any) {
  */
 inline fun <reified T: Any> Dao<T>.deleteById(id: Any): Unit = db { con.deleteById(T::class.java, id) }
 
-fun <T: Any> Connection.deleteBy(clazz: Class<T>, block: SqlWhereBuilder<T>.()->Filter<T>) {
+fun <T: Any> Connection.deleteBy(clazz: Class<T>, block: SqlWhereBuilder<T>.()-> Filter<T>) {
     val filter = block(SqlWhereBuilder())
     val query = createQuery("delete from ${clazz.databaseTableName} where ${filter.toSQL92()}")
     filter.getSQL92Parameters().entries.forEach { (name, value) -> query.addParameter(name, value) }
@@ -125,14 +127,18 @@ fun <T: Any> Connection.deleteBy(clazz: Class<T>, block: SqlWhereBuilder<T>.()->
  *
  * Way easier to understand.
  */
-inline fun <reified T: Any> Dao<T>.deleteBy(noinline block: SqlWhereBuilder<T>.()->Filter<T>): Unit = db { con.deleteBy(T::class.java, block) }
+inline fun <reified T: Any> Dao<T>.deleteBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Unit =
+    db { con.deleteBy(T::class.java, block) }
 
 /**
  * Returns the metadata for this entity.
  */
-inline val <reified T: Entity<*>> Dao<T>.meta: EntityMeta get() = EntityMeta(T::class.java)
+inline val <reified T: Entity<*>> Dao<T>.meta: EntityMeta
+    get() = EntityMeta(
+        T::class.java
+    )
 
-fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, block: SqlWhereBuilder<T>.()->Filter<T>): List<T> {
+fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> {
     require (limit >= 0) { "$limit is less than 0" }
     val filter = block(SqlWhereBuilder())
     val query = createQuery("select * from ${clazz.databaseTableName} where ${filter.toSQL92()} limit $limit")
@@ -158,4 +164,5 @@ fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, block: SqlWhereBuild
  *
  * Way easier to understand.
  */
-inline fun <reified T: Any> Dao<T>.findBy(limit: Int, noinline block: SqlWhereBuilder<T>.()->Filter<T>): List<T> = db { con.findBy(T::class.java, limit, block) }
+inline fun <reified T: Any> Dao<T>.findBy(limit: Int, noinline block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
+    db { con.findBy(T::class.java, limit, block) }

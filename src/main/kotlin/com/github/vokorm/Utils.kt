@@ -1,4 +1,4 @@
-package com.github.vok.framework.sql2o
+package com.github.vokorm
 
 import org.slf4j.LoggerFactory
 import java.io.Closeable

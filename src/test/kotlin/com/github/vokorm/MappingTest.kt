@@ -1,4 +1,4 @@
-package com.github.vok.framework.sql2o
+package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaTest
 import com.google.gson.Gson
@@ -46,20 +46,20 @@ class MappingTest : DynaTest({
                 con.createQuery("select maritalStatus from Test").executeAndFetch(Foo::class.java).map { it.maritalStatus }
             }
         }
-        expect(p) { db { Person.findAll()[0] } }
+        expect(p) { db { com.github.vokorm.Person.findAll()[0] } }
     }
 
     test("SaveLocalDate") {
         val p = Person(name = "Zaphod", age = 42, dateOfBirth = LocalDate.of(1990, 1, 14))
         p.save()
-        expect(LocalDate.of(1990, 1, 14)) { db { Person.findAll()[0].dateOfBirth!! } }
+        expect(LocalDate.of(1990, 1, 14)) { db { com.github.vokorm.Person.findAll()[0].dateOfBirth!! } }
     }
 
     test("save date and instant") {
         val p = Person(name = "Zaphod", age = 20, created = Date(255), modified = Instant.ofEpochMilli(120398123))
         p.save()
-        expect(255) { db { Person.findAll()[0].created!!.time } }
-        expect(Instant.ofEpochMilli(120398123)) { db { Person.findAll()[0].modified!! } }
+        expect(255) { db { com.github.vokorm.Person.findAll()[0].created!!.time } }
+        expect(Instant.ofEpochMilli(120398123)) { db { com.github.vokorm.Person.findAll()[0].modified!! } }
     }
 
     test("JsonSerializationIgnoresMeta") {

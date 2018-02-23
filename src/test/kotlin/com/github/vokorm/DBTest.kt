@@ -1,4 +1,4 @@
-package com.github.vok.framework.sql2o
+package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectThrows
@@ -25,14 +25,18 @@ class DBTest : DynaTest({
                 throw IOException("simulated")
             }
         }
-        expect(listOf()) { db { Person.findAll() } }
+        expect(listOf()) { db { com.github.vokorm.Person.findAll() } }
     }
 
     test("commitInNestedDbBlocks") {
-        val person = db { db { db {
-            Person(name = "foo", age = 25).apply { save() }
-        }}}
-        expect(listOf(person)) { db { Person.findAll() }}
+        val person = db {
+            db {
+                db {
+                    Person(name = "foo", age = 25).apply { save() }
+                }
+            }
+        }
+        expect(listOf(person)) { db { com.github.vokorm.Person.findAll() } }
     }
 
     test("exceptionRollsBackInNestedDbBlocks") {

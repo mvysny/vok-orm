@@ -1,4 +1,4 @@
-package com.github.vok.framework.sql2o
+package com.github.vokorm
 
 import java.beans.Introspector
 import java.io.Serializable
@@ -205,13 +205,17 @@ fun <T: Any> Set<Filter<T>>.or(): Filter<T>? = when (size) {
 class SqlWhereBuilder<T: Any> {
     infix fun <R: Serializable?> KProperty1<T, R>.eq(value: R): Filter<T> = EqFilter(name, value)
     @Suppress("UNCHECKED_CAST")
-    infix fun <R> KProperty1<T, R?>.le(value: R): Filter<T> = OpFilter(name, value as Comparable<Any>, CompareOperator.le)
+    infix fun <R> KProperty1<T, R?>.le(value: R): Filter<T> =
+        OpFilter(name, value as Comparable<Any>, CompareOperator.le)
     @Suppress("UNCHECKED_CAST")
-    infix fun <R> KProperty1<T, R?>.lt(value: R): Filter<T> = OpFilter(name, value as Comparable<Any>, CompareOperator.lt)
+    infix fun <R> KProperty1<T, R?>.lt(value: R): Filter<T> =
+        OpFilter(name, value as Comparable<Any>, CompareOperator.lt)
     @Suppress("UNCHECKED_CAST")
-    infix fun <R> KProperty1<T, R?>.ge(value: R): Filter<T> = OpFilter(name, value as Comparable<Any>, CompareOperator.ge)
+    infix fun <R> KProperty1<T, R?>.ge(value: R): Filter<T> =
+        OpFilter(name, value as Comparable<Any>, CompareOperator.ge)
     @Suppress("UNCHECKED_CAST")
-    infix fun <R> KProperty1<T, R?>.gt(value: R): Filter<T> = OpFilter(name, value as Comparable<Any>, CompareOperator.gt)
+    infix fun <R> KProperty1<T, R?>.gt(value: R): Filter<T> =
+        OpFilter(name, value as Comparable<Any>, CompareOperator.gt)
     infix fun KProperty1<T, String?>.like(value: String): Filter<T> = LikeFilter(name, value)
     infix fun KProperty1<T, String?>.ilike(value: String): Filter<T> = ILikeFilter(name, value)
     /**

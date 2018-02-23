@@ -1,4 +1,4 @@
-package com.github.vok.framework.sql2o
+package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectThrows
@@ -46,7 +46,7 @@ class DaoTest : DynaTest({
     }
 
     test("DeleteByIdDoesNothingOnUnknownId") {
-        db { Person.deleteById(25L) }
+        db { com.github.vokorm.Person.deleteById(25L) }
         expect(listOf()) { Person.findAll() }
     }
 

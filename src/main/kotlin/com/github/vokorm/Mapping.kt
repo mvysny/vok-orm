@@ -1,4 +1,4 @@
-package com.github.vok.framework.sql2o
+package com.github.vokorm
 
 import java.io.Serializable
 import java.lang.reflect.Field
@@ -51,15 +51,15 @@ interface Entity<ID: Any> : Serializable {
                 // not yet in the database, insert
                 val fields = meta.persistedFieldDbNames - meta.idDbname
                 con.createQuery("insert into ${meta.databaseTableName} (${fields.joinToString()}) values (${fields.map { ":$it" }.joinToString()})")
-                        .bind(this@Entity)
-                        .executeUpdate()
+                    .bind(this@Entity)
+                    .executeUpdate()
                 @Suppress("UNCHECKED_CAST")
                 id = con.key as ID
             } else {
                 val fields = meta.persistedFieldDbNames - meta.idDbname
                 con.createQuery("update ${meta.databaseTableName} set ${fields.map { "$it = :$it" }.joinToString()} where ${meta.idDbname} = :${meta.idDbname}")
-                        .bind(this@Entity)
-                        .executeUpdate()
+                    .bind(this@Entity)
+                    .executeUpdate()
             }
         }
     }
@@ -71,8 +71,8 @@ interface Entity<ID: Any> : Serializable {
         check(id != null) { "The id is null, the entity is not yet in the database" }
         db {
             con.createQuery("delete from ${meta.databaseTableName} where ${meta.idDbname} = :id")
-                    .addParameter("id", id)
-                    .executeUpdate()
+                .addParameter("id", id)
+                .executeUpdate()
         }
     }
 }

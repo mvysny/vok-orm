@@ -1,4 +1,4 @@
-package com.github.vok.framework.sql2o
+package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaNodeGroup
 import java.time.Instant
