@@ -65,6 +65,7 @@ inline operator fun <ID: Any, reified T: Entity<ID>> Dao<T>.get(id: ID): T = db 
 
 /**
  * Retrieves entity with given [id]. Fails if there is no such entity. See [Dao] on how to add this to your entities.
+ * @throws IllegalArgumentException if there is no entity with given id.
  */
 inline operator fun <reified T: Any> Dao<T>.get(id: Any): T = db { con.getById(T::class.java, id) }
 
@@ -132,6 +133,7 @@ inline fun <reified T: Any> Dao<T>.deleteBy(noinline block: SqlWhereBuilder<T>.(
 inline val <reified T: Entity<*>> Dao<T>.meta: EntityMeta get() = EntityMeta(T::class.java)
 
 fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, block: SqlWhereBuilder<T>.()->Filter<T>): List<T> {
+    require (limit >= 0) { "$limit is less than 0" }
     val filter = block(SqlWhereBuilder())
     val query = createQuery("select * from ${clazz.databaseTableName} where ${filter.toSQL92()} limit $limit")
     filter.getSQL92Parameters().entries.forEach { (name, value) -> query.addParameter(name, value) }

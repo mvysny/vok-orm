@@ -70,7 +70,8 @@ private val contexts: ThreadLocal<PersistenceContext> = ThreadLocal()
 
 private val HikariConfig.quirks: Quirks get() = when {
     !jdbcUrl.isNullOrBlank() -> QuirksDetector.forURL(jdbcUrl)
-    else -> QuirksDetector.forObject(dataSource)
+    dataSource != null -> QuirksDetector.forObject(dataSource)
+    else -> throw IllegalStateException("HikariConfig: both jdbcUrl and dataSource is null! $this")
 }
 
 /**
@@ -86,7 +87,7 @@ fun <R> db(block: PersistenceContext.()->R): R {
     if (context != null) return context.block()
 
     val dataSource = checkNotNull(VokOrm.dataSource) { "The VokOrm.dataSource has not yet been initialized. Please call VokOrm.init()" }
-    val sql2o = Sql2o(dataSource, dataSource.quirks)
+    val sql2o = Sql2o(dataSource, VokOrm.dataSourceConfig.quirks)
     context = PersistenceContext(sql2o.beginTransaction())
     try {
         contexts.set(context)
