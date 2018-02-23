@@ -98,10 +98,10 @@ you can use this library from a plain JavaSE main method.
 
 ### Finding Categories
 
-The finder methods are quite like a factory methods, producing instances of Categories. The best place for such
+The finder methods quite resemble factory methods since they produce instances of Categories. The best place for such
 methods is on the Category class itself. We can write all of the necessary finders ourselves, by using the `db{}`
 method as stated above; however vok-orm already provides a set of handy methods for you. All you need
-is for the companion object to implement the `Dao` interface:
+to do is for the companion object to implement the `Dao` interface:
 
 ```kotlin
 data class Category(override var id: Long? = null, var name: String = "") : Entity<Long> {
@@ -182,7 +182,7 @@ fun main(args: Array<String>) {
     // prints []
     println(Person.findAll())
     
-    // runs INSERT INTO Person (name, age, modified) values (:p1, :p2, :p3)
+    // runs INSERT INTO Person (name, age, recordCreatedAt) values (:p1, :p2, :p3)
     Person(name = "John", age = 42).save()
     
     // runs SELECT * FROM Person
