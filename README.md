@@ -212,7 +212,7 @@ we will get a foreign constraint violation. It's quite easy: just override the `
 Category class as follows:
 
 ```kotlin
-data class Category(...) : Serializable {
+data class Category(...) : Entity<Long> {
     ...
     override fun delete() {
         db {
@@ -284,7 +284,7 @@ and then we can create a holder class that will not be an entity itself, but wil
 The only thing that matters is that the class will have properties named exactly as the fields in the SELECT statement:
 
 ```kotlin
-data class Beverage(var name: String = "", var category: String? = null) {
+data class Beverage(var name: String = "", var category: String? = null) : Serializable {
     companion object {
         fun findAll(): List<Beverage> = db {
             con.createQuery("select r.beverageName as name, c.name as category from Review r left join Category c on r.category = c.id")
