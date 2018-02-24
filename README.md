@@ -139,6 +139,9 @@ that are attached to the [Dao](src/main/kotlin/com/github/vokorm/Dao.kt) interfa
 * `Category.findBy { "name = :name1 or name = :name2"("name1" to "Beer", "name2" to "Cider") }` will find all categories with the name of "Beer" or "Cider".
   This is an example of a parametrized select, from which you only need to provide the WHERE clause.
 
+In the spirit of type safety, the finder methods will only accept `Long` (or whatever is the type of
+the primary key in the `Entity<x>` implementation clause). 
+
 You can of course use the Sql2o connection yourself, to execute any kind of SELECT statements as you like; you can then
 define finder methods into the Category companion object. For example:
 
@@ -152,10 +155,17 @@ data class Category(override var id: Long? = null, var name: String = "") : Enti
 }
 ```  
 
+> **Note**: If you don't want to use the Entity interface for some reason (for example when the table has no primary key), you can still include
+useful finder methods by making the companion object to implement the `DaoOfAny` interface. The finder methods such as `findById()` will accept
+Any as primary keys.
+
 ### Adding Reviews
 
-Let's add the second table, the "Review" table. The Review table lists reviews for drinks from a particular category.
+Let's add the second table, the "Review" table. The Review table is a list of reviews for
+various drinks; it back-references the drink category as a foreign key into the `Category` table.
+
 The DDL is as follows:
+
 ```sql92
 create TABLE REVIEW (
   id bigint auto_increment PRIMARY KEY,
