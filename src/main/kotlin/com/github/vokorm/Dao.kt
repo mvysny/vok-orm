@@ -186,9 +186,7 @@ inline fun <reified T: Any> DaoOfAny<T>.deleteBy(noinline block: SqlWhereBuilder
  * Returns the metadata for this entity.
  */
 inline val <reified T: Entity<*>> Dao<T>.meta: EntityMeta
-    get() = EntityMeta(
-        T::class.java
-    )
+    get() = EntityMeta(T::class.java)
 
 fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> {
     require (limit >= 0) { "$limit is less than 0" }

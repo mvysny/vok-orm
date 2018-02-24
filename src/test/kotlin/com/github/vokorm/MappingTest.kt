@@ -68,7 +68,7 @@ class MappingTest : DynaTest({
 
     test("Meta") {
         val meta = Person.meta
-        expect("Test") { meta.databaseTableName }  // sicen Person is annotated with @Entity("Test")
+        expect("Test") { meta.databaseTableName }  // since Person is annotated with @Entity("Test")
         expect("id") { meta.idDbname }
         expect(Person::class.java) { meta.entity }
         expect(setOf("id", "name", "age", "dateOfBirth", "created", "alive", "maritalStatus", "modified")) { meta.persistedFieldDbNames }

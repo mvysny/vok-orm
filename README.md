@@ -141,16 +141,21 @@ data class Category(override var id: Long? = null, var name: String = "") : Enti
 }
 ```
 
-Since Category's companion object implements the `Dao` interface, Category will now be outfitted with lots of static extension methods
-that are attached to the [Dao](src/main/kotlin/com/github/vokorm/Dao.kt) interface itself:
+Since Category's companion object implements the `Dao` interface, Category will now be outfitted
+with several useful finder methods (static extension methods
+that are attached to the [Dao](src/main/kotlin/com/github/vokorm/Dao.kt) interface itself):
 
 * `Category.findAll()` will return a list of all categories
-* `Category[25L]` will fetch a category with ID of 25, failing if there is no such category
-* `Category.findById(25L)` will fetch a category with ID of 25, returning null if there is no such category
+* `Category[25L]` or `Category.get(25L)` will fetch a category with the ID of 25, failing if there is no such category
+* `Category.findById(25L)` will fetch a category with ID of 25, returning `null` if there is no such category
 * `Category.deleteAll()` will delete all categories
+* `Category.deleteById(42L)` will delete a category with ID of 42
 * `Category.count()` will return the number of rows in the Category table.
 * `Category.findBy { "name = :name1 or name = :name2"("name1" to "Beer", "name2" to "Cider") }` will find all categories with the name of "Beer" or "Cider".
   This is an example of a parametrized select, from which you only need to provide the WHERE clause.
+* `Category.deleteBy { (Category::name eq "Beer") or (Category::name eq "Cider") }` will delete all categories
+  matching given criteria. This is an example of a statically-typed matching criteria which
+  is converted into the WHERE clause.
 
 In the spirit of type safety, the finder methods will only accept `Long` (or whatever is the type of
 the primary key in the `Entity<x>` implementation clause). 
@@ -169,14 +174,12 @@ data class Category(override var id: Long? = null, var name: String = "") : Enti
 
 > **Note**: If you don't want to use the Entity interface for some reason (for example when the table has no primary key), you can still include
 useful finder methods by making the companion object to implement the `DaoOfAny` interface. The finder methods such as `findById()` will accept
-Any as primary keys.
+`Any` as a primary key.
 
 ### Adding Reviews
 
 Let's add the second table, the "Review" table. The Review table is a list of reviews for
-various drinks; it back-references the drink category as a foreign key into the `Category` table.
-
-The DDL is as follows:
+various drinks; it back-references the drink category as a foreign key into the `Category` table:
 
 ```sql92
 create TABLE REVIEW (
@@ -209,14 +212,14 @@ open class Review(override var id: Long? = null,
                   var category: Long? = null,
                   var count: Int = 1) : Entity<Long> {
 
-    companion object : Dao<Review>                  
+    companion object : Dao<Review>
 }
 ```
 
-Now if we want to delete a category, we need to first null the `Review.category` column for all reviews that
+Now if we want to delete a category, we need to first set the `Review.category` value to `null` for all reviews that
 are linked to that very category, otherwise
 we will get a foreign constraint violation. It's quite easy: just override the `delete()` method in the
-Category class as follows:
+`Category` class as follows:
 
 ```kotlin
 data class Category(...) : Entity<Long> {
@@ -237,7 +240,7 @@ data class Category(...) : Entity<Long> {
 > **Note:** for all slightly more complex queries it's a good practice to simply use the Sql2o API - we will simply pass in the SQL command as a String to Sql2o.
 
 As you can see, you can use the Sql2o connection yourself, to execute any kind of SELECT/UPDATE/INSERT/DELETE statements as you like.
-For example you can define finder or computation methods into the Review companion object:
+For example you can define static finder or computation method into the `Review` companion object:
 
 ```kotlin
     companion object : Dao<Review> {
@@ -261,7 +264,7 @@ fun Category.getTotalCountForReviews(): Long = Review.getTotalCountForReviewsInC
 
 Note how freely and simply we can add useful business logic methods to entities. It's because:
 
-* the entities are just plain old classes with no hidden fields and no runtime enhancement, and
+* the entities are just plain old classes with no hidden fields and no runtime enhancements, and
 * because we can invoke `db{}` freely from anywhere.
 
 ### Joins

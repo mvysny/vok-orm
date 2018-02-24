@@ -60,6 +60,12 @@ data class Person(
         super.save()
     }
 
+    // should not be persisted into the database since it's not backed by a field.
+    fun getSomeComputedValue(): Int = age + 2
+
+    // should not be persisted into the database since it's not backed by a field.
+    val someOtherComputedValue: Int get() = age
+
     companion object : Dao<Person> {
         val IGNORE_THIS_FIELD: Int = 0
     }
