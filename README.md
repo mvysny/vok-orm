@@ -88,13 +88,13 @@ But how do we specify the target database where to store the category in?
 
 As a bare minimum, you need to specify the JDBC URL
 to the `VokOrm.dataSourceConfig` first. It's a [Hikari-CP](https://brettwooldridge.github.io/HikariCP/) configuration file which contains lots of other options as well.
-It should come preinitialized with a sensible default settings.
+It comes pre-initialized with sensible default settings.
 
 > Hikari-CP is a JDBC connection pool which manages a pool of JDBC connections since they are expensive to create. Typically all projects
 use some sort of JDBC connection pooling, and `vok-orm` uses Hikari-CP.
 
-After you have configured the JDBC URL, just call `VokOrm.init()` which will initialize Hikari-CP's connection pool. Once the connection pool is initialized, you can now simply call the `db{}` function to run the
-database transaction. The `db{}` function will poll the connection pool for a connection, it will start a transaction and it will provide you with means to execute SQL commands:
+After you have configured the JDBC URL, just call `VokOrm.init()` which will initialize Hikari-CP's connection pool. After the connection pool is initialized, you can simply call the `db{}` function to run the
+block in a database transaction. The `db{}` function will acquire new connection from the connection pool; then it will start a transaction and it will provide you with means to execute SQL commands:
 
 ```kotlin
 db {
@@ -107,6 +107,8 @@ db {
 You can call this function from anywhere; you don't need to use dependency injection or anything like that.
 That is precisely how the `save()` function saves the bean - it simply calls the `db{}` function and executes
 an appropriate INSERT/UPDATE statement.
+
+The function will automatically roll back the transaction on any exception thrown out from the block (both checked and unchecked).
 
 After you're done, call `VokOrm.destroy()` to close the pool.
 
