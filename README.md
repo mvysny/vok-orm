@@ -33,7 +33,7 @@ In short, JPA promises simplicity but delivers complexity under the hood which l
 
 ## Usage
 
-Just add the following lines to your Gradle script:
+Just add the following lines to your Gradle script, to include this library in your project:
 ```groovy
 repositories {
     maven { url "https://dl.bintray.com/mvysny/github" }
@@ -55,14 +55,15 @@ create TABLE CATEGORY (
 create UNIQUE INDEX idx_category_name ON CATEGORY(name);
 ```
 
-> **Note:** We expect that programmer knows the DDL language and wants to see the DDL scripts.
+> **Note:** We expect that the programmer wants to write the DDL scripts herself, to make full
+use of the DDL capabilities of the underlying database.
 We will therefore not hide the DDL behind some type-safe generator API.
 
 Such entity can be mapped to a data class as follows:
 ```kotlin
 data class Category(override var id: Long? = null, var name: String = "") : Entity<Long>
 ```
-(the `id` is nullable since it will be null until the category is actually created in the database).
+(the `id` is nullable since its value is initially `null` until the category is actually created and the id is assigned by the database).
 
 The `Category` class is just a simple data class: there are no hidden private fields added by
 runtime enhancements, no hidden lazy loading - everything is pre-fetched upfront. Because of that,
@@ -81,7 +82,8 @@ The [Entity](src/main/kotlin/com/github/vokorm/Mapping.kt) interface brings in t
 * `save()` which either creates a new row by generating the INSERT statement (if the ID is null), or updates the row by generating the UPDATE statement (if the ID is not null)
 * `delete()` which deletes the row identified by the `id` primary key from the database.
 
-The INSERT statement is emitted by the `save()` method, simply by fetching the values of all non-transient properties of the entity. See the [Entity](src/main/kotlin/com/github/vokorm/Mapping.kt) sources for more details.
+The INSERT/UPDATE statement is automatically constructed by the `save()` method, simply by enumerating all non-transient and non-ignored properties of
+the bean using reflection and fetching their values. See the [Entity](src/main/kotlin/com/github/vokorm/Mapping.kt) sources for more details.
 You can annotate the `Category` class with the `@Table(dbname = "Categories")` annotation, to specify a different table name.
 
 The category can now be created easily:
@@ -101,8 +103,11 @@ It comes pre-initialized with sensible default settings.
 > Hikari-CP is a JDBC connection pool which manages a pool of JDBC connections since they are expensive to create. Typically all projects
 use some sort of JDBC connection pooling, and `vok-orm` uses Hikari-CP.
 
-After you have configured the JDBC URL, just call `VokOrm.init()` which will initialize Hikari-CP's connection pool. After the connection pool is initialized, you can simply call the `db{}` function to run the
-block in a database transaction. The `db{}` function will acquire new connection from the connection pool; then it will start a transaction and it will provide you with means to execute SQL commands:
+After you have configured the JDBC URL, just call `VokOrm.init()` which will initialize
+Hikari-CP's connection pool. After the connection pool is initialized, you can simply call
+the `db{}` function to run the
+block in a database transaction. The `db{}` function will acquire new connection from the
+connection pool; then it will start a transaction and it will provide you with means to execute SQL commands:
 
 ```kotlin
 db {
