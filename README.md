@@ -269,9 +269,13 @@ Note how freely and simply we can add useful business logic methods to entities.
 
 ### Joins
 
-When we display a list of reviews (say, in a Vaadin Grid), we want an actual category names, not just the numeric category IDs. Since Sql2o
-will only care about the SELECT column names, all we have to do is to extend the `Review` class and add the `categoryName`
-field. Then we need to write a SELECT that will return all of the `Review` fields, and, additionally, the `categoryName` field:
+When we display a list of reviews (say, in a Vaadin Grid), we want to display an actual category name instead of the numeric category ID.
+We can take advantage of Sql2o simply matching all SELECT column names into bean fields; all we have to do is to:
+
+* extend the `Review` class and add the `categoryName` field which will carry the category name information;
+* write a SELECT that will return all of the `Review` fields, and, additionally, the `categoryName` field
+
+Let's thus create a `ReviewWithCategory` class:
 
 ```kotlin
 open class ReviewWithCategory : Review() {
@@ -279,18 +283,21 @@ open class ReviewWithCategory : Review() {
 }
 ```
 
-Now we can add a function into `Review`'s companion object:
+Now we can add a new finder function into `Review`'s companion object:
 
 ```kotlin
-fun findReviews(): List<ReviewWithCategory> = db {
-    con.createQuery("""select r.*, IFNULL(c.name, 'Undefined') as categoryName
-        FROM Review r left join Category c on r.category = c.id
-        ORDER BY r.name""")
-            .executeAndFetch(ReviewWithCategory::class.java)
+companion object : Dao<Review> {
+    ...
+    fun findReviews(): List<ReviewWithCategory> = db {
+        con.createQuery("""select r.*, IFNULL(c.name, 'Undefined') as categoryName
+            FROM Review r left join Category c on r.category = c.id
+            ORDER BY r.name""")
+                .executeAndFetch(ReviewWithCategory::class.java)
+    }
 }
 ```
 
-Of course we can take Sql2o's mapping capabilities to full power: we can craft any SELECT we want,
+We can take Sql2o's mapping capabilities to full use: we can craft any SELECT we want,
 and then we can create a holder class that will not be an entity itself, but will merely hold the result of that SELECT.
 The only thing that matters is that the class will have properties named exactly as the fields in the SELECT statement:
 
