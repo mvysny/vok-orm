@@ -63,6 +63,11 @@ data class Category(override var id: Long? = null, var name: String = "") : Enti
 ```
 (the `id` is nullable since it will be null until the category is actually created in the database).
 
+The `Category` class is just a simple data class, no hidden private fields added by runtime enhancements. Because of that,
+the class can be passed around the application freely, without the fear of failing with
+`DetachedException` when accessing properties. Since `Entity` is `Serializable`, you can
+also store the entity into a session. 
+
 > The Category class (or any entity class for that matter) must have all fields pre-initialized, so that Kotlin creates a zero-arg constructor.
 Zero-arg constructor is mandated by Sql2o, in order for Sql2o to be able to construct
 instances of entity class for every row returned.
@@ -207,7 +212,7 @@ we will get a foreign constraint violation. It's quite easy: just override the `
 Category class as follows:
 
 ```kotlin
-data class Category(...) {
+data class Category(...) : Serializable {
     ...
     override fun delete() {
         db {
