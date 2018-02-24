@@ -135,7 +135,7 @@ data class Category(override var id: Long? = null, var name: String = "") : Enti
 }
 ```
 
-Since Category's companion object implements the `Dao` interface, Category will now be fitted with lots of static extension methods
+Since Category's companion object implements the `Dao` interface, Category will now be outfitted with lots of static extension methods
 that are attached to the [Dao](src/main/kotlin/com/github/vokorm/Dao.kt) interface itself:
 
 * `Category.findAll()` will return a list of all categories
@@ -149,8 +149,7 @@ that are attached to the [Dao](src/main/kotlin/com/github/vokorm/Dao.kt) interfa
 In the spirit of type safety, the finder methods will only accept `Long` (or whatever is the type of
 the primary key in the `Entity<x>` implementation clause). 
 
-You can of course use the Sql2o connection yourself, to execute any kind of SELECT statements as you like; you can then
-define finder methods into the Category companion object. For example:
+You can of course add your own custom finder methods into the Category companion object. For example:
 
 ```kotlin
 data class Category(override var id: Long? = null, var name: String = "") : Entity<Long> {
@@ -231,7 +230,8 @@ data class Category(...) : Entity<Long> {
 
 > **Note:** for all slightly more complex queries it's a good practice to simply use the Sql2o API - we will simply pass in the SQL command as a String to Sql2o.
 
-We can also add more complex finders to the Review:
+As you can see, you can use the Sql2o connection yourself, to execute any kind of SELECT/UPDATE/INSERT/DELETE statements as you like.
+For example you can define finder or computation methods into the Review companion object:
 
 ```kotlin
     companion object : Dao<Review> {
@@ -248,7 +248,7 @@ We can also add more complex finders to the Review:
     }
 ```
 
-Then we can retrofit the Category itself with this functionality, by adding an extension method to compute this value:
+Then we can outfit the Category itself with this functionality, by adding an extension method to compute this value:
 ```kotlin
 fun Category.getTotalCountForReviews(): Long = Review.getTotalCountForReviewsInCategory(id!!)
 ```
