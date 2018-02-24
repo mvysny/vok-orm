@@ -178,10 +178,10 @@ create TABLE REVIEW (
 alter table Review add CONSTRAINT r_score_range CHECK (score >= 1 and score <= 5);
 alter table Review add FOREIGN KEY (category) REFERENCES Category(ID);
 alter table Review add CONSTRAINT r_count_range CHECK (count >= 1 and count <= 99);
-create INDEX idx_review_name ON Review(name);
+create INDEX idx_beverage_name ON Review(beverageName);
 ```
 
-The class is as follows:
+The mapping class is as follows:
 ```kotlin
 /**
  * Represents a beverage review.
@@ -246,8 +246,10 @@ Then we can retrofit the Category itself with this functionality, by adding an e
 fun Category.getTotalCountForReviews(): Long = Review.getTotalCountForReviewsInCategory(id!!)
 ```
 
-Note how freely and simply we can add useful business logic methods to entities. It's simply because
-the entities are just classes, and we can invoke `db{}` freely from anywhere.
+Note how freely and simply we can add useful business logic methods to entities. It's because:
+
+* the entities are just plain old classes with no hidden fields and no runtime enhancement, and
+* because we can invoke `db{}` freely from anywhere.
 
 ### Joins
 
