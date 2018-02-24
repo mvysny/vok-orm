@@ -18,17 +18,18 @@ vok-orm is a very simple object-relational mapping library, built around the fol
 Please read [Back to Base - make SQL great again](http://mavi.logdown.com/posts/5771422)
 for the complete explanation of ideas behind this framework.
 
-Uses [Sql2o](https://www.sql2o.org/) to map data from resultset to POJOs; uses a very simple built-in methods to store/update the data back to the database.
+This framework uses [Sql2o](https://www.sql2o.org/) to map data from the JDBC `ResultSet` to POJOs; in addition it provides a very simple
+mechanism to store/update the data back to the database.
 
 ## Why not JPA
 
-The reasons why we have decided not to use JPA are summed in these links:
+JPA is *the* default framework of choice for many projects. However, there are issues in JPA which cannot be overlooked:
 
 * [Vaadin-on-Kotlin Issue #3 Remove JPA](https://github.com/mvysny/vaadin-on-kotlin/issues/3)
 * [Back to Base - make SQL great again](http://mavi.logdown.com/posts/5771422)
 * [Do-It-Yourself ORM as an Alternative to Hibernate](https://blog.philipphauer.de/do-it-yourself-orm-alternative-hibernate-drawbacks/)
 
-JPA promises simplicity but delivers complexity under the hood which leaks in various ways. Therefore, we have decided to revisit the persistency layer from scratch.
+In short, JPA promises simplicity but delivers complexity under the hood which leaks in various ways. Therefore, we have decided to revisit the persistency layer from scratch.
 
 ## Usage
 
