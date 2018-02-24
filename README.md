@@ -201,7 +201,7 @@ open class Review(override var id: Long? = null,
 }
 ```
 
-Now if we want to delete a category, we would need to null the `Review.category` column for all reviews that
+Now if we want to delete a category, we need to first null the `Review.category` column for all reviews that
 are linked to that very category, otherwise
 we will get a foreign constraint violation. It's quite easy: just override the `delete()` method in the
 Category class as follows:
