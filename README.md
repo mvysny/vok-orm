@@ -63,8 +63,10 @@ data class Category(override var id: Long? = null, var name: String = "") : Enti
 ```
 (the `id` is nullable since it will be null until the category is actually created in the database).
 
-The `Category` class is just a simple data class, no hidden private fields added by runtime enhancements. Because of that,
-the class can be passed around the application freely, without the fear of failing with
+The `Category` class is just a simple data class: there are no hidden private fields added by
+runtime enhancements, no hidden lazy loading - everything is pre-fetched upfront. Because of that,
+the class can be passed around the application freely as a DTO (data transfer object),
+without the fear of failing with
 `DetachedException` when accessing properties. Since `Entity` is `Serializable`, you can
 also store the entity into a session. 
 
