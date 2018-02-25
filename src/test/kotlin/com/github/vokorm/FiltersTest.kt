@@ -18,7 +18,7 @@ class FiltersTest : DynaTest({
     test("ToSQL92") {
         expect("age = :25") { sql { Person::age eq 25 } }
         expect("(age >= :25 and age <= :50)") { sql { Person::age between 25..50 } }
-        expect("((age >= :25 and age <= :50) or alive = true)") { sql { (Person::age between 25..50) or (Person::alive eq true) } }
+        expect("((age >= :25 and age <= :50) or alive = :true)") { sql { (Person::age between 25..50) or (Person::alive eq true) } }
     }
 
     test("LikeFilterInMemory") {
