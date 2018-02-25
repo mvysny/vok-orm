@@ -110,6 +110,66 @@ inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.getById(id: ID): T =
 inline fun <reified T: Any> DaoOfAny<T>.getById(id: Any): T = db { con.getById(T::class.java, id) }
 
 /**
+ * Retrieves single entity matching given criteria [block]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
+ *
+ * Example:
+ * ```
+ * Person.getBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
+ * Person.getBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
+ * ```
+ * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
+ */
+inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.getBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T {
+    val filter = block(SqlWhereBuilder())
+    return db { con.getBy(T::class.java, filter) }
+}
+
+/**
+ * Retrieves single entity matching given criteria [block]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
+ *
+ * Example:
+ * ```
+ * Person.getBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
+ * Person.getBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
+ * ```
+ * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
+ */
+inline fun <reified T: Any> DaoOfAny<T>.getBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T {
+    val filter = block(SqlWhereBuilder())
+    return db { con.getBy(T::class.java, filter) }
+}
+
+/**
+ * Retrieves specific entity matching given criteria [block]. Fails if there are two or more entities matching the criteria.
+ *
+ * Example:
+ * ```
+ * Person.findSingleBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
+ * Person.findSingleBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
+ * ```
+ * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
+ */
+inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.findSpecificBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T? {
+    val filter = block(SqlWhereBuilder())
+    return db { con.findSpecificBy(T::class.java, filter) }
+}
+
+/**
+ * Retrieves specific entity matching given criteria [block]. Fails if there are two or more entities matching the criteria.
+ *
+ * Example:
+ * ```
+ * Person.findSingleBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
+ * Person.findSingleBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
+ * ```
+ * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
+ */
+inline fun <reified T: Any> DaoOfAny<T>.findSpecificBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T? {
+    val filter = block(SqlWhereBuilder())
+    return db { con.findSpecificBy(T::class.java, filter) }
+}
+
+/**
  * Retrieves entity with given [id]. Returns null if there is no such entity.
  */
 inline fun <ID: Any, reified T : Entity<ID>> Dao<T>.findById(id: ID): T? =
@@ -203,13 +263,21 @@ inline fun <reified T: Any> DaoOfAny<T>.deleteBy(noinline block: SqlWhereBuilder
 inline val <reified T: Entity<*>> Dao<T>.meta: EntityMeta
     get() = EntityMeta(T::class.java)
 
-fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> {
+fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, filter: Filter<T>): List<T> {
     require (limit >= 0) { "$limit is less than 0" }
-    val filter = block(SqlWhereBuilder())
     val query = createQuery("select * from ${clazz.databaseTableName} where ${filter.toSQL92()} limit $limit")
     filter.getSQL92Parameters().entries.forEach { (name, value) -> query.addParameter(name, value) }
     return query.executeAndFetch(clazz)
 }
+
+fun <T: Any> Connection.findSpecificBy(clazz: Class<T>, filter: Filter<T>): T? {
+    val result = findBy(clazz, 2, filter)
+    require(result.size < 2) { "too many items: select * from ${clazz.databaseTableName} where ${filter.toSQL92()} returned $result and perhaps more" }
+    return result.firstOrNull()
+}
+
+fun <T: Any> Connection.getBy(clazz: Class<T>, filter: Filter<T>): T =
+    findSpecificBy(clazz, filter) ?: throw IllegalArgumentException("too few items: select * from ${clazz.databaseTableName} where ${filter.toSQL92()} returned 0 items")
 
 /**
  * Allows you to find rows by given where clause, with the maximum of [limit] rows:
@@ -227,7 +295,7 @@ fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, block: SqlWhereBuild
  * ```
  */
 inline fun <reified T: Any> DaoOfAny<T>.findBy(limit: Int = Int.MAX_VALUE, noinline block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
-    db { con.findBy(T::class.java, limit, block) }
+    db { con.findBy(T::class.java, limit, block(SqlWhereBuilder())) }
 
 
 /**
@@ -246,4 +314,4 @@ inline fun <reified T: Any> DaoOfAny<T>.findBy(limit: Int = Int.MAX_VALUE, noinl
  * ```
  */
 inline fun <ID, reified T: Entity<ID>> Dao<T>.findBy(limit: Int = Int.MAX_VALUE, noinline block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
-    db { con.findBy(T::class.java, limit, block) }
+    db { con.findBy(T::class.java, limit, block(SqlWhereBuilder())) }

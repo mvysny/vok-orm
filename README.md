@@ -160,7 +160,7 @@ with several useful finder methods (static extension methods
 that are attached to the [Dao](src/main/kotlin/com/github/vokorm/Dao.kt) interface itself):
 
 * `Category.findAll()` will return a list of all categories
-* `Category[25L]` or `Category.get(25L)` will fetch a category with the ID of 25, failing if there is no such category
+* `Category.getById(25L)` will fetch a category with the ID of 25, failing if there is no such category
 * `Category.findById(25L)` will fetch a category with ID of 25, returning `null` if there is no such category
 * `Category.deleteAll()` will delete all categories
 * `Category.deleteById(42L)` will delete a category with ID of 42
@@ -170,6 +170,8 @@ that are attached to the [Dao](src/main/kotlin/com/github/vokorm/Dao.kt) interfa
 * `Category.deleteBy { (Category::name eq "Beer") or (Category::name eq "Cider") }` will delete all categories
   matching given criteria. This is an example of a statically-typed matching criteria which
   is converted into the WHERE clause.
+* `Category.getBy { "name = :name"("name" to "Beer") }` will fetch exactly one matching category, failing if there is no such category or there are more than one.
+* `Category.findSpecificBy { "name = :name"("name" to "Beer") }` will fetch one matching category, failing if there are more than one. Returns `null` if there is none.
 
 In the spirit of type safety, the finder methods will only accept `Long` (or whatever is the type of
 the primary key in the `Entity<x>` implementation clause). 

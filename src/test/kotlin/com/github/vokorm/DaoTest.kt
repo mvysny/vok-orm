@@ -25,6 +25,28 @@ class DaoTest : DynaTest({
         expectThrows(IllegalArgumentException::class) { Person.getById(25L) }
     }
 
+    group("getBy() tests") {
+        test("succeeds if there is exactly one matching entity") {
+            val p = Person(name = "Albedo", age = 130)
+            p.save()
+            expect(p) { Person.getBy { Person::name eq "Albedo" } }
+        }
+
+        test("fails if there is no such entity") {
+            expectThrows(IllegalArgumentException::class) { Person.getBy { Person::name eq "Albedo" } }
+        }
+
+        test("fails if there are two matching entities") {
+            repeat(2) { Person(name = "Albedo", age = 130).save() }
+            expectThrows(IllegalArgumentException::class) { Person.getBy { Person::name eq "Albedo" } }
+        }
+
+        test("fails if there are ten matching entities") {
+            repeat(10) { Person(name = "Albedo", age = 130).save() }
+            expectThrows(IllegalArgumentException::class) { Person.getBy { Person::name eq "Albedo" } }
+        }
+    }
+
     test("Count") {
         expect(0) { Person.count() }
         listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 130).save() }
@@ -56,5 +78,27 @@ class DaoTest : DynaTest({
         expect(listOf("Nigredo", "Rubedo")) { Person.findAll().map { it.name } }
         Person.deleteBy { Person::name eq "Rubedo" }  // fancy type-safe criteria
         expect(listOf("Nigredo")) { Person.findAll().map { it.name } }
+    }
+
+    group("findSpecificBy() tests") {
+        test("succeeds if there is exactly one matching entity") {
+            val p = Person(name = "Albedo", age = 130)
+            p.save()
+            expect(p) { Person.findSpecificBy { Person::name eq "Albedo" } }
+        }
+
+        test("returns null if there is no such entity") {
+            expect(null) { Person.findSpecificBy { Person::name eq "Albedo" } }
+        }
+
+        test("fails if there are two matching entities") {
+            repeat(2) { Person(name = "Albedo", age = 130).save() }
+            expectThrows(IllegalArgumentException::class) { Person.findSpecificBy { Person::name eq "Albedo" } }
+        }
+
+        test("fails if there are ten matching entities") {
+            repeat(10) { Person(name = "Albedo", age = 130).save() }
+            expectThrows(IllegalArgumentException::class) { Person.findSpecificBy { Person::name eq "Albedo" } }
+        }
     }
 })
