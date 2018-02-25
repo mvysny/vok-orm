@@ -85,6 +85,7 @@ inline fun <ID, reified T: Entity<ID>> Dao<T>.findAll(): List<T> = db { con.find
  * Retrieves entity with given [id]. Fails if there is no such entity. See [Dao] on how to add this to your entities.
  * @throws IllegalArgumentException if there is no entity with given id.
  */
+@Deprecated("Confusing, see https://github.com/mvysny/vok-orm/issues/1 for more details")
 inline operator fun <ID: Any, reified T: Entity<ID>> Dao<T>.get(id: ID): T =
     db { con.getById(T::class.java, id) }
 
@@ -92,7 +93,21 @@ inline operator fun <ID: Any, reified T: Entity<ID>> Dao<T>.get(id: ID): T =
  * Retrieves entity with given [id]. Fails if there is no such entity. See [DaoOfAny] on how to add this to your entities.
  * @throws IllegalArgumentException if there is no entity with given id.
  */
+@Deprecated("Confusing, see https://github.com/mvysny/vok-orm/issues/1 for more details")
 inline operator fun <reified T: Any> DaoOfAny<T>.get(id: Any): T = db { con.getById(T::class.java, id) }
+
+/**
+ * Retrieves entity with given [id]. Fails if there is no such entity. See [Dao] on how to add this to your entities.
+ * @throws IllegalArgumentException if there is no entity with given id.
+ */
+inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.getById(id: ID): T =
+    db { con.getById(T::class.java, id) }
+
+/**
+ * Retrieves entity with given [id]. Fails if there is no such entity. See [DaoOfAny] on how to add this to your entities.
+ * @throws IllegalArgumentException if there is no entity with given id.
+ */
+inline fun <reified T: Any> DaoOfAny<T>.getById(id: Any): T = db { con.getById(T::class.java, id) }
 
 /**
  * Retrieves entity with given [id]. Returns null if there is no such entity.

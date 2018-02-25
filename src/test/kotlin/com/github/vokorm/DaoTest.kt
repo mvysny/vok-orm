@@ -18,11 +18,11 @@ class DaoTest : DynaTest({
     test("GetById") {
         val p = Person(name = "Albedo", age = 130)
         p.save()
-        expect(p) { Person.get(p.id!!) }
+        expect(p) { Person.getById(p.id!!) }
     }
 
     test("GetById fails if there is no such entity") {
-        expectThrows(IllegalArgumentException::class) { Person.get(25L) }
+        expectThrows(IllegalArgumentException::class) { Person.getById(25L) }
     }
 
     test("Count") {
