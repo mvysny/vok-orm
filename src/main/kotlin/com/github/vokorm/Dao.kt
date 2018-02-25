@@ -272,12 +272,12 @@ fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, filter: Filter<T>): 
 
 fun <T: Any> Connection.findSpecificBy(clazz: Class<T>, filter: Filter<T>): T? {
     val result = findBy(clazz, 2, filter)
-    require(result.size < 2) { "too many items: select * from ${clazz.databaseTableName} where ${filter.toSQL92()} returned $result and perhaps more" }
+    require(result.size < 2) { "too many ${clazz.simpleName} satisfying ${filter.toSQL92()}: $result and perhaps more" }
     return result.firstOrNull()
 }
 
 fun <T: Any> Connection.getBy(clazz: Class<T>, filter: Filter<T>): T =
-    findSpecificBy(clazz, filter) ?: throw IllegalArgumentException("too few items: select * from ${clazz.databaseTableName} where ${filter.toSQL92()} returned 0 items")
+    findSpecificBy(clazz, filter) ?: throw IllegalArgumentException("no ${clazz.simpleName} satisfying ${filter.toSQL92()}")
 
 /**
  * Allows you to find rows by given where clause, with the maximum of [limit] rows:
