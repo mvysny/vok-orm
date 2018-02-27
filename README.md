@@ -386,7 +386,7 @@ fun main(args: Array<String>) {
     
     // runs SELECT * FROM Person where id=:id
     // prints John
-    println(Person[1L].name)
+    println(Person.getById(1L).name)
     
     // mass-saves 11 persons in a single transaction.
     db { (0..10).forEach { Person(name = "person $it", age = it).save() } }
