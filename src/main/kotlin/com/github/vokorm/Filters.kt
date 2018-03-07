@@ -13,8 +13,10 @@ interface SerializablePredicate<T> : Predicate<T>, Serializable
  * A generic filter which filters items of type [T]. Implementors must define how exactly the items are filtered. The filter is retrofitted as a serializable
  * predicate so that in-memory filtering is also supported.
  *
- * Implementor detail: equals/hashCode/toString must be implemented properly, so that the filter type, the property name and the value which we compare against must be
+ * Implementor detail: [Any.equals]/[Any.hashCode]/[Any.toString] must be implemented properly, so that the filter type, the property name and the value which we compare against must be
  * taken into consideration.
+ * @param T the bean type upon which we will perform the filtering. This is not used by the filter directly, but it's required by [Predicate] which this
+ * interface extends.
  */
 interface Filter<T: Any> : SerializablePredicate<T> {
     infix fun and(other: Filter<in T>): Filter<T> = AndFilter(setOf(this, other))
