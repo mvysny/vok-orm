@@ -1,18 +1,13 @@
 package com.github.vokorm
 
+import com.github.mvysny.dynatest.DynaNodeGroup
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectThrows
 import org.sql2o.Connection
 import java.io.IOException
 import kotlin.test.expect
 
-/**
- * Tests the `db{}` method whether it manages transactions properly.
- */
-class DBTest : DynaTest({
-
-    usingDatabase()
-
+fun DynaNodeGroup.dbTestBattery() {
     test("verifyEntityManagerClosed") {
         val em: Connection = db { con }
         expect(true) { em.jdbcConnection.isClosed }
@@ -51,5 +46,23 @@ class DBTest : DynaTest({
             }
         }
         expect(listOf()) { Person.findAll() }
+    }
+}
+
+/**
+ * Tests the `db{}` method whether it manages transactions properly.
+ */
+class DBTest : DynaTest({
+
+    group("h2") {
+        usingH2Database()
+        dbTestBattery()
+    }
+
+    if (isDockerPresent) {
+        group("PostgreSQL 10.3") {
+            usingDockerizedPosgresql()
+            dbTestBattery()
+        }
     }
 })

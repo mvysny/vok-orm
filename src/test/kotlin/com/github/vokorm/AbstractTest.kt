@@ -5,7 +5,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.*
 
-fun DynaNodeGroup.usingDatabase() {
+fun DynaNodeGroup.usingH2Database() {
     beforeGroup {
         VokOrm.dataSourceConfig.apply {
             minimumIdle = 0

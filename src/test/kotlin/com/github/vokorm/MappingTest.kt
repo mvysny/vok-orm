@@ -1,5 +1,6 @@
 package com.github.vokorm
 
+import com.github.mvysny.dynatest.DynaNodeGroup
 import com.github.mvysny.dynatest.DynaTest
 import com.google.gson.Gson
 import java.time.Instant
@@ -8,8 +9,20 @@ import java.util.*
 import kotlin.test.expect
 
 class MappingTest : DynaTest({
-    usingDatabase()
+    group("h2") {
+        usingH2Database()
+        mappingTestBattery()
+    }
 
+    if (isDockerPresent) {
+        group("PostgreSQL 10.3") {
+            usingDockerizedPosgresql()
+            mappingTestBattery()
+        }
+    }
+})
+
+fun DynaNodeGroup.mappingTestBattery() {
     test("FindAll") {
         expect(listOf()) { Person.findAll() }
         val p = Person(name = "Zaphod", age = 42, ignored2 = Object())
@@ -71,6 +84,7 @@ class MappingTest : DynaTest({
         expect("Test") { meta.databaseTableName }  // since Person is annotated with @Entity("Test")
         expect("id") { meta.idDbname }
         expect(Person::class.java) { meta.entity }
+        expect(java.lang.Long::class.java) { meta.idClass }
         expect(setOf("id", "name", "age", "dateOfBirth", "created", "alive", "maritalStatus", "modified")) { meta.persistedFieldDbNames }
     }
-})
+}

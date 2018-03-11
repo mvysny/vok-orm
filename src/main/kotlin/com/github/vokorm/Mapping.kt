@@ -51,11 +51,12 @@ interface Entity<ID: Any> : Serializable {
             if (id == null) {
                 // not yet in the database, insert
                 val fields = meta.persistedFieldDbNames - meta.idDbname
-                con.createQuery("insert into ${meta.databaseTableName} (${fields.joinToString()}) values (${fields.map { ":$it" }.joinToString()})")
+                con.createQuery("insert into ${meta.databaseTableName} (${fields.joinToString()}) values (${fields.map { ":$it" }.joinToString()})", true)
                     .bind(this@Entity)
                     .executeUpdate()
+                val key = requireNotNull(con.key) { "The database have returned null key for the created record. Have you used AUTO INCREMENT or SERIAL for primary key?" }
                 @Suppress("UNCHECKED_CAST")
-                id = con.key as ID
+                id = convertID(key)
             } else {
                 val fields = meta.persistedFieldDbNames - meta.idDbname
                 con.createQuery("update ${meta.databaseTableName} set ${fields.map { "$it = :$it" }.joinToString()} where ${meta.idDbname} = :${meta.idDbname}")
@@ -76,6 +77,13 @@ interface Entity<ID: Any> : Serializable {
                 .executeUpdate()
         }
     }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun convertID(id: Any): ID = when (meta.idClass) {
+        java.lang.Integer::class.java, Integer.TYPE -> (id as Number).toInt() as ID
+        java.lang.Long::class.java, java.lang.Long.TYPE -> (id as Number).toLong() as ID
+        else -> meta.idClass.cast(id) as ID
+    }
 }
 
 data class EntityMeta(val entity: Class<out Any>) : Serializable {
@@ -93,10 +101,17 @@ data class EntityMeta(val entity: Class<out Any>) : Serializable {
     /**
      * The database name of the ID column.
      */
-    val idDbname: String get() {
-        val idField = checkNotNull(entity.findDeclaredField("id")) { "Unexpected: entity $entity has no id column?" }
-        return idField.dbname
-    }
+    val idDbname: String get() = idField.dbname
+
+    /**
+     * The Java reflection [Field] for the `id` property as declared in the entity.
+     */
+    val idField: Field get() = checkNotNull(entity.findDeclaredField("id")) { "Unexpected: entity $entity has no id column?" }
+
+    /**
+     * The type of the `id` property as declared in the entity.
+     */
+    val idClass: Class<*> get() = idField.type
 }
 
 private fun Class<*>.findDeclaredField(name: String): Field? {

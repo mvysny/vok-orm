@@ -49,6 +49,9 @@ dependencies {
     testCompile 'com.google.code.gson:gson:2.8.2'
     testCompile 'ch.qos.logback:logback-classic:1.2.3'
     testCompile 'com.h2database:h2:1.4.196'
+
+    testCompile 'org.postgresql:postgresql:42.2.1'
+    testCompile 'org.zeroturnaround:zt-exec:1.10'
 }
 
 task sourceJar(type: Jar, dependsOn: classes) {

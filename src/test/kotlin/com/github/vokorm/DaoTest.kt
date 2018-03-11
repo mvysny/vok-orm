@@ -1,13 +1,11 @@
 package com.github.vokorm
 
+import com.github.mvysny.dynatest.DynaNodeGroup
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectThrows
 import kotlin.test.expect
 
-class DaoTest : DynaTest({
-
-    usingDatabase()
-
+fun DynaNodeGroup.daoTestBattery() {
     test("FindById") {
         expect(null) { Person.findById(25) }
         val p = Person(name = "Albedo", age = 130)
@@ -99,6 +97,21 @@ class DaoTest : DynaTest({
         test("fails if there are ten matching entities") {
             repeat(10) { Person(name = "Albedo", age = 130).save() }
             expectThrows(IllegalArgumentException::class) { Person.findSpecificBy { Person::name eq "Albedo" } }
+        }
+    }
+}
+
+class DaoTest : DynaTest({
+
+    group("h2") {
+        usingH2Database()
+        daoTestBattery()
+    }
+
+    if (isDockerPresent) {
+        group("PostgreSQL 10.3") {
+            usingDockerizedPosgresql()
+            daoTestBattery()
         }
     }
 })
