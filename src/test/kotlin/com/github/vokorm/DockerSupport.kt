@@ -8,7 +8,9 @@ import java.sql.SQLException
 
 val isDockerPresent: Boolean get() {
     try {
-        return ProcessExecutor().command("docker", "version").execute().exitValue == 0
+        val isPresent = ProcessExecutor().command("docker", "version").execute().exitValue == 0
+        println("Docker is available: $isPresent")
+        return isPresent
     } catch (e: ProcessInitException) {
         if (e.errorCode == 2) return false // no such file or directory
         throw e
