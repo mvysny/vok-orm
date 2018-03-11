@@ -29,13 +29,14 @@ object Docker {
 
     private fun probeJDBC(url: String, username: String, password: String) {
         var lastException: SQLException? = null
-        repeat(30) {
+        // mysql starts sloooooowly
+        repeat(100) {
             try {
                 DriverManager.getConnection(url, username, password).close()
                 return
             } catch (e: SQLException) {
                 lastException = e
-                Thread.sleep(300)
+                Thread.sleep(500)
             }
         }
         throw lastException!!
@@ -44,40 +45,13 @@ object Docker {
     fun stopPostgresql() {
         exec("docker stop testing_container")
     }
-}
 
-fun DynaNodeGroup.usingDockerizedPosgresql() {
-    check(isDockerPresent) { "Docker not available" }
-    beforeGroup { Docker.startPostgresql() }
-    beforeGroup {
-        VokOrm.dataSourceConfig.apply {
-            minimumIdle = 0
-            maximumPoolSize = 30
-            jdbcUrl = "jdbc:postgresql://localhost:5432/postgres"
-            username = "postgres"
-            password = "mysecretpassword"
-        }
-        VokOrm.init()
-        db {
-            con.createQuery(
-                """create table if not exists Test (
-                id bigserial primary key,
-                name varchar(400) not null,
-                age integer not null,
-                dateOfBirth date,
-                created timestamp,
-                modified timestamp,
-                alive boolean,
-                maritalStatus varchar(200)
-                 )"""
-            ).executeUpdate()
-        }
+    fun startMysql() {
+        exec("docker run --rm --name testing_container -e MYSQL_ROOT_PASSWORD=mysqlpassword -e MYSQL_DATABASE=db -e MYSQL_USER=testuser -e MYSQL_PASSWORD=mysqlpassword -p 3306:3306 -d mysql:5.7.21")
+        probeJDBC("jdbc:mysql://localhost:3306/db", "testuser", "mysqlpassword")
     }
 
-    afterGroup { VokOrm.destroy() }
-    afterGroup { Docker.stopPostgresql() }
-
-    fun clearDb() = Person.deleteAll()
-    beforeEach { clearDb() }
-    afterEach { clearDb() }
+    fun stopMysql() {
+        exec("docker stop testing_container")
+    }
 }
