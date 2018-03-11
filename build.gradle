@@ -100,4 +100,9 @@ bintray {
 
 test {
     useJUnitPlatform()
+    testLogging {
+        // to see the exceptions of failed tests in Travis-CI console. Seems to be ignored:
+        // https://github.com/gradle/gradle/issues/4681
+        exceptionFormat = 'full'
+    }
 }
