@@ -150,6 +150,42 @@ private fun DynaNodeGroup.usingH2Database() {
     afterEach { clearDb() }
 }
 
+private fun DynaNodeGroup.usingDockerizedMariaDB() {
+    check(isDockerPresent) { "Docker not available" }
+    beforeGroup { Docker.startMariaDB() }
+    beforeGroup {
+        VokOrm.dataSourceConfig.apply {
+            minimumIdle = 0
+            maximumPoolSize = 30
+            jdbcUrl = "jdbc:mariadb://localhost:3306/db"
+            username = "testuser"
+            password = "mysqlpassword"
+        }
+        VokOrm.init()
+        db {
+            con.createQuery(
+                """create table if not exists Test (
+                id bigint primary key auto_increment,
+                name varchar(400) not null,
+                age integer not null,
+                dateOfBirth date,
+                created timestamp(3) NULL,
+                modified timestamp(3) NULL,
+                alive boolean,
+                maritalStatus varchar(200)
+                 )"""
+            ).executeUpdate()
+        }
+    }
+
+    afterGroup { VokOrm.destroy() }
+    afterGroup { Docker.stopMariaDB() }
+
+    fun clearDb() = Person.deleteAll()
+    beforeEach { clearDb() }
+    afterEach { clearDb() }
+}
+
 fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.()->Unit) {
     group("H2") {
         usingH2Database()
@@ -164,6 +200,11 @@ fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.()->Unit) {
 
         group("MySQL 5.7.21") {
             usingDockerizedMysql()
+            block()
+        }
+
+        group("MariaDB 10.1.31") {
+            usingDockerizedMariaDB()
             block()
         }
     }

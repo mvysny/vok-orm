@@ -54,4 +54,13 @@ object Docker {
     fun stopMysql() {
         exec("docker stop testing_container")
     }
+
+    fun startMariaDB() {
+        exec("docker run --rm --name testing_container -e MYSQL_ROOT_PASSWORD=mysqlpassword -e MYSQL_DATABASE=db -e MYSQL_USER=testuser -e MYSQL_PASSWORD=mysqlpassword -p 3306:3306 -d mariadb:10.1.31")
+        probeJDBC("jdbc:mariadb://localhost:3306/db", "testuser", "mysqlpassword")
+    }
+
+    fun stopMariaDB() {
+        exec("docker stop testing_container")
+    }
 }
