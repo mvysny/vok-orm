@@ -41,8 +41,17 @@ object Docker {
         throw lastException!!
     }
 
-    fun stopPostgresql() {
+    private fun stopTestingContainer() {
         exec("docker stop testing_container")
+        // pause a bit, to avoid this failure:
+        // java.lang.IllegalStateException: docker: Error response from daemon: Conflict. The container name "/testing_container" is already
+        // in use by container 613ff9e5f3de3312dc8ce33f0d3d3d7b40289c04e70c551179b87f835c2ebf3a. You have to remove (or rename) that
+        // container to be able to reuse that name..
+        Thread.sleep(500)
+    }
+
+    fun stopPostgresql() {
+        stopTestingContainer()
     }
 
     fun startMysql() {
@@ -51,7 +60,7 @@ object Docker {
     }
 
     fun stopMysql() {
-        exec("docker stop testing_container")
+        stopTestingContainer()
     }
 
     fun startMariaDB() {
@@ -60,6 +69,6 @@ object Docker {
     }
 
     fun stopMariaDB() {
-        exec("docker stop testing_container")
+        stopTestingContainer()
     }
 }
