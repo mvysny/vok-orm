@@ -53,9 +53,11 @@ repositories {
     maven { url "https://dl.bintray.com/mvysny/github" }
 }
 dependencies {
-    compile("com.github.vokorm:vok-orm:0.2")
+    compile("com.github.vokorm:vok-orm:x.y")
 }
 ```
+
+> Note: obtain the newest version from the release name, and the tag name as well: [https://github.com/mvysny/vok-orm/releases](https://github.com/mvysny/vok-orm/releases)
 
 ## Usage examples
 
