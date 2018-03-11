@@ -1,6 +1,5 @@
 package com.github.vokorm
 
-import com.github.mvysny.dynatest.DynaNodeGroup
 import org.zeroturnaround.exec.ProcessExecutor
 import org.zeroturnaround.exec.ProcessInitException
 import java.sql.DriverManager
@@ -17,8 +16,8 @@ val isDockerPresent: Boolean get() {
 
 fun exec(command: String) {
     val commands = command.split(' ')
-    val result = ProcessExecutor().command(commands).redirectOutput(System.out).execute()
-    check(result.exitValue == 0) { "Process failed with ${result.exitValue}" }
+    val result = ProcessExecutor().command(commands).readOutput(true).execute()
+    check(result.exitValue == 0) { "${result.outputUTF8()}\nProcess failed with ${result.exitValue}" }
 }
 
 object Docker {
