@@ -46,7 +46,7 @@ enum class MaritalStatus {
 }
 
 private fun DynaNodeGroup.usingDockerizedPosgresql() {
-    check(isDockerPresent) { "Docker not available" }
+    check(Docker.isPresent) { "Docker not available" }
     beforeGroup { Docker.startPostgresql() }
     beforeGroup {
         VokOrm.dataSourceConfig.apply {
@@ -82,7 +82,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
 }
 
 private fun DynaNodeGroup.usingDockerizedMysql() {
-    check(isDockerPresent) { "Docker not available" }
+    check(Docker.isPresent) { "Docker not available" }
     beforeGroup { Docker.startMysql() }
     beforeGroup {
         VokOrm.dataSourceConfig.apply {
@@ -151,7 +151,7 @@ private fun DynaNodeGroup.usingH2Database() {
 }
 
 private fun DynaNodeGroup.usingDockerizedMariaDB() {
-    check(isDockerPresent) { "Docker not available" }
+    check(Docker.isPresent) { "Docker not available" }
     beforeGroup { Docker.startMariaDB() }
     beforeGroup {
         VokOrm.dataSourceConfig.apply {
@@ -192,7 +192,7 @@ fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.()->Unit) {
         block()
     }
 
-    if (isDockerPresent) {
+    if (Docker.isPresent) {
         group("PostgreSQL 10.3") {
             usingDockerizedPosgresql()
             block()
