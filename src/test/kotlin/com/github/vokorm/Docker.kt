@@ -4,6 +4,7 @@ import org.zeroturnaround.exec.ProcessExecutor
 import org.zeroturnaround.exec.ProcessInitException
 import java.sql.DriverManager
 import java.sql.SQLException
+import kotlin.test.expect
 
 /**
  * Provides means to start/stop various databases in Docker.
@@ -46,6 +47,9 @@ object Docker {
     }
 
     private fun probeJDBC(url: String, username: String, password: String) {
+        // check that we have a proper driver on classpath
+        expect(true) { DriverManager.getDriver(url) != null }
+
         var lastException: SQLException? = null
         // mysql starts sloooooowly
         repeat(100) {
