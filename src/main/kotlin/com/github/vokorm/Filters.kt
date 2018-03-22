@@ -22,10 +22,14 @@ interface Filter<T: Any> : SerializablePredicate<T> {
     infix fun and(other: Filter<in T>): Filter<T> = AndFilter(setOf(this, other))
     infix fun or(other: Filter<in T>): Filter<T> = OrFilter(setOf(this, other))
     /**
-     * Attempts to convert this filter into a SQL 92 WHERE-clause representation. There are two types of filters:
+     * Attempts to convert this filter into a SQL 92 WHERE-clause representation (omitting the `WHERE` keyword). There are two types of filters:
      * * Filters which do not match column to a value, for example [AndFilter] which produces something like `(filter1 and filter2)`
      * * Filters which do match column to a value, for example [LikeFilter] which produces things like `name LIKE :name`. All [BeanFilter]s are expected
      * to match a database column to a value; that value is automatically prefilled into the JDBC query string under the [BeanFilter.propertyName].
+     *
+     * Examples of returned values:
+     * * `name = :name`
+     * * `(age >= :age AND name ILIKE :name)`
      */
     fun toSQL92(): String = throw IllegalStateException("$this cannot be converted to sql92 filter")
     fun getSQL92Parameters(): Map<String, Any?> = throw IllegalStateException("$this cannot be converted to sql92 filter")
