@@ -93,10 +93,11 @@ Zero-arg constructor is mandated by Sql2o, in order for Sql2o to be able to cons
 instances of entity class for every row returned.
 
 By implementing the `Entity<Long>` interface, we are telling vok-orm that the primary key is of type `Long`; this will be important later on when using Dao.
-The [Entity](src/main/kotlin/com/github/vokorm/Mapping.kt) interface brings in two useful methods:
+The [Entity](src/main/kotlin/com/github/vokorm/Mapping.kt) interface brings in three useful methods:
 
 * `save()` which either creates a new row by generating the INSERT statement (if the ID is null), or updates the row by generating the UPDATE statement (if the ID is not null)
 * `delete()` which deletes the row identified by the `id` primary key from the database.
+* `validate()` validates the bean. By default all `javax.validation` annotations are validated; you can override this method to provide further bean-level validations.
 
 The INSERT/UPDATE statement is automatically constructed by the `save()` method, simply by enumerating all non-transient and non-ignored properties of
 the bean using reflection and fetching their values. See the [Entity](src/main/kotlin/com/github/vokorm/Mapping.kt) sources for more details.
