@@ -2,6 +2,8 @@ package com.github.vokorm
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.sql2o.Connection
 import org.sql2o.Sql2o
 import org.sql2o.converters.Converter
@@ -14,6 +16,7 @@ import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import javax.validation.NoProviderFoundException
 import javax.validation.Validation
 import javax.validation.Validator
 
@@ -48,9 +51,15 @@ object VokOrm {
     val dataSourceConfig = HikariConfig()
 
     /**
-     * The validator used by [Entity.validate].
+     * The validator used by [Entity.validate]. By default tries to build the default validation factory; if there is no provider, a no-op
+     * validator is used instead.
      */
-    var validator: Validator = Validation.buildDefaultValidatorFactory().validator
+    var validator: Validator = try {
+        Validation.buildDefaultValidatorFactory().validator
+    } catch (ex: NoProviderFoundException) {
+        LoggerFactory.getLogger(VokOrm::class.java).warn("vok-orm failed to build the default validator, using no-op", ex)
+        NoopValidator
+    }
 }
 
 /**

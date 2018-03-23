@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import javax.validation.ConstraintViolation
 import javax.validation.ConstraintViolationException
-import javax.validation.Validation
 import javax.validation.ValidationException
 
 /**
