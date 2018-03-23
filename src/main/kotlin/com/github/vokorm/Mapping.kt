@@ -49,9 +49,11 @@ interface Entity<ID: Any> : Serializable {
      * When creating, expects the [id] field to be null. It is expected that the database will generate an id for us (by sequences,
      * `auto_increment` or other means). That generated ID is then automatically stored into the [id] field.
      *
-     * The bean is validated first, by calling [validate].
+     * The bean is validated first, by calling [Entity.validate]. You can bypass this by setting [validate] to false, but that's not
+     * recommended.
      */
-    fun save() {
+    fun save(validate: Boolean = true) {
+        if (validate) { validate() }
         validate()
         db {
             if (id == null) {

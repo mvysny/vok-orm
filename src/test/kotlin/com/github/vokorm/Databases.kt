@@ -21,12 +21,12 @@ data class Person(
     var maritalStatus: MaritalStatus? = null
 
 ) : Entity<Long> {
-    override fun save() {
+    override fun save(validate: Boolean) {
         if (id == null) {
             if (created == null) created = java.sql.Timestamp(System.currentTimeMillis())
             if (modified == null) modified = Instant.now()
         }
-        super.save()
+        super.save(validate)
     }
 
     // should not be persisted into the database since it's not backed by a field.
