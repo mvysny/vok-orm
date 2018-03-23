@@ -5,6 +5,10 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
+import javax.validation.ConstraintViolation
+import javax.validation.ConstraintViolationException
+import javax.validation.Validation
+import javax.validation.ValidationException
 
 /**
  * Optional annotation which allows you to change the table name.
@@ -45,8 +49,11 @@ interface Entity<ID: Any> : Serializable {
      *
      * When creating, expects the [id] field to be null. It is expected that the database will generate an id for us (by sequences,
      * `auto_increment` or other means). That generated ID is then automatically stored into the [id] field.
+     *
+     * The bean is validated first, by calling [validate].
      */
     fun save() {
+        validate()
         db {
             if (id == null) {
                 // not yet in the database, insert
@@ -77,6 +84,23 @@ interface Entity<ID: Any> : Serializable {
                 .executeUpdate()
         }
     }
+
+    /**
+     * Validates current entity. By default performs the java validation: just add `javax.validation` annotations to entity properties.
+     * Make sure to add the validation annotations to
+     * fields (by annotating Kotlin properties as `@field:NotNull`) otherwise they will be ignored.
+     *
+     * You can override this method to perform additional validations on the level of the entire entity.
+     * @throws javax.validation.ValidationException when validation fails.
+     */
+    fun validate() {
+        val violations: Set<ConstraintViolation<Entity<ID>>> = VokOrm.validator.validate(this)
+        if (!violations.isEmpty()) {
+            throw ConstraintViolationException(violations)
+        }
+    }
+
+    fun isValid() = try { validate(); true } catch (e: ValidationException) { false }
 
     @Suppress("UNCHECKED_CAST")
     private fun convertID(id: Any): ID = when (meta.idClass) {

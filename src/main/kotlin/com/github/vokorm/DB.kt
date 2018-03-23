@@ -14,6 +14,8 @@ import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import javax.validation.Validation
+import javax.validation.Validator
 
 /**
  * Initializes the ORM in the current JVM. Just fill in [dataSourceConfig] properly and then call [init] once per JVM. When the database services
@@ -44,6 +46,11 @@ object VokOrm {
      * [HikariConfig.driverClassName], [HikariConfig.jdbcUrl], [HikariConfig.username] and [HikariConfig.password].
      */
     val dataSourceConfig = HikariConfig()
+
+    /**
+     * The validator used by [Entity.validate].
+     */
+    var validator: Validator = Validation.buildDefaultValidatorFactory().validator
 }
 
 /**

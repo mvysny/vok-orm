@@ -1,6 +1,7 @@
 package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaNodeGroup
+import org.hibernate.validator.constraints.Length
 import java.time.Instant
 import java.time.LocalDate
 import java.util.*
@@ -8,6 +9,7 @@ import java.util.*
 @Table("Test")
 data class Person(
     override var id: Long? = null,
+    @field:Length(min = 1)
     var name: String,
     var age: Int,
     @Ignore var ignored: String? = null,
@@ -117,7 +119,7 @@ private fun DynaNodeGroup.usingDockerizedMysql() {
     afterEach { clearDb() }
 }
 
-private fun DynaNodeGroup.usingH2Database() {
+fun DynaNodeGroup.usingH2Database() {
     beforeGroup {
         VokOrm.dataSourceConfig.apply {
             minimumIdle = 0
