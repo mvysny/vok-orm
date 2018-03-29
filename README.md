@@ -175,6 +175,7 @@ that are attached to the [Dao](src/main/kotlin/com/github/vokorm/Dao.kt) interfa
   is converted into the WHERE clause.
 * `Category.getBy { "name = :name"("name" to "Beer") }` will fetch exactly one matching category, failing if there is no such category or there are more than one.
 * `Category.findSpecificBy { "name = :name"("name" to "Beer") }` will fetch one matching category, failing if there are more than one. Returns `null` if there is none.
+* `Category.count { "name = :name"("name" to "Beer") }` will return the number of rows in the Category table matching given query.
 
 In the spirit of type safety, the finder methods will only accept `Long` (or whatever is the type of
 the primary key in the `Entity<x>` implementation clause). 
@@ -185,8 +186,8 @@ You can of course add your own custom finder methods into the Category companion
 data class Category(override var id: Long? = null, var name: String = "") : Entity<Long> {
     companion object : Dao<Category> {
         fun findByName(name: String): Category? = findSpecificBy { Category::name eq name }
-        fun getByName(name: String): Category = findByName(name) ?: throw IllegalArgumentException("No category named $name")
-        fun existsWithName(name: String): Boolean = findByName(name) != null
+        fun getByName(name: String): Category = getBy { Category::name eq name }
+        fun existsWithName(name: String): Boolean = count { Category::name eq name } > 0
     }
 }
 ```  
@@ -268,10 +269,9 @@ For example you can define static finder or computation method into the `Review`
          * @return the total sum, 0 or greater.
          */
         fun getTotalCountForReviewsInCategory(categoryId: Long): Long = db {
-            val scalar: Any? = con.createQuery("select sum(r.count) from Review r where r.category = :catId")
+            con.createQuery("select sum(r.count) from Review r where r.category = :catId")
                     .addParameter("catId", categoryId)
-                    .executeScalar()
-            (scalar as Number?)?.toLong() ?: 0L
+                    .executeScalar(Long::class.java) ?: 0L
         }
     }
 ```
