@@ -41,10 +41,17 @@ class DaoTest : DynaTest({
                 expectThrows(IllegalArgumentException::class) { Person.getBy { Person::name eq "Albedo" } }
             }
         }
-        test("Count") {
-            expect(0) { Person.count() }
-            listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 130).save() }
-            expect(3) { Person.count() }
+        group("count") {
+            test("basic count") {
+                expect(0) { Person.count() }
+                listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 130).save() }
+                expect(3) { Person.count() }
+            }
+            test("count with filters") {
+                expect(0) { Person.count() }
+                listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = it.length).save() }
+                expect(1) { Person.count { Person::age gt 6 } }
+            }
         }
         test("DeleteAll") {
             listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 130).save() }
