@@ -82,12 +82,12 @@ class DaoTest : DynaTest({
 
             test("fails if there are two matching entities") {
                 repeat(2) { Person(name = "Albedo", age = 130).save() }
-                expectThrows(IllegalArgumentException::class) { Person.findSpecificBy { Person::name eq "Albedo" } }
+                expectThrows(IllegalArgumentException::class, "too many Person satisfying name =") { Person.findSpecificBy { Person::name eq "Albedo" } }
             }
 
             test("fails if there are ten matching entities") {
                 repeat(10) { Person(name = "Albedo", age = 130).save() }
-                expectThrows(IllegalArgumentException::class) { Person.findSpecificBy { Person::name eq "Albedo" } }
+                expectThrows(IllegalArgumentException::class, "too many Person satisfying name =") { Person.findSpecificBy { Person::name eq "Albedo" } }
             }
         }
     }
