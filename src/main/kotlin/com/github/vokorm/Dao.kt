@@ -117,6 +117,9 @@ inline fun <reified T: Any> DaoOfAny<T>.getById(id: Any): T = db { con.getById(T
  * Person.getBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
  * Person.getBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
  * ```
+ *
+ * This function fails if there is no such entity or there are 2 or more. Use [findSpecificBy] if you wish to return `null` in case that
+ * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
 inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.getBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T {
@@ -132,6 +135,9 @@ inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.getBy(noinline block: SqlWher
  * Person.getBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
  * Person.getBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
  * ```
+ *
+ * This function fails if there is no such entity or there are 2 or more. Use [findSpecificBy] if you wish to return `null` in case that
+ * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
 inline fun <reified T: Any> DaoOfAny<T>.getBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T {
@@ -140,14 +146,18 @@ inline fun <reified T: Any> DaoOfAny<T>.getBy(noinline block: SqlWhereBuilder<T>
 }
 
 /**
- * Retrieves specific entity matching given criteria [block]. Fails if there are two or more entities matching the criteria.
+ * Retrieves specific entity matching given criteria [block]. Returns `null` if there is no such entity.
+ * Fails if there are two or more entities matching the criteria.
  *
  * Example:
  * ```
  * Person.findSingleBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
  * Person.findSingleBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
  * ```
- * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
+ *
+ * This function returns `null` if there is no such entity. Use [getBy] if you wish an exception to be thrown in case that
+ * the entity does not exist.
+ * @throws IllegalArgumentException if there are two or more matching entities.
  */
 inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.findSpecificBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T? {
     val filter = block(SqlWhereBuilder())
@@ -162,7 +172,10 @@ inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.findSpecificBy(noinline block
  * Person.findSingleBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
  * Person.findSingleBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
  * ```
- * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
+ *
+ * This function returns `null` if there is no such entity. Use [getBy] if you wish an exception to be thrown in case that
+ * the entity does not exist.
+ * @throws IllegalArgumentException if there are two or more matching entities.
  */
 inline fun <reified T: Any> DaoOfAny<T>.findSpecificBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T? {
     val filter = block(SqlWhereBuilder())
@@ -270,6 +283,13 @@ fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, filter: Filter<T>): 
     return query.executeAndFetch(clazz)
 }
 
+/**
+ * Retrieves specific entity matching given criteria [filter]. Fails if there are two or more entities matching the criteria.
+ *
+ * This function returns `null` if there is no such entity. Use [getBy] if you wish an exception to be thrown in case that
+ * the entity does not exist.
+ * @throws IllegalArgumentException if there are two or more matching entities.
+ */
 fun <T: Any> Connection.findSpecificBy(clazz: Class<T>, filter: Filter<T>): T? {
     val result = findBy(clazz, 2, filter)
     require(result.size < 2) { "too many ${clazz.simpleName} satisfying ${filter.toSQL92()}: $result and perhaps more" }

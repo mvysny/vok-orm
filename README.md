@@ -184,7 +184,7 @@ You can of course add your own custom finder methods into the Category companion
 ```kotlin
 data class Category(override var id: Long? = null, var name: String = "") : Entity<Long> {
     companion object : Dao<Category> {
-        fun findByName(name: String): Category? = findBy(1) { Category::name eq name } .firstOrNull()
+        fun findByName(name: String): Category? = findSpecificBy { Category::name eq name }
         fun getByName(name: String): Category = findByName(name) ?: throw IllegalArgumentException("No category named $name")
         fun existsWithName(name: String): Boolean = findByName(name) != null
     }
