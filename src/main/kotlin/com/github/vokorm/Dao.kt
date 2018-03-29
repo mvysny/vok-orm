@@ -3,42 +3,6 @@ package com.github.vokorm
 import org.sql2o.Connection
 
 /**
- * Finds all instances of given entity. Fails if there is no table in the database with the name of [databaseTableName]. The list is eager
- * and thus it's useful for smallish tables only.
- */
-fun <T : Any> Connection.findAll(clazz: Class<T>): List<T> = createQuery("select * from ${clazz.databaseTableName}").executeAndFetch(clazz)
-
-/**
- * Retrieves entity with given [id]. Returns null if there is no such entity.
- */
-fun <T : Any> Connection.findById(clazz: Class<T>, id: Any): T? =
-        createQuery("select * from ${clazz.databaseTableName} where id = :id")
-                .addParameter("id", id)
-                .executeAndFetchFirst(clazz)
-
-/**
- * Retrieves entity with given [id]. Fails if there is no such entity.
- * @throws IllegalArgumentException if there is no entity with given id.
- */
-fun <T : Any> Connection.getById(clazz: Class<T>, id: Any): T =
-    requireNotNull(findById<T>(clazz, id)) { "There is no $clazz for id $id" }
-
-/**
- * Deletes all rows from given database table.
- */
-fun <T: Any> Connection.deleteAll(clazz: Class<T>) {
-    createQuery("delete from ${clazz.databaseTableName}").executeUpdate()
-}
-
-/**
- * Counts all rows in given table.
- */
-fun <T: Any> Connection.getCount(clazz: Class<T>): Long {
-    val count = createQuery("select count(*) from ${clazz.databaseTableName}").executeScalar()
-    return (count as Number).toLong()
-}
-
-/**
  * Data access object, provides instances of given [Entity]. To use, just let your [Entity]'s companion class implement this interface, say:
  *
  * ```
@@ -213,11 +177,15 @@ inline fun <reified T: Entity<*>> Dao<T>.count(): Long = db { con.getCount(T::cl
  */
 inline fun <reified T: Any> DaoOfAny<T>.count(): Long = db { con.getCount(T::class.java) }
 
-fun <T: Any> Connection.deleteById(clazz: Class<T>, id: Any) {
-    createQuery("delete from ${clazz.databaseTableName} where id=:id")
-            .addParameter("id", id)
-            .executeUpdate()
-}
+/**
+ * Counts all rows in given table which matches given [block] clause.
+ */
+inline fun <reified T: Entity<*>> Dao<T>.count(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Long = db { con.getCount(T::class.java, SqlWhereBuilder<T>().block()) }
+
+/**
+ * Counts all rows in given table which matches given [block] clause.
+ */
+inline fun <reified T: Any> DaoOfAny<T>.count(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Long = db { con.getCount(T::class.java, SqlWhereBuilder<T>().block()) }
 
 /**
  * Deletes row with given ID. Does nothing if there is no such row.
@@ -228,13 +196,6 @@ inline fun <reified T: Entity<*>> Dao<T>.deleteById(id: Any): Unit = db { con.de
  * Deletes row with given ID. Does nothing if there is no such row.
  */
 inline fun <reified T: Any> DaoOfAny<T>.deleteById(id: Any): Unit = db { con.deleteById(T::class.java, id) }
-
-fun <T: Any> Connection.deleteBy(clazz: Class<T>, block: SqlWhereBuilder<T>.()-> Filter<T>) {
-    val filter = block(SqlWhereBuilder())
-    val query = createQuery("delete from ${clazz.databaseTableName} where ${filter.toSQL92()}")
-    filter.getSQL92Parameters().entries.forEach { (name, value) -> query.addParameter(name, value) }
-    query.executeUpdate()
-}
 
 /**
  * Allows you to delete rows by given where clause:
@@ -275,29 +236,6 @@ inline fun <reified T: Any> DaoOfAny<T>.deleteBy(noinline block: SqlWhereBuilder
  */
 inline val <reified T: Entity<*>> Dao<T>.meta: EntityMeta
     get() = EntityMeta(T::class.java)
-
-fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, filter: Filter<T>): List<T> {
-    require (limit >= 0) { "$limit is less than 0" }
-    val query = createQuery("select * from ${clazz.databaseTableName} where ${filter.toSQL92()} limit $limit")
-    filter.getSQL92Parameters().entries.forEach { (name, value) -> query.addParameter(name, value) }
-    return query.executeAndFetch(clazz)
-}
-
-/**
- * Retrieves specific entity matching given criteria [filter]. Fails if there are two or more entities matching the criteria.
- *
- * This function returns `null` if there is no such entity. Use [getBy] if you wish an exception to be thrown in case that
- * the entity does not exist.
- * @throws IllegalArgumentException if there are two or more matching entities.
- */
-fun <T: Any> Connection.findSpecificBy(clazz: Class<T>, filter: Filter<T>): T? {
-    val result = findBy(clazz, 2, filter)
-    require(result.size < 2) { "too many ${clazz.simpleName} satisfying ${filter.toSQL92()}: $result and perhaps more" }
-    return result.firstOrNull()
-}
-
-fun <T: Any> Connection.getBy(clazz: Class<T>, filter: Filter<T>): T =
-    findSpecificBy(clazz, filter) ?: throw IllegalArgumentException("no ${clazz.simpleName} satisfying ${filter.toSQL92()}")
 
 /**
  * Allows you to find rows by given where clause, with the maximum of [limit] rows:

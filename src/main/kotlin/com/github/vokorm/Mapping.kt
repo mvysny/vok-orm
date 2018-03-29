@@ -111,17 +111,17 @@ interface Entity<ID: Any> : Serializable {
     }
 }
 
-data class EntityMeta(val entity: Class<out Any>) : Serializable {
+data class EntityMeta(val entityClass: Class<out Any>) : Serializable {
     /**
      * The name of the database table backed by this entity. Defaults to [Class.getSimpleName]
      * (no conversion from `camelCase` to `hyphen_separated`) but you can annotate your class with [Table.dbname] to override
      * that.
      */
-    val databaseTableName: String get() = entity.databaseTableName
+    val databaseTableName: String get() = entityClass.databaseTableName
     /**
      * A list of database names of all persisted fields in this entity.
      */
-    val persistedFieldDbNames: Set<String> get() = entity.persistedFieldNames
+    val persistedFieldDbNames: Set<String> get() = entityClass.persistedFieldNames
 
     /**
      * The database name of the ID column.
@@ -131,7 +131,7 @@ data class EntityMeta(val entity: Class<out Any>) : Serializable {
     /**
      * The Java reflection [Field] for the `id` property as declared in the entity.
      */
-    val idField: Field get() = checkNotNull(entity.findDeclaredField("id")) { "Unexpected: entity $entity has no id column?" }
+    val idField: Field get() = checkNotNull(entityClass.findDeclaredField("id")) { "Unexpected: entity $entityClass has no id column?" }
 
     /**
      * The type of the `id` property as declared in the entity.
@@ -151,10 +151,15 @@ private fun Class<*>.findDeclaredField(name: String): Field? {
  * (no conversion from `camelCase` to `hyphen_separated`) but you can annotate your class with [Table.dbname] to override
  * that.
  */
-val Class<*>.databaseTableName: String get() {
+private val Class<*>.databaseTableName: String get() {
     val annotatedName = getAnnotation(Table::class.java)?.dbname
     return if (annotatedName != null && annotatedName.isNotBlank()) annotatedName else simpleName
 }
+
+/**
+ * Provides reflection utils to examine the entity metadata.
+ */
+val Class<*>.entityMeta: EntityMeta get() = EntityMeta(this)
 
 private inline val Field.isTransient get() = Modifier.isTransient(modifiers)
 private inline val Field.isStatic get() = Modifier.isStatic(modifiers)
