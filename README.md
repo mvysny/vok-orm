@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/mvysny/vok-orm.svg?branch=master)](https://travis-ci.org/mvysny/vok-orm)
+[![Join the chat at https://gitter.im/vaadin/vaadin-on-kotlin](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/vaadin/vaadin-on-kotlin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![GitHub tag](https://img.shields.io/github/tag/mvysny/vok-orm.svg)](https://github.com/mvysny/vok-orm/tags)
 
 # Vaadin-On-Kotlin database mapping library
 
@@ -57,7 +59,7 @@ dependencies {
 }
 ```
 
-> Note: obtain the newest version from the release name, and the tag name as well: [https://github.com/mvysny/vok-orm/releases](https://github.com/mvysny/vok-orm/releases)
+> Note: obtain the newest version from the tag name at the top of the page
 
 ## Usage examples
 
