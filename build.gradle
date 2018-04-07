@@ -42,7 +42,7 @@ dependencies {
 
     // db
     compile 'org.sql2o:sql2o:1.5.4'
-    compile "com.zaxxer:HikariCP:2.7.8"
+    compile "com.zaxxer:HikariCP:3.0.0"
 
     // validation support
     compile 'javax.validation:validation-api:2.0.0.Final'  // so that the BeanFieldGroup will perform JSR303 validations
