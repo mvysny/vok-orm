@@ -250,3 +250,8 @@ data class NativeSqlFilter<T: Any>(val where: String, val params: Map<String, An
     override fun toSQL92() = where
     override fun getSQL92Parameters(): Map<String, Any?> = params
 }
+
+/**
+ * Creates a filter programmatically: `filter { Person::age lt 25 }`
+ */
+fun <T: Any> filter(block: SqlWhereBuilder<T>.()-> Filter<T>): Filter<T> = block(SqlWhereBuilder())

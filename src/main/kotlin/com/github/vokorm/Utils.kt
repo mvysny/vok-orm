@@ -35,9 +35,7 @@ object NoopValidator : Validator {
         vararg groups: Class<*>?
     ): MutableSet<ConstraintViolation<T>> = mutableSetOf()
 
-    override fun getConstraintsForClass(clazz: Class<*>?): BeanDescriptor {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun getConstraintsForClass(clazz: Class<*>?) = throw UnsupportedOperationException("unimplemented")
 
     override fun <T : Any?> unwrap(type: Class<T>?): T = throw ValidationException("unsupported $type")
 
