@@ -28,16 +28,16 @@ interface DataLoader<T: Any> : Serializable {
      * @param range offset and limit to fetch
      * @return a list of items matching the query, may be empty.
      */
-    fun getItems(filter: Filter<T>? = null, sortBy: List<SortClause> = listOf(), range: IntRange = 0..Int.MAX_VALUE): List<T>
+    fun fetch(filter: Filter<T>? = null, sortBy: List<SortClause> = listOf(), range: IntRange = 0..Int.MAX_VALUE): List<T>
 }
 
 /**
- * Returns a new data loader which always applies given [filter] and ANDs it with any filter given to [DataLoader.getCount] or [DataLoader.getItems].
+ * Returns a new data loader which always applies given [filter] and ANDs it with any filter given to [DataLoader.getCount] or [DataLoader.fetch].
  */
 fun <T: Any> DataLoader<T>.withFilter(filter: Filter<T>): DataLoader<T> = FilteredDataLoader(filter, this)
 
 /**
- * Returns a new data loader which always applies given [filter] and ANDs it with any filter given to [DataLoader.getCount] or [DataLoader.getItems].
+ * Returns a new data loader which always applies given [filter] and ANDs it with any filter given to [DataLoader.getCount] or [DataLoader.fetch].
  */
 fun <T: Any> DataLoader<T>.withFilter(block: SqlWhereBuilder<T>.()->Filter<T>): DataLoader<T> =
     withFilter(SqlWhereBuilder<T>().block())
@@ -47,6 +47,6 @@ internal class FilteredDataLoader<T: Any>(val filter: Filter<T>, val delegate: D
 
     override fun getCount(filter: Filter<T>?): Int = delegate.getCount(and(filter))
 
-    override fun getItems(filter: Filter<T>?, sortBy: List<SortClause>, range: IntRange): List<T> =
-            delegate.getItems(and(filter), sortBy, range)
+    override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: IntRange): List<T> =
+            delegate.fetch(and(filter), sortBy, range)
 }

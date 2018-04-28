@@ -5,7 +5,7 @@ import org.sql2o.Query
 
 /**
  * Provides instances of entities of given [clazz] from a database. Does not support joins on any of the like; supports filtering
- * and sorting. Only supports simple views over one database table (one entity) - for anything more complex please use [SqlDataProvider].
+ * and sorting. Only supports simple views over one database table (one entity) - for anything more complex please use [SqlDataLoader].
  */
 class EntityDataLoader<T : Entity<*>>(val clazz: Class<T>) : DataLoader<T> {
     override fun toString() = "EntityDataLoader($clazz)"
@@ -21,7 +21,7 @@ class EntityDataLoader<T : Entity<*>>(val clazz: Class<T>) : DataLoader<T> {
 
     private val IntRange.length: Int get() = if (isEmpty()) 0 else endInclusive - start + 1
 
-    override fun getItems(filter: Filter<T>?, sortBy: List<SortClause>, range: IntRange): List<T> {
+    override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: IntRange): List<T> {
         require(range.start >= 0) { "range.start: ${range.start} must be 0 or more" }
         require(range.endInclusive >= 0) { "limit: ${range.endInclusive} must be 0 or more" }
         val where: String? = filter?.toSQL92()
