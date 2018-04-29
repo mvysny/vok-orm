@@ -40,7 +40,7 @@ class SqlDataLoaderTest : DynaTest({
                     """select p.id as id, p.name as name from ${Person.meta.databaseTableName} p where age > :age {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}""",
                     mapOf("age" to 25))
                 val f = filter<SelectResult> { "age<:age"("age" to 48) }
-                // this must fail because the filter also introduces parameter "age" which is already introduced in the SqlDataProvider
+                // this must fail because the filter also introduces parameter "age" which is already introduced in the SqlDataLoader
                 dp.getCount(f)
             }
         }
@@ -56,7 +56,7 @@ class SqlDataLoaderTest : DynaTest({
             expect(25) { dp.getCount() }
             expect((26..45).map { "name $it" }) { dp.fetch(range = 0..19).map { it.name } }
 
-            // limit is ignored with size queries; also test that filter f ANDs with SqlDataProvider's filter
+            // limit is ignored with size queries; also test that filter f ANDs with SqlDataLoader's filter
             expect(22) { dp.getCount(f) }
             expect((47 downTo 28).map { "name $it" }) { dp.fetch(f, nameDesc, 0..19).map { it.name } }
             expect(22) { dp.getCount(f) }
