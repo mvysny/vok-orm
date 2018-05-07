@@ -93,7 +93,7 @@ bintray {
     pkg {
         repo = 'github'
         name = 'com.github.vokorm'
-        licenses = ['Apache-2.0']
+        licenses = ['MIT']
         vcsUrl = 'https://github.com/mvysny/vok-orm'
         publish = true
         publications = ['mavenJava']
