@@ -18,7 +18,9 @@ class DaoTest : DynaTest({
             expect(p) { Person.getById(p.id!!) }
         }
         test("GetById fails if there is no such entity") {
-            expectThrows(IllegalArgumentException::class) { Person.getById(25L) }
+            expectThrows(IllegalArgumentException::class, message = "There is no Person for id 25") {
+                Person.getById(25L)
+            }
         }
         group("getBy() tests") {
             test("succeeds if there is exactly one matching entity") {
@@ -28,17 +30,23 @@ class DaoTest : DynaTest({
             }
 
             test("fails if there is no such entity") {
-                expectThrows(IllegalArgumentException::class) { Person.getBy { Person::name eq "Albedo" } }
+                expectThrows(IllegalArgumentException::class, message = "no Person satisfying name = ") {
+                    Person.getBy { Person::name eq "Albedo" }
+                }
             }
 
             test("fails if there are two matching entities") {
                 repeat(2) { Person(name = "Albedo", age = 130).save() }
-                expectThrows(IllegalArgumentException::class) { Person.getBy { Person::name eq "Albedo" } }
+                expectThrows(IllegalArgumentException::class, message = "too many Person satisfying name = ") {
+                    Person.getBy { Person::name eq "Albedo" }
+                }
             }
 
             test("fails if there are ten matching entities") {
                 repeat(10) { Person(name = "Albedo", age = 130).save() }
-                expectThrows(IllegalArgumentException::class) { Person.getBy { Person::name eq "Albedo" } }
+                expectThrows(IllegalArgumentException::class, message = "too many Person satisfying name = ") {
+                    Person.getBy { Person::name eq "Albedo" }
+                }
             }
         }
         group("count") {

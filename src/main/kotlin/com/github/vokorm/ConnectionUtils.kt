@@ -22,7 +22,7 @@ fun <T : Any> Connection.findById(clazz: Class<T>, id: Any): T? =
  * @throws IllegalArgumentException if there is no entity with given id.
  */
 fun <T : Any> Connection.getById(clazz: Class<T>, id: Any): T =
-    requireNotNull(findById(clazz, id)) { "There is no $clazz for id $id" }
+    requireNotNull(findById(clazz, id)) { "There is no ${clazz.simpleName} for id $id" }
 
 /**
  * Deletes all rows from given database table.
