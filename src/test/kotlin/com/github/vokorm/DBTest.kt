@@ -1,6 +1,7 @@
 package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaTest
+import com.github.mvysny.dynatest.expectList
 import com.github.mvysny.dynatest.expectThrows
 import org.sql2o.Connection
 import java.io.IOException
@@ -19,6 +20,7 @@ class DBTest : DynaTest({
             expectThrows(IOException::class) {
                 db {
                     Person(name = "foo", age = 25).save()
+                    expectList(25) { db { com.github.vokorm.Person.findAll().map { it.age } } }
                     throw IOException("simulated")
                 }
             }
