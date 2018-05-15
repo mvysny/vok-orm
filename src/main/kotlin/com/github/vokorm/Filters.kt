@@ -252,6 +252,6 @@ data class NativeSqlFilter<T: Any>(val where: String, val params: Map<String, An
 }
 
 /**
- * Creates a filter programmatically: `filter { Person::age lt 25 }`
+ * Creates a filter programmatically: `buildFilter { Person::age lt 25 }`
  */
-fun <T: Any> filter(block: SqlWhereBuilder<T>.()-> Filter<T>): Filter<T> = block(SqlWhereBuilder())
+fun <T: Any> buildFilter(block: SqlWhereBuilder<T>.()-> Filter<T>): Filter<T> = block(SqlWhereBuilder())

@@ -19,7 +19,7 @@ class SqlDataLoaderTest : DynaTest({
 
             expect(0) { dp.getCount() }
             expectList() { dp.fetch() }
-            val f = filter<SelectResult> { SelectResult::id gt 2 }
+            val f = buildFilter<SelectResult> { SelectResult::id gt 2 }
             expect(0) { dp.getCount(f) }
             expectList() { dp.fetch(f) }
             expect(0) { dp.getCount() }
@@ -39,7 +39,7 @@ class SqlDataLoaderTest : DynaTest({
                 val dp = SqlDataLoader(SelectResult::class.java,
                     """select p.id as id, p.name as name from ${Person.meta.databaseTableName} p where age > :age {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}""",
                     mapOf("age" to 25))
-                val f = filter<SelectResult> { "age<:age"("age" to 48) }
+                val f = buildFilter<SelectResult> { "age<:age"("age" to 48) }
                 // this must fail because the filter also introduces parameter "age" which is already introduced in the SqlDataLoader
                 dp.getCount(f)
             }
@@ -50,7 +50,7 @@ class SqlDataLoaderTest : DynaTest({
             val dp = SqlDataLoader(SelectResult::class.java,
                 """select p.id as id, p.name as name from ${Person.meta.databaseTableName} p where age > :age {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}""",
                 mapOf("age" to 25))
-            val f = filter<SelectResult> { "age<:age_f"("age_f" to 48) }
+            val f = buildFilter<SelectResult> { "age<:age_f"("age_f" to 48) }
             expect(25) { dp.getCount() }
             expect((26..50).map { "name $it" }) { dp.fetch().map { it.name } }
             expect(25) { dp.getCount() }

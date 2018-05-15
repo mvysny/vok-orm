@@ -36,7 +36,7 @@ class EntityDataProviderTest : DynaTest({
         test("filterTest2") {
             db { for (i in 15..90) Person(name = "test$i", age = i).save() }
             val ds = Person.dataLoader
-            val filter = filter<Person> { Person::age between 30..60 }
+            val filter = buildFilter<Person> { Person::age between 30..60 }
             expect(31) { ds.getCount(filter) }
             expect((30..60).toList()) { ds.fetch(sortBy = listOf("age".asc), filter = filter, range = 0..99).map { it.age } }
         }
