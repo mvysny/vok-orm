@@ -101,6 +101,8 @@ data class IsNotNullFilter<T: Any>(override val propertyName: String) : BeanFilt
 /**
  * A LIKE filter. Since it does substring matching, it performs quite badly in the databases. You should use full text search
  * capabilities of your database. For example [PostgreSQL full-text search](https://www.postgresql.org/docs/9.5/static/textsearch.html).
+ * @param substring the substring, automatically prepended and appended with `%` when the SQL query is constructed. The substring is matched
+ * case-sensitive.
  */
 class LikeFilter<T: Any>(override val propertyName: String, substring: String) : BeanFilter<T>() {
     private val substring = substring.trim()
@@ -124,8 +126,10 @@ class LikeFilter<T: Any>(override val propertyName: String, substring: String) :
 }
 
 /**
- * A ILIKE (case-insensitive) filter. Since it does substring matching, it performs quite badly in the databases. You should use full text search
+ * An ILIKE (case-insensitive) filter. Since it does substring matching, it performs quite badly in the databases. You should use full text search
  * capabilities of your database. For example [PostgreSQL full-text search](https://www.postgresql.org/docs/9.5/static/textsearch.html).
+ * @param substring the substring, automatically prepended and appended with `%` when the SQL query is constructed. The substring is matched
+ * case-insensitive.
  */
 class ILikeFilter<T: Any>(override val propertyName: String, substring: String) : BeanFilter<T>() {
     private val substring = substring.trim()
@@ -222,8 +226,22 @@ class SqlWhereBuilder<T: Any> {
     @Suppress("UNCHECKED_CAST")
     infix fun <R> KProperty1<T, R?>.gt(value: R): Filter<T> =
         OpFilter(name, value as Comparable<Any>, CompareOperator.gt)
+
+    /**
+     * A LIKE filter. Since it does substring matching, it performs quite badly in the databases. You should use full text search
+     * capabilities of your database. For example [PostgreSQL full-text search](https://www.postgresql.org/docs/9.5/static/textsearch.html).
+     * @param substring the substring, automatically prepended and appended with `%` when the SQL query is constructed. The substring is matched
+     * case-sensitive.
+     */
     infix fun KProperty1<T, String?>.like(value: String): Filter<T> = LikeFilter(name, value)
-    infix fun KProperty1<T, String?>.ilike(value: String): Filter<T> = ILikeFilter(name, value)
+
+    /**
+     * An ILIKE (case-insensitive) filter. Since it does substring matching, it performs quite badly in the databases. You should use full text search
+     * capabilities of your database. For example [PostgreSQL full-text search](https://www.postgresql.org/docs/9.5/static/textsearch.html).
+     * @param substring the substring, automatically prepended and appended with `%` when the SQL query is constructed. The substring is matched
+     * case-insensitive.
+     */
+    infix fun KProperty1<T, String?>.ilike(substring: String): Filter<T> = ILikeFilter(name, substring)
     /**
      * Matches only values contained in given range.
      * @param range the range
@@ -234,6 +252,7 @@ class SqlWhereBuilder<T: Any> {
     val KProperty1<T, *>.isNotNull: Filter<T> get() = IsNotNullFilter(name)
     val KProperty1<T, Boolean?>.isTrue: Filter<T> get() = EqFilter(name, true)
     val KProperty1<T, Boolean?>.isFalse: Filter<T> get() = EqFilter(name, false)
+
     /**
      * Allows for a native query: `"age < :age_p"("age_p" to 60)`
      */
