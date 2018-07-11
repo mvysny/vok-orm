@@ -6,7 +6,7 @@ buildscript {
 }
 
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.2.50"
+    id "org.jetbrains.kotlin.jvm" version "1.2.51"
     id "com.jfrog.bintray" version "1.8.1"
 }
 
@@ -35,7 +35,7 @@ compileTestKotlin {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.50"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.51"
 
     // logging
     compile 'org.slf4j:slf4j-api:1.7.25'
