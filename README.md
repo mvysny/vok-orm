@@ -6,47 +6,6 @@
 
 `vok-orm` allows you to present the data from database rows as objects and embellish these data objects with business logic methods.
 
-## Why not JPA
-
-JPA is *the* default framework of choice for many projects. However, there are issues in JPA which cannot be overlooked:
-
-* [Vaadin-on-Kotlin Issue #3 Remove JPA](https://github.com/mvysny/vaadin-on-kotlin/issues/3)
-* [Back to Base - make SQL great again](http://mavi.logdown.com/posts/5771422)
-* [Do-It-Yourself ORM as an Alternative to Hibernate](https://blog.philipphauer.de/do-it-yourself-orm-alternative-hibernate-drawbacks/)
-
-JPA promises simplicity of usage by providing an object-oriented API. However, this is achieved by
-creating a *virtual object database* layer over a relational database; that creates much complexity
-under the hood which leaks in various ways.
-
-We strive to erase the virtual object database layer. We acknowledge the existence of
-the relational database; we only provide tools to ease the use of the database from a
-statically-typed OOP language.
-
-## `vok-orm` design principles
-
-`vok-orm` is a very simple object-relational mapping library, built around the following ideas:
-
-* Simplicity is the most valued property; working with plain SQL commands is preferred over having a type-safe
-  query language. If you want a type-safe database mapping library, try [Exposed](https://github.com/JetBrains/Exposed).
-* The database is the source of truth. JVM objects are nothing more than DTOs,
-  merely capture snapshots of the JDBC `ResultSet` rows. The entities are populated by the
-  means of reflection: for every column in
-  the JDBC `ResultSet` an appropriate setter is invoked, to populate the data. 
-* The entities are real POJOs: they do not track modifications, they do not automatically store modified
-  values back into the database. They are not runtime-enhanced and can be final.
-* A switch from one type of database to another never happens. We understand that the programmer
-  wants to exploit the full potential of the database, by writing SQLs tailored for that particular database.
-  `vok-orm` should not attempt to generate SELECTs on behalf of the programmer (except for the very basic ones related to CRUD);
-  instead it should simply allow SELECTs to be passed as Strings, and then map the result
-  to an object of programmer's choosing.
-
-Please read [Back to Base - make SQL great again](http://mavi.logdown.com/posts/5771422)
-for the complete explanation of ideas behind this framework.
-
-This framework uses [Sql2o](https://www.sql2o.org/) to map data from the JDBC `ResultSet` to POJOs; in addition it provides a very simple
-mechanism to store/update the data back to the database.
-
-
 ## Usage
 
 Just add the following lines to your Gradle script, to include this library in your project:
@@ -399,6 +358,46 @@ fun main(args: Array<String>) {
     VokOrm.destroy()
 }
 ```
+
+# `vok-orm` design principles
+
+`vok-orm` is a very simple object-relational mapping library, built around the following ideas:
+
+* Simplicity is the most valued property; working with plain SQL commands is preferred over having a type-safe
+  query language. If you want a type-safe database mapping library, try [Exposed](https://github.com/JetBrains/Exposed).
+* The database is the source of truth. JVM objects are nothing more than DTOs,
+  merely capture snapshots of the JDBC `ResultSet` rows. The entities are populated by the
+  means of reflection: for every column in
+  the JDBC `ResultSet` an appropriate setter is invoked, to populate the data.
+* The entities are real POJOs: they do not track modifications, they do not automatically store modified
+  values back into the database. They are not runtime-enhanced and can be final.
+* A switch from one type of database to another never happens. We understand that the programmer
+  wants to exploit the full potential of the database, by writing SQLs tailored for that particular database.
+  `vok-orm` should not attempt to generate SELECTs on behalf of the programmer (except for the very basic ones related to CRUD);
+  instead it should simply allow SELECTs to be passed as Strings, and then map the result
+  to an object of programmer's choosing.
+
+Please read [Back to Base - make SQL great again](http://mavi.logdown.com/posts/5771422)
+for the complete explanation of ideas behind this framework.
+
+This framework uses [Sql2o](https://www.sql2o.org/) to map data from the JDBC `ResultSet` to POJOs; in addition it provides a very simple
+mechanism to store/update the data back to the database.
+
+## Why not JPA
+
+JPA is *the* default framework of choice for many projects. However, there are issues in JPA which cannot be overlooked:
+
+* [Vaadin-on-Kotlin Issue #3 Remove JPA](https://github.com/mvysny/vaadin-on-kotlin/issues/3)
+* [Back to Base - make SQL great again](http://mavi.logdown.com/posts/5771422)
+* [Do-It-Yourself ORM as an Alternative to Hibernate](https://blog.philipphauer.de/do-it-yourself-orm-alternative-hibernate-drawbacks/)
+
+JPA promises simplicity of usage by providing an object-oriented API. However, this is achieved by
+creating a *virtual object database* layer over a relational database; that creates much complexity
+under the hood which leaks in various ways.
+
+We strive to erase the virtual object database layer. We acknowledge the existence of
+the relational database; we only provide tools to ease the use of the database from a
+statically-typed OOP language.
 
 # License
 
