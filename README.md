@@ -81,6 +81,15 @@ It comes pre-initialized with sensible default settings.
 > Hikari-CP is a JDBC connection pool which manages a pool of JDBC connections since they are expensive to create. Typically all projects
 use some sort of JDBC connection pooling, and `vok-orm` uses Hikari-CP.
 
+For example, to use an in-memory H2 database, just add H2 onto the classpath as a Gradle dependency: `compile 'com.h2database:h2:1.4.196'`. Then,
+configure vok-orm as follows:
+
+```kotlin
+VokOrm.dataSourceConfig.apply {
+    jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
+}
+```
+
 After you have configured the JDBC URL, just call `VokOrm.init()` which will initialize
 Hikari-CP's connection pool. After the connection pool is initialized, you can simply call
 the `db{}` function to run the
@@ -105,6 +114,24 @@ After you're done, call `VokOrm.destroy()` to close the pool.
 
 > You can call methods of this library from anywhere. You don't need to be running inside of the JavaEE or Spring container -
 you can use this library from a plain JavaSE main method.
+
+Full example of a `main()` method that does all of the above:
+
+```kotlin
+fun main(args: Array<String>) {
+    VokOrm.dataSourceConfig.apply {
+        jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
+    }
+    VokOrm.init()
+    db {
+        con.createQuery("create TABLE CATEGORY (id bigint auto_increment PRIMARY KEY, name varchar(200) NOT NULL );").executeUpdate()
+    }
+    db {
+        (0..100).forEach { Category(name = "cat $it").save() }
+    }
+    VokOrm.destroy()
+}
+```
 
 ### Finding Categories
 
@@ -321,8 +348,6 @@ fun main(args: Array<String>) {
         minimumIdle = 0
         maximumPoolSize = 30
         jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
-        username = "sa"
-        password = ""
     }
     VokOrm.init()
     db {
