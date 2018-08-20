@@ -6,7 +6,7 @@ buildscript {
 }
 
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.2.51"
+    id "org.jetbrains.kotlin.jvm" version "1.2.60"
     id "com.jfrog.bintray" version "1.8.1"
 }
 
@@ -42,7 +42,7 @@ dependencies {
 
     // db
     compile 'org.sql2o:sql2o:1.5.4'
-    compile "com.zaxxer:HikariCP:3.1.0"
+    compile "com.zaxxer:HikariCP:3.2.0"
 
     // validation support
     compile 'javax.validation:validation-api:2.0.0.Final'  // so that the BeanFieldGroup will perform JSR303 validations
