@@ -80,7 +80,9 @@ object VokOrm {
  * Provides access to a single JDBC connection and its [Connection], and several utility methods.
  *
  * The [db] function executes block in context of this class.
- * @property em the entity manager reference
+ * @property con the reference to the [Sql2o](https://www.sql2o.org)'s [Connection]. Typically you'd want to call one of the `createQuery()`
+ * methods on the connection.
+ * @property jdbcConnection the old-school, underlying JDBC connection.
  */
 class PersistenceContext(val con: Connection) : Closeable {
     /**

@@ -21,7 +21,16 @@ interface DatabaseAccessor : Closeable {
      *
      * Doesn't start new transaction if there already is transaction ongoing.
      *
-     * Example of use: `db { con.query() }`
+     * ## Implementation instructions
+     *
+     * To obtain the Sql2o's Connection from a [DataSource] and the JDBC URL, you'll need to do the following:
+     *
+     * 1. Obtain the [Quirks] instance, either from a JDBC URL ([QuirksDetector.forURL]) or from the DataSource itself
+     * ([QuirksDetector.forObject]).
+     * 2. Create the [Sql2o] instance: `Sql2o(dataSource, quirks)`
+     * 3. Call [Sql2o.open] to get the Sql2o [org.sql2o.Connection] without doing any transactional management.
+     * 4. Pass the [org.sql2o.Connection] to the constructor of the [PersistenceContext].
+     *
      * @param block the block to run in the transaction. Builder-style provides helpful methods and values, e.g. [PersistenceContext.con]
      */
     fun <R> runInTransaction(block: PersistenceContext.() -> R): R
