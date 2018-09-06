@@ -384,6 +384,24 @@ fun main(args: Array<String>) {
 }
 ```
 
+# Using with Spring or JavaEE
+
+By default VoK-ORM connects to the JDBC database directly and uses its own instance of
+Hikari-CP to pool JDBC connections. That of course doesn't work with containers such as Spring or
+JavaEE which manage JDBC resources themselves.
+
+It is possible to use VoK-ORM with Spring or JavaEE. First, you have to implement the
+[DatabaseAccessor](src/main/kotlin/com/github/vokorm/DatabaseAccessor.kt) interface.
+The interface is really simple: it's just a single method `runInTransaction()` which runs a block
+in a transaction, committing on success, rolling back on failure. You typically implement this
+interface simply by invoking a bean's method annotated with `@Transactional`, running the block inside
+of that method. That way the container will handle the transactions.
+
+Then, you just need to set the producer for your implementation into the
+`VokOrm.databaseAccessorProvider` field and call `VokOrm.init()` and `VokOrm.destroy()` appropriately.
+Or, if the accessor doesn't even need to be closed, you can simply set the `VokOrm.databaseAccessor` field
+directly. Then you don't have to call `VokOrm.init()` nor `VokOrm.destroy()`.
+
 # `vok-orm` design principles
 
 `vok-orm` is a very simple object-relational mapping library, built around the following ideas:
