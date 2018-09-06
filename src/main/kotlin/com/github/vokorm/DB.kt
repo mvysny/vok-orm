@@ -16,6 +16,7 @@ import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import javax.sql.DataSource
 import javax.validation.NoProviderFoundException
 import javax.validation.Validation
 import javax.validation.Validator
@@ -55,6 +56,8 @@ object VokOrm {
      */
     @Volatile
     var databaseAccessor: DatabaseAccessor? = null
+
+    val dataSource: DataSource? get() = databaseAccessor?.dataSource
 
     /**
      * Configure this before calling [init]. At minimum you need to set [HikariConfig.dataSource], or

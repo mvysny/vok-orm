@@ -34,6 +34,11 @@ interface DatabaseAccessor : Closeable {
      * @param block the block to run in the transaction. Builder-style provides helpful methods and values, e.g. [PersistenceContext.con]
      */
     fun <R> runInTransaction(block: PersistenceContext.() -> R): R
+
+    /**
+     * Returns the underlying data source used to obtain connections. This is often used by apps to employ database migration using Flyway
+     */
+    val dataSource: DataSource
 }
 
 val HikariConfig.quirks: Quirks
@@ -48,7 +53,7 @@ val HikariConfig.quirks: Quirks
  *
  * It's important to close this accessor properly, since that will clean up the connection pool and close all JDBC connections properly.
  */
-class HikariDataSourceAccessor(val dataSource: HikariDataSource) : DatabaseAccessor {
+class HikariDataSourceAccessor(override val dataSource: HikariDataSource) : DatabaseAccessor {
     private val delegate = DataSourceAccessor(dataSource, dataSource.quirks)
     override fun close() {
         delegate.close()
@@ -63,7 +68,7 @@ class HikariDataSourceAccessor(val dataSource: HikariDataSource) : DatabaseAcces
  * Accesses the database via given [dataSource]. Does not use any pooling and does not close the data source.
  * @param quirks the database access quirks to use, defaults to auto-detected.
  */
-class DataSourceAccessor(val dataSource: DataSource, val quirks: Quirks = QuirksDetector.forObject(dataSource)) : DatabaseAccessor {
+class DataSourceAccessor(override val dataSource: DataSource, val quirks: Quirks = QuirksDetector.forObject(dataSource)) : DatabaseAccessor {
 
     /**
      * Auto-detects quirks from given [jdbcURL].
