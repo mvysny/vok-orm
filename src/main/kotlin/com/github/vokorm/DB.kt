@@ -5,6 +5,7 @@ import com.github.vokorm.VokOrm.databaseAccessorProvider
 import com.github.vokorm.VokOrm.destroy
 import com.github.vokorm.VokOrm.init
 import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import org.slf4j.LoggerFactory
 import org.sql2o.Connection
 import org.sql2o.converters.Converter
@@ -20,7 +21,7 @@ import javax.validation.Validation
 import javax.validation.Validator
 
 /**
- * Initializes the ORM in the current JVM. By default uses the [PooledDataSourceAccessor] which uses [javax.sql.DataSource] pooled with HikariCP.
+ * Initializes the ORM in the current JVM. By default uses the [HikariDataSourceAccessor] which uses [javax.sql.DataSource] pooled with HikariCP.
  * To configure this accessor, just fill in [dataSourceConfig] properly and then call [init] once per JVM. When the database services
  * are no longer needed, call [destroy] to release all JDBC connections and close the pool.
  *
@@ -46,7 +47,7 @@ object VokOrm {
     @Volatile
     var databaseAccessorProvider: ()->DatabaseAccessor = {
         check(!dataSourceConfig.jdbcUrl.isNullOrBlank()) { "Please set your database JDBC url, username and password into the VaadinOnKotlin.dataSourceConfig field prior initializing VoK. " }
-        PooledDataSourceAccessor(dataSourceConfig)
+        HikariDataSourceAccessor(HikariDataSource(dataSourceConfig))
     }
 
     /**
@@ -59,7 +60,7 @@ object VokOrm {
      * Configure this before calling [init]. At minimum you need to set [HikariConfig.dataSource], or
      * [HikariConfig.driverClassName], [HikariConfig.jdbcUrl], [HikariConfig.username] and [HikariConfig.password].
      *
-     * Only used by the [PooledDataSourceAccessor] - if you are using your own custom [DatabaseAccessor] you don't have to fill in anything here.
+     * Only used by the [HikariDataSourceAccessor] - if you are using your own custom [DatabaseAccessor] you don't have to fill in anything here.
      */
     val dataSourceConfig = HikariConfig()
 
