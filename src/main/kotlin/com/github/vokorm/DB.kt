@@ -1,16 +1,15 @@
 package com.github.vokorm
 
+import com.github.vokorm.VokOrm.dataSourceConfig
+import com.github.vokorm.VokOrm.databaseAccessorProvider
+import com.github.vokorm.VokOrm.destroy
+import com.github.vokorm.VokOrm.init
 import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.sql2o.Connection
-import org.sql2o.Sql2o
 import org.sql2o.converters.Converter
 import org.sql2o.converters.ConverterException
 import org.sql2o.converters.ConvertersProvider
-import org.sql2o.quirks.Quirks
-import org.sql2o.quirks.QuirksDetector
 import java.io.Closeable
 import java.sql.Timestamp
 import java.time.Instant
@@ -21,32 +20,46 @@ import javax.validation.Validation
 import javax.validation.Validator
 
 /**
- * Initializes the ORM in the current JVM. Just fill in [dataSourceConfig] properly and then call [init] once per JVM. When the database services
+ * Initializes the ORM in the current JVM. By default uses the [PooledDataSourceAccessor] which uses [javax.sql.DataSource] pooled with HikariCP.
+ * To configure this accessor, just fill in [dataSourceConfig] properly and then call [init] once per JVM. When the database services
  * are no longer needed, call [destroy] to release all JDBC connections and close the pool.
+ *
+ * If you're using a customized [DatabaseAccessor], you don't have to fill in the [dataSourceConfig]. Just set proper [databaseAccessorProvider]
+ * and then call [init].
  */
 object VokOrm {
     /**
      * First, fill in [dataSourceConfig] properly and then call this function once per JVM.
      */
     fun init() {
-        check(!dataSourceConfig.jdbcUrl.isNullOrBlank()) { "Please set your database JDBC url, username and password into the VaadinOnKotlin.dataSourceConfig field prior initializing VoK. " }
-        dataSource = HikariDataSource(dataSourceConfig)
+        databaseAccessor = databaseAccessorProvider()
     }
 
     /**
-     * Closes
+     * Closes the current [databaseAccessor]. Does nothing if [databaseAccessor] is null.
      */
     fun destroy() {
-        dataSource?.closeQuietly()
-        dataSource = null
+        databaseAccessor?.closeQuietly()
+        databaseAccessor = null
     }
 
     @Volatile
-    var dataSource: HikariDataSource? = null
+    var databaseAccessorProvider: ()->DatabaseAccessor = {
+        check(!dataSourceConfig.jdbcUrl.isNullOrBlank()) { "Please set your database JDBC url, username and password into the VaadinOnKotlin.dataSourceConfig field prior initializing VoK. " }
+        PooledDataSourceAccessor(dataSourceConfig)
+    }
+
+    /**
+     * After [init] has been called, this will be filled in. Used to run blocks in a transaction. Closed in [destroy].
+     */
+    @Volatile
+    var databaseAccessor: DatabaseAccessor? = null
 
     /**
      * Configure this before calling [init]. At minimum you need to set [HikariConfig.dataSource], or
      * [HikariConfig.driverClassName], [HikariConfig.jdbcUrl], [HikariConfig.username] and [HikariConfig.password].
+     *
+     * Only used by the [PooledDataSourceAccessor] - if you are using your own custom [DatabaseAccessor] you don't have to fill in anything here.
      */
     val dataSourceConfig = HikariConfig()
 
@@ -79,14 +92,6 @@ class PersistenceContext(val con: Connection) : Closeable {
     }
 }
 
-private val contexts: ThreadLocal<PersistenceContext> = ThreadLocal()
-
-private val HikariConfig.quirks: Quirks get() = when {
-    !jdbcUrl.isNullOrBlank() -> QuirksDetector.forURL(jdbcUrl)
-    dataSource != null -> QuirksDetector.forObject(dataSource)
-    else -> throw IllegalStateException("HikariConfig: both jdbcUrl and dataSource is null! $this")
-}
-
 /**
  * Makes sure given block is executed in a DB transaction. When the block finishes normally, the transaction commits;
  * if the block throws any exception, the transaction is rolled back.
@@ -95,32 +100,8 @@ private val HikariConfig.quirks: Quirks get() = when {
  * @param block the block to run in the transaction. Builder-style provides helpful methods and values, e.g. [PersistenceContext.con]
  */
 fun <R> db(block: PersistenceContext.()->R): R {
-    var context = contexts.get()
-    // if we're already running in a transaction, just run the block right away.
-    if (context != null) return context.block()
-
-    val dataSource = checkNotNull(VokOrm.dataSource) { "The VokOrm.dataSource has not yet been initialized. Please call VokOrm.init()" }
-    val sql2o = Sql2o(dataSource, VokOrm.dataSourceConfig.quirks)
-    context = PersistenceContext(sql2o.beginTransaction())
-    try {
-        contexts.set(context)
-        return context.use {
-            try {
-                val result: R = context.block()
-                context.con.commit()
-                result
-            } catch (t: Throwable) {
-                try {
-                    context.con.rollback()
-                } catch (rt: Throwable) {
-                    t.addSuppressed(rt)
-                }
-                throw t
-            }
-        }
-    } finally {
-        contexts.set(null)
-    }
+    val accessor = checkNotNull(VokOrm.databaseAccessor) { "The VokOrm.databaseAccessor has not yet been initialized. Please call VokOrm.init()" }
+    return accessor.runInTransaction(block)
 }
 
 private class LocalDateConverter : Converter<LocalDate> {
