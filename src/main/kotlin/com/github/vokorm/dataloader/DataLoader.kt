@@ -5,9 +5,9 @@ import com.github.vokorm.SqlWhereBuilder
 import java.io.Serializable
 
 /**
- * Sorts beans by given [property], ascending or descending based on the value of the [asc] parameter.
+ * Sorts the outcome of the SELECT command by given [columnName], ascending or descending based on the value of the [asc] parameter.
  */
-data class SortClause(val property: String, val asc: Boolean) : Serializable
+data class SortClause(val columnName: String, val asc: Boolean) : Serializable
 
 /**
  * Provides paged access to instances of bean of type [T]. Typically provides data for some kind of a scrollable/paged table.

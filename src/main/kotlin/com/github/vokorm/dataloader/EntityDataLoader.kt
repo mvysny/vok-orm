@@ -25,7 +25,7 @@ class EntityDataLoader<T : Entity<*>>(val clazz: Class<T>) : DataLoader<T> {
         require(range.start >= 0) { "range.start: ${range.start} must be 0 or more" }
         require(range.endInclusive >= 0) { "limit: ${range.endInclusive} must be 0 or more" }
         val where: String? = filter?.toSQL92()
-        val orderBy: String = sortBy.map { "${it.property} ${if (it.asc) "ASC" else "DESC"}" }.joinToString()
+        val orderBy: String = sortBy.map { "${it.columnName} ${if (it.asc) "ASC" else "DESC"}" }.joinToString()
         val sql = buildString {
             append("select * from ${clazz.entityMeta.databaseTableName}")
             if (where != null && where.isNotBlank()) append(" where $where")

@@ -103,7 +103,7 @@ class SqlDataLoader<T: Any>(val clazz: Class<T>, val sql: String, val params: Ma
     /**
      * Converts [SortClause] to something like "name ASC".
      */
-    private fun SortClause.toSql92OrderByClause(): String = "$property ${if (asc) "ASC" else "DESC"}"
+    private fun SortClause.toSql92OrderByClause(): String = "$columnName ${if (asc) "ASC" else "DESC"}"
 
     /**
      * Converts a list of [SortClause] to something like "name DESC, age ASC". If the list is empty, returns an empty string.

@@ -347,15 +347,37 @@ vok-orm provides two concrete implementations of data loaders out-of-the-box: th
 
 ### EntityDataLoader
 
-TBD
+The [EntityDataLoader](src/main/kotlin/com/github/vokorm/dataloader/EntityDataLoader.kt) is able to provide instances of any class which implements the `Entity` interface. Simply create the `EntityDataLoader`
+instance for your entity class and you're good to go.
+
+The `EntityDataLoader` honors the `@As` annotation when mapping class instances from the outcome of the `SELECT *` clause. If you don't use SQL aliases
+but you stick to use `@As`, then you can use the `Filter` class hierarchy to filter out the results, and you can use `SortClause` to sort
+the results. Just keep in mind to pass in the database column name into the `Filter` and `SortClause`, and not the bean property name.
+
+Note that the `EntityDataLoader` will construct the entire SQL SELECT command by itself - you cannot change the way it's constructed. This way
+it is very simple to use the `EntityDataLoader`. If you need a full power of the SQL SELECT command, use the `SqlDataLoader`, or
+create a database view.
 
 ### SqlDataLoader
 
-TBD
+The [SqlDataLoader](src/main/kotlin/com/github/vokorm/dataloader/SqlDataLoader.kt) is able to map the outcome of any SELECT command supplied by you,
+onto a bean. You can use `SqlDataLoader` to map the outcome of joins, stored procedure calls, anything.
+
+The `SqlDataLoader` honors the `@As` annotation when mapping class instances from the outcome of the `SELECT *` clause. If you don't use SQL aliases
+but you stick to use `@As`, then you can use the `Filter` class hierarchy to filter out the results, and you can use `SortClause` to sort
+the results. Just keep in mind to pass in the database column name into the `Filter` and `SortClause`, and not the bean property name.
 
 ## Aliases
 
-TBD
+As said before, if you want to use `Filter` to add SQL conditions to the SQL WHERE clause, you must annotate fields of your bean using the `@As`
+annotation. You can't use SQL aliases to bypass `@As` and map directly to bean field names:
+
+* INSERTs/UPDATEs issued by the `Dao` for your entities will fail since they will use the bean field names instead of actual column name
+* You will be able to receive outcome of the SELECT and map it onto a bean, but auto-generated `Filter` objects (e.g. from the Grid filter-to-vok-orm-filters,
+  or from the type-safe `SqlWhereBuilder` class) will use bean property names when constructing the SQL WHERE clause, causing the database
+  to fail to execute such SELECT command.
+
+Please see [Issue #5](https://github.com/mvysny/vok-orm/issues/5) for more details.
 
 ## A main() method Example
 
