@@ -39,8 +39,8 @@ fun <T: Any> DataLoader<T>.withFilter(filter: Filter<T>): DataLoader<T> = Filter
 /**
  * Returns a new data loader which always applies given [filter] and ANDs it with any filter given to [DataLoader.getCount] or [DataLoader.fetch].
  */
-fun <T: Any> DataLoader<T>.withFilter(block: SqlWhereBuilder<T>.()->Filter<T>): DataLoader<T> =
-    withFilter(SqlWhereBuilder<T>().block())
+inline fun <reified T: Any> DataLoader<T>.withFilter(block: SqlWhereBuilder<T>.()->Filter<T>): DataLoader<T> =
+    withFilter(SqlWhereBuilder(T::class.java).block())
 
 internal class FilteredDataLoader<T: Any>(val filter: Filter<T>, val delegate: DataLoader<T>) : DataLoader<T> {
     private fun and(other: Filter<T>?) = if (other == null) filter else filter.and(other)

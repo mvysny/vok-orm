@@ -1,13 +1,16 @@
 package com.github.vokorm
 
+import org.sql2o.Query
 import java.io.Serializable
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import javax.validation.ConstraintViolation
 import javax.validation.ConstraintViolationException
 import javax.validation.ValidationException
+import kotlin.reflect.KProperty1
 
 /**
  * Optional annotation which allows you to change the table name.
@@ -15,6 +18,12 @@ import javax.validation.ValidationException
  */
 @Target(AnnotationTarget.CLASS)
 annotation class Table(val dbname: String = "")
+
+/**
+ * Optional annotation which configures the underlying column name for a field.
+ */
+@Target(AnnotationTarget.FIELD)
+annotation class As(val databaseColumnName: String)
 
 /**
  * Annotate a field with this to exclude it from being mapped into a database table column.
@@ -57,10 +66,11 @@ interface Entity<ID: Any> : Serializable {
         validate()
         db {
             if (id == null) {
-                // not yet in the database, insert
+                // not yet in the database, run the INSERT statement
                 val fields = meta.persistedFieldDbNames - meta.idDbname
                 con.createQuery("insert into ${meta.databaseTableName} (${fields.joinToString()}) values (${fields.map { ":$it" }.joinToString()})", true)
-                    .bind(this@Entity)
+                    .bindAliased(this@Entity)
+                    .setColumnMappings(meta.getSql2oColumnMappings())
                     .executeUpdate()
                 val key = requireNotNull(con.key) { "The database have returned null key for the created record. Have you used AUTO INCREMENT or SERIAL for primary key?" }
                 @Suppress("UNCHECKED_CAST")
@@ -68,7 +78,8 @@ interface Entity<ID: Any> : Serializable {
             } else {
                 val fields = meta.persistedFieldDbNames - meta.idDbname
                 con.createQuery("update ${meta.databaseTableName} set ${fields.map { "$it = :$it" }.joinToString()} where ${meta.idDbname} = :${meta.idDbname}")
-                    .bind(this@Entity)
+                    .bindAliased(this@Entity)
+                    .setColumnMappings(meta.getSql2oColumnMappings())
                     .executeUpdate()
             }
         }
@@ -121,7 +132,7 @@ data class EntityMeta(val entityClass: Class<out Any>) : Serializable {
     /**
      * A list of database names of all persisted fields in this entity.
      */
-    val persistedFieldDbNames: Set<String> get() = entityClass.persistedFieldNames
+    val persistedFieldDbNames: Set<String> get() = entityClass.persistedFieldNames.values.toSet()
 
     /**
      * The database name of the ID column.
@@ -137,6 +148,21 @@ data class EntityMeta(val entityClass: Class<out Any>) : Serializable {
      * The type of the `id` property as declared in the entity.
      */
     val idClass: Class<*> get() = idField.type
+
+    /**
+     * All fields in the entity, maps the field to the database column name.
+     */
+    val fields: Map<Field, String> get() = Collections.unmodifiableMap(entityClass.persistedFieldNames)
+
+    fun propertyToField(property: KProperty1<*, *>): Field {
+        val result = fields.keys.first { it.name == property.name }
+        return checkNotNull(result) { "There is no such property $property in $entityClass, available fields: ${fields.keys.map { it.name }}" }
+    }
+
+    /**
+     * Returns a map which maps from database name to the bean property name.
+     */
+    fun getSql2oColumnMappings(): Map<String, String> = fields.map { it.value to it.key.name }.toMap()
 }
 
 private fun Class<*>.findDeclaredField(name: String): Field? {
@@ -167,23 +193,40 @@ private inline val Field.isStatic get() = Modifier.isStatic(modifiers)
 private val Field.isPersisted get() = !isTransient && !isSynthetic && !isStatic && !isAnnotationPresent(Ignore::class.java) && name != "Companion"
 
 /**
- * Lists all persisted fields
+ * Lists all persisted fields.
  */
 private val Class<*>.persistedFields: List<Field> get() = when {
     this == Object::class.java -> listOf()
     else -> declaredFields.filter { it.isPersisted } + superclass.persistedFields
 }
 
-private val persistedFieldNamesCache: ConcurrentMap<Class<*>, Set<String>> = ConcurrentHashMap<Class<*>, Set<String>>()
+private val persistedFieldNamesCache: ConcurrentMap<Class<*>, Map<Field, String>> = ConcurrentHashMap<Class<*>, Map<Field, String>>()
 
 /**
- * The database name of given field. Defaults to [Field.name], cannot be currently changed.
+ * The database name of given field. Defaults to [Field.name], but it can be changed via the [As] annotation.
  */
-private val Field.dbname: String get() = name
+private val Field.dbname: String get() {
+    val a = getAnnotation(As::class.java)?.databaseColumnName
+    return if (a == null) name else a
+}
 
 /**
- * Returns the list of database column names in an entity.
+ * Returns the list of fields in an entity, mapped to the database name as specified by [Field.dbname].
  */
-val <T : Any> Class<T>.persistedFieldNames: Set<String> get()
+private val <T : Any> Class<T>.persistedFieldNames: Map<Field, String> get()
 // thread-safety: this may compute the same value multiple times during high contention, this is OK
-= persistedFieldNamesCache.getOrPut(this) { (persistedFields.map { it.dbname }).toSet() }
+= persistedFieldNamesCache.getOrPut(this) { (persistedFields.associate { it to it.dbname }) }
+
+/**
+ * Similar to [Query.bind] but honors the [As] annotation.
+ */
+fun Query.bindAliased(entity: Any): Query {
+    val meta = entity.javaClass.entityMeta
+    meta.fields.forEach { field, dbname ->
+        if (paramNameToIdxMap.containsKey(dbname)) {
+            field.isAccessible = true
+            addParameter(dbname, field.type as Class<Any>, field.get(entity))
+        }
+    }
+    return this
+}

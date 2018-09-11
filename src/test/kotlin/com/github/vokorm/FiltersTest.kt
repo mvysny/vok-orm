@@ -11,23 +11,14 @@ class FiltersTest : DynaTest({
         return sql
     }
     fun sql(block: SqlWhereBuilder<Person>.()-> Filter<Person>): String {
-        val filter: Filter<Person> = block(SqlWhereBuilder())
+        val filter: Filter<Person> = block(SqlWhereBuilder(Person::class.java))
         return unmangleParameterNames(filter.toSQL92(), filter.getSQL92Parameters())
     }
 
     test("ToSQL92") {
         expect("age = :25") { sql { Person::age eq 25 } }
         expect("(age >= :25 and age <= :50)") { sql { Person::age between 25..50 } }
-        expect("((age >= :25 and age <= :50) or alive = :true)") { sql { (Person::age between 25..50) or (Person::alive eq true) } }
-    }
-
-    test("LikeFilterInMemory") {
-        expect(false) { LikeFilter<Person>("name", "A")
-            .test(Person(name = "kari", age = 35)) }
-        expect(true) { LikeFilter<Person>("name", " a ")
-            .test(Person(name = "kari", age = 35)) }
-        expect(true) { ILikeFilter<Person>("name", "A")
-            .test(Person(name = "kari", age = 35)) }
+        expect("((age >= :25 and age <= :50) or alive = :true)") { sql { (Person::age between 25..50) or (Person::isAlive25 eq true) } }
     }
 
     test("Equals") {

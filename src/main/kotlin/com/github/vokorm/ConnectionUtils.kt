@@ -7,7 +7,10 @@ import org.sql2o.Query
  * Finds all instances of given entity. Fails if there is no table in the database with the name of [databaseTableName]. The list is eager
  * and thus it's useful for smallish tables only.
  */
-fun <T : Any> Connection.findAll(clazz: Class<T>): List<T> = createQuery("select * from ${clazz.entityMeta.databaseTableName}").executeAndFetch(clazz)
+fun <T : Any> Connection.findAll(clazz: Class<T>): List<T> =
+    createQuery("select * from ${clazz.entityMeta.databaseTableName}")
+        .setColumnMappings(clazz.entityMeta.getSql2oColumnMappings())
+        .executeAndFetch(clazz)
 
 /**
  * Retrieves entity with given [id]. Returns null if there is no such entity.
@@ -15,6 +18,7 @@ fun <T : Any> Connection.findAll(clazz: Class<T>): List<T> = createQuery("select
 fun <T : Any> Connection.findById(clazz: Class<T>, id: Any): T? =
     createQuery("select * from ${clazz.entityMeta.databaseTableName} where id = :id")
         .addParameter("id", id)
+        .setColumnMappings(clazz.entityMeta.getSql2oColumnMappings())
         .executeAndFetchFirst(clazz)
 
 /**
@@ -75,6 +79,7 @@ fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, filter: Filter<T>): 
     require (limit >= 0) { "$limit is less than 0" }
     val query = createQuery("select * from ${clazz.entityMeta.databaseTableName} where ${filter.toSQL92()} limit $limit")
     filter.getSQL92Parameters().entries.forEach { (name, value) -> query.addParameter(name, value) }
+    query.setColumnMappings(clazz.entityMeta.getSql2oColumnMappings())
     return query.executeAndFetch(clazz)
 }
 
@@ -82,7 +87,7 @@ fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, filter: Filter<T>): 
  * Deletes all entities with given [clazz] matching given criteria [block].
  */
 fun <T: Any> Connection.deleteBy(clazz: Class<T>, block: SqlWhereBuilder<T>.()-> Filter<T>) {
-    val filter = block(SqlWhereBuilder())
+    val filter = block(SqlWhereBuilder(clazz))
     val query = createQuery("delete from ${clazz.entityMeta.databaseTableName} where ${filter.toSQL92()}")
     filter.getSQL92Parameters().entries.forEach { (name, value) -> query.addParameter(name, value) }
     query.executeUpdate()

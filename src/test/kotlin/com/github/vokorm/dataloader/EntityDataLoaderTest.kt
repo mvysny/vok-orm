@@ -53,5 +53,10 @@ class EntityDataProviderTest : DynaTest({
             val ds = Person.dataLoader.withFilter { Person::age lt 60 and "age > :age"("age" to 29)}
             expect((30..59).toList()) { ds.fetch().map { it.age } }
         }
+
+        test("alias") {
+            db { Person(name = "test", age = 5, isAlive25 = false).save() }
+            expectList(false) { Person.dataLoader.fetch().map { it.isAlive25 } }
+        }
     }
 })

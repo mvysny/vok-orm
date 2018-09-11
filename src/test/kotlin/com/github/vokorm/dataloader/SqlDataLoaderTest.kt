@@ -4,6 +4,7 @@ import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectList
 import com.github.mvysny.dynatest.expectThrows
 import com.github.vokorm.*
+import org.hibernate.validator.constraints.Length
 import kotlin.test.expect
 
 class SqlDataLoaderTest : DynaTest({
@@ -68,6 +69,21 @@ class SqlDataLoaderTest : DynaTest({
 
             expect(25) { dp.getCount() }
             expect((26..50).map { "name $it" }) { dp.fetch(range = 0..Int.MAX_VALUE).map { it.name } }
+        }
+
+        // https://github.com/mvysny/vok-orm/issues/5
+        test("alias") {
+            db { (0..49).forEach { Person(name = "name $it", age = it).save() } }
+
+            @Table("Test") data class SelectResult2(@As("name") var personName: String)
+
+            val loader = SqlDataLoader(
+                SelectResult2::class.java,
+                "select p.name from Test p where 1=1 {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}"
+            )
+            expect(50) { loader.getCount(null) }
+            expect(1) { loader.getCount(buildFilter { SelectResult2::personName eq "name 20" })}
+            expectList(SelectResult2("name 20")) { loader.fetch(buildFilter { SelectResult2::personName eq "name 20" }) }
         }
     }
 })

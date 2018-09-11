@@ -2,6 +2,7 @@ package com.github.vokorm.dataloader
 
 import com.github.vokorm.Filter
 import com.github.vokorm.db
+import com.github.vokorm.entityMeta
 import org.sql2o.Query
 
 /**
@@ -14,7 +15,7 @@ import org.sql2o.Query
  * data class CustomerAddress(val customerName: String, val address: String)
  *
  * val provider = SqlDataLoader(CustomerAddress::class.java, """select c.name as customerName, a.street || ' ' || a.city as address
- *     from Customer c inner join Address a on c.address_id=a.id where 1=1 {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}""", idMapper = { it })
+ *     from Customer c inner join Address a on c.address_id=a.id where 1=1 {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}""")
  * ```
  *
  * (Note how select column names must correspond to field names in the `CustomerAddress` class)
@@ -55,6 +56,7 @@ class SqlDataLoader<T: Any>(val clazz: Class<T>, val sql: String, val params: Ma
         val q = con.createQuery(computeSQL(false, filter, sortBy, range))
         params.entries.forEach { (name, value) -> q.addParameter(name, value) }
         q.fillInParamsFromFilters(filter)
+        q.columnMappings = clazz.entityMeta.getSql2oColumnMappings()
         q.executeAndFetch(clazz)
     }
 

@@ -17,7 +17,9 @@ data class Person(
     var dateOfBirth: LocalDate? = null,
     var created: Date? = null,
     var modified: Instant? = null,
-    var alive: Boolean? = null,
+    // test of aliased field
+    @As("alive")
+    var isAlive25: Boolean? = null,
     var maritalStatus: MaritalStatus? = null
 
 ) : Entity<Long> {

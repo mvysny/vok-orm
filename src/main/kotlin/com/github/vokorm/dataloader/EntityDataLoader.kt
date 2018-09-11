@@ -33,9 +33,11 @@ class EntityDataLoader<T : Entity<*>>(val clazz: Class<T>) : DataLoader<T> {
             // MariaDB requires LIMIT first, then OFFSET: https://mariadb.com/kb/en/library/limit/
             if (range != 0..Int.MAX_VALUE) append(" LIMIT ${range.length} OFFSET ${range.start}")
         }
+        val dbnameToJavaFieldName = clazz.entityMeta.getSql2oColumnMappings()
         return db {
             con.createQuery(sql)
                 .fillInParamsFromFilters(filter)
+                .setColumnMappings(dbnameToJavaFieldName)
                 .executeAndFetch(clazz)
         }
     }
