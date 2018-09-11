@@ -286,9 +286,17 @@ Let's thus create a `ReviewWithCategory` class:
 
 ```kotlin
 open class ReviewWithCategory : Review() {
+    @As("name")
     var categoryName: String? = null
 }
 ```
+
+> Note the `@As` annotation which tells vok-orm that the field is named differently in the database. Often the database naming schema
+is different from Kotlin's naming schema, for example `NUMBER_OF_PETS` would be represented by the `numberOfPets` in the Kotlin class.
+You can use database aliases, for example `SELECT NUMBER_OF_PETS AS numberOfPets`. However note that you can't then add a `WHERE` clause on
+the `numberOfPets` alias - that's not supported by SQL databases. See [Issue #5](https://github.com/mvysny/vok-orm/issues/5) for more details.
+Currently we don't use WHERE in our examples so you're free to use aliases, but aliases do not work with Data Loaders and therefore it's a good
+practice to use `@As` instead of SQL aliases.
 
 Now we can add a new finder function into `Review`'s companion object:
 
@@ -296,7 +304,7 @@ Now we can add a new finder function into `Review`'s companion object:
 companion object : Dao<Review> {
     ...
     fun findReviews(): List<ReviewWithCategory> = db {
-        con.createQuery("""select r.*, IFNULL(c.name, 'Undefined') as categoryName
+        con.createQuery("""select r.*, c.name
             FROM Review r left join Category c on r.category = c.id
             ORDER BY r.name""")
                 .executeAndFetch(ReviewWithCategory::class.java)
@@ -309,10 +317,10 @@ and then we can create a holder class that will not be an entity itself, but wil
 The only thing that matters is that the class will have properties named exactly as the fields in the SELECT statement:
 
 ```kotlin
-data class Beverage(var name: String = "", var category: String? = null) : Serializable {
+data class Beverage(@As("beverageName") var name: String = "", @As("name") var category: String? = null) : Serializable {
     companion object {
         fun findAll(): List<Beverage> = db {
-            con.createQuery("select r.beverageName as name, c.name as category from Review r left join Category c on r.category = c.id")
+            con.createQuery("select r.beverageName, c.name from Review r left join Category c on r.category = c.id")
                 .executeAndFetch(Beverage::class.java)
         }
     }
@@ -320,6 +328,34 @@ data class Beverage(var name: String = "", var category: String? = null) : Seria
 ```
 
 We just have to make sure that all of the `Beverage`'s fields are pre-initialized, so that the `Beverage` class has a zero-arg constructor.
+
+## Data Loaders
+
+Very often the UI frameworks provide some kind of tabular component which allows for viewing database tables, or even outcomes of any SELECT
+command (possibly joined). An example of such tabular component is the Vaadin Grid; you can see the [live demo](https://vok-crud.herokuapp.com/crud)
+of the Grid for yourself.
+
+Typically such tables provide sorting and filtering for the user; since they fetch data lazily as the user scrolls the table, the table must be
+able to fetch data in pages.
+
+vok-orm provide the Data Loaders which offer all of the above-mentioned functionality: sorting, filtering and lazy-loading. You can check out
+the API here: [DataLoader.kt](src/main/kotlin/com/github/vokorm/dataloader/DataLoader.kt). You then need to write a thin wrapper which wraps
+the `DataLoader` and adapts it to the API as required by the particular tabular component from a particular framework. However, since all
+of the functionality is provided, the wrapper is typically thin and easy to write.
+
+vok-orm provides two concrete implementations of data loaders out-of-the-box: the `EntityDataLoader` and the `SqlDataLoader`.
+
+### EntityDataLoader
+
+TBD
+
+### SqlDataLoader
+
+TBD
+
+## Aliases
+
+TBD
 
 ## A main() method Example
 
