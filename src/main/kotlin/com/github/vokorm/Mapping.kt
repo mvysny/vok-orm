@@ -225,6 +225,7 @@ fun Query.bindAliased(entity: Any): Query {
     meta.fields.forEach { field, dbname ->
         if (paramNameToIdxMap.containsKey(dbname)) {
             field.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             addParameter(dbname, field.type as Class<Any>, field.get(entity))
         }
     }
