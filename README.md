@@ -314,7 +314,8 @@ companion object : Dao<Review> {
 
 We can take Sql2o's mapping capabilities to full use: we can craft any SELECT we want,
 and then we can create a holder class that will not be an entity itself, but will merely hold the result of that SELECT.
-The only thing that matters is that the class will have properties named exactly as the fields in the SELECT statement:
+The only thing that matters is that the class will have properties named exactly as the columns in the SELECT statement (or properly aliased
+using the `@As` annotation):
 
 ```kotlin
 data class Beverage(@As("beverageName") var name: String = "", @As("name") var category: String? = null) : Serializable {
@@ -328,6 +329,7 @@ data class Beverage(@As("beverageName") var name: String = "", @As("name") var c
 ```
 
 We just have to make sure that all of the `Beverage`'s fields are pre-initialized, so that the `Beverage` class has a zero-arg constructor.
+If not, Sql2o will throw an exception in runtime, stating that the `Beverage` class has no zero-arg constructor.
 
 ## Data Loaders
 
