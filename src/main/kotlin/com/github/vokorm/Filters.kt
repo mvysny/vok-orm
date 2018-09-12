@@ -200,7 +200,7 @@ fun <T: Any> Set<Filter<T>>.or(): Filter<T>? = when (size) {
  */
 class SqlWhereBuilder<T: Any>(val clazz: Class<T>) {
     private val meta = clazz.entityMeta
-    private val KProperty1<T, *>.dbname: String get() = meta.fields[meta.propertyToField(this)]!!
+    private val KProperty1<T, *>.dbname: String get() = meta.getProperty(this).dbColumnName
 
     infix fun <R: Serializable?> KProperty1<T, R>.eq(value: R): Filter<T> = EqFilter(dbname, value)
     @Suppress("UNCHECKED_CAST")

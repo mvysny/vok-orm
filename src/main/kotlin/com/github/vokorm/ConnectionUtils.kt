@@ -97,7 +97,7 @@ fun <T: Any> Connection.deleteBy(clazz: Class<T>, block: SqlWhereBuilder<T>.()->
  * Deletes the entity [clazz] with given [id].
  */
 fun <T: Any> Connection.deleteById(clazz: Class<T>, id: Any) {
-    createQuery("delete from ${clazz.entityMeta.databaseTableName} where ${clazz.entityMeta.idDbname}=:id")
+    createQuery("delete from ${clazz.entityMeta.databaseTableName} where ${clazz.entityMeta.idProperty.dbColumnName}=:id")
         .addParameter("id", id)
         .executeUpdate()
 }
