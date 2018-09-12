@@ -15,7 +15,7 @@ apply plugin: 'maven-publish'
 defaultTasks 'clean', 'build'
 
 group 'com.github.vokorm'
-version '0.9-SNAPSHOT'
+version '0.9'
 
 repositories {
     mavenCentral()
