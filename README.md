@@ -480,6 +480,10 @@ directly. Then you don't have to call `VokOrm.init()` nor `VokOrm.destroy()`.
   instead it should simply allow SELECTs to be passed as Strings, and then map the result
   to an object of programmer's choosing.
 
+As such, `vok-orm` has much in common with the [ActiveJDBC](https://github.com/javalite/activejdbc) project, in terms
+of design principles. The advantage of `vok-orm` is that it doesn't require any instrumentation to work
+(instead it uses Kotlin language features), and it's even simpler than ActiveJDBC.
+
 Please read [Back to Base - make SQL great again](http://mavi.logdown.com/posts/5771422)
 for the complete explanation of ideas behind this framework.
 
