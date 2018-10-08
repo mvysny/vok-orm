@@ -8,8 +8,3 @@ cache:
   directories:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
-
-# Seems to take effect but makes the tests fail. Need to investigate this.
-# sudo: required
-# services:
-#  - docker
