@@ -112,8 +112,8 @@ The function will automatically roll back the transaction on any exception throw
 
 After you're done, call `VokOrm.destroy()` to close the pool.
 
-> You can call methods of this library from anywhere. You don't need to be running inside of the JavaEE or Spring container -
-you can use this library from a plain JavaSE main method.
+> You can call methods of this library from anywhere. You don't need to be running inside of the JavaEE or Spring container or
+any container at all - you can actually use this library from a plain JavaSE main method.
 
 Full example of a `main()` method that does all of the above:
 
@@ -132,6 +132,9 @@ fun main(args: Array<String>) {
     VokOrm.destroy()
 }
 ```
+
+> *Note*: for the sake of simplicity we're running the `CREATE TABLE` as a query. For a persistent database
+it's definitely better to use [Flyway](https://flywaydb.org/) as described below.
 
 ### Finding Categories
 
@@ -376,10 +379,8 @@ annotation. You can't use SQL aliases to bypass `@As` and map directly to bean f
 
 * INSERTs/UPDATEs issued by the `Dao` for your entities will fail since they will use the bean field names instead of actual column name
 * You will be able to receive outcome of the SELECT and map it onto a bean, but auto-generated `Filter` objects (e.g. from the Grid filter-to-vok-orm-filters,
-  or from the type-safe `SqlWhereBuilder` class) will use bean property names when constructing the SQL WHERE clause, causing the database
-  to fail to execute such SELECT command.
-
-Please see [Issue #5](https://github.com/mvysny/vok-orm/issues/5) for more details.
+  or from the type-safe `SqlWhereBuilder` class) will use aliased column names (bean property names) when constructing the SQL WHERE clause, causing the database
+  to fail to execute such SELECT command. Please see [Issue 5](https://github.com/mvysny/vok-orm/issues/5) for more details.
 
 ## A main() method Example
 
@@ -442,6 +443,43 @@ fun main(args: Array<String>) {
     
     VokOrm.destroy()
 }
+```
+
+# Using Flyway to migrate the database
+
+[Flyway](https://flywaydb.org/) is able to run DDL scripts on given database and track which scripts already ran.
+This way, you can simply add more scripts and Flyway will apply them, to migrate the database to the newest version.
+This even works in a cluster since Flyway will obtain a database lock, locking out other members of the cluster attempting
+to upgrade.
+
+Let's use the Category example from above. We need Flyway to run two scripts, to initialize the database:
+one creates the table, while other creates the indices.
+
+You don't need to use Flyway plugin. Just add the following Gradle dependency to your project:
+
+```gradle
+compile "org.flywaydb:flyway-core:5.2.0"
+```
+
+Flyway expects the migration scripts named in a certain format, to know the order in which to execute them.
+Create the `db.migration` package in your `src/main/resources` and put two files there: the `V01__CreateCategory.sql`
+file:
+```sql92
+create TABLE CATEGORY (
+  id bigint auto_increment PRIMARY KEY,
+  name varchar(200) NOT NULL
+);
+```
+The next one will be `V02__CreateIndexCategoryName.sql`:
+```sql92
+create UNIQUE INDEX idx_category_name ON CATEGORY(name);
+```
+
+In order to run the migrations, just run the following after `VokOrm.init()`:
+```kotlin
+val flyway = Flyway()
+flyway.dataSource = VokOrm.dataSource
+flyway.migrate()
 ```
 
 # Using with Spring or JavaEE
