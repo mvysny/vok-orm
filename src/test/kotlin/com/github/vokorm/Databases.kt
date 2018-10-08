@@ -49,14 +49,16 @@ enum class MaritalStatus {
     Widowed
 }
 
+val databasePort = 12345
+
 private fun DynaNodeGroup.usingDockerizedPosgresql() {
     check(Docker.isPresent) { "Docker not available" }
-    beforeGroup { Docker.startPostgresql() }
+    beforeGroup { Docker.startPostgresql(port = databasePort) }
     beforeGroup {
         VokOrm.dataSourceConfig.apply {
             minimumIdle = 0
             maximumPoolSize = 30
-            jdbcUrl = "jdbc:postgresql://localhost:5432/postgres"
+            jdbcUrl = "jdbc:postgresql://localhost:12345/postgres"
             username = "postgres"
             password = "mysecretpassword"
         }
@@ -87,12 +89,12 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
 
 private fun DynaNodeGroup.usingDockerizedMysql() {
     check(Docker.isPresent) { "Docker not available" }
-    beforeGroup { Docker.startMysql() }
+    beforeGroup { Docker.startMysql(port = databasePort) }
     beforeGroup {
         VokOrm.dataSourceConfig.apply {
             minimumIdle = 0
             maximumPoolSize = 30
-            jdbcUrl = "jdbc:mysql://localhost:3306/db"
+            jdbcUrl = "jdbc:mysql://localhost:12345/db"
             username = "testuser"
             password = "mysqlpassword"
         }
@@ -156,12 +158,12 @@ fun DynaNodeGroup.usingH2Database() {
 
 private fun DynaNodeGroup.usingDockerizedMariaDB() {
     check(Docker.isPresent) { "Docker not available" }
-    beforeGroup { Docker.startMariaDB() }
+    beforeGroup { Docker.startMariaDB(port = databasePort) }
     beforeGroup {
         VokOrm.dataSourceConfig.apply {
             minimumIdle = 0
             maximumPoolSize = 30
-            jdbcUrl = "jdbc:mariadb://localhost:3306/db"
+            jdbcUrl = "jdbc:mariadb://localhost:12345/db"
             username = "testuser"
             password = "mysqlpassword"
         }
