@@ -51,9 +51,9 @@ class MappingTest : DynaTest({
             expect(LocalDate.of(1990, 1, 14)) { db { com.github.vokorm.Person.findAll()[0].dateOfBirth!! } }
         }
         test("save date and instant") {
-            val p = Person(name = "Zaphod", age = 20, created = Date(255), modified = Instant.ofEpochMilli(120398123))
+            val p = Person(name = "Zaphod", age = 20, created = Date(1000), modified = Instant.ofEpochMilli(120398123))
             p.save()
-            expect(255) { db { com.github.vokorm.Person.findAll()[0].created!!.time } }
+            expect(1000) { db { com.github.vokorm.Person.findAll()[0].created!!.time } }
             expect(Instant.ofEpochMilli(120398123)) { db { com.github.vokorm.Person.findAll()[0].modified!! } }
         }
         test("JsonSerializationIgnoresMeta") {
