@@ -11,7 +11,7 @@
 Just add the following lines to your Gradle script, to include this library in your project:
 ```groovy
 repositories {
-    maven { url "https://dl.bintray.com/mvysny/github" }
+    jcenter()
 }
 dependencies {
     compile("com.github.vokorm:vok-orm:x.y")
@@ -19,6 +19,25 @@ dependencies {
 ```
 
 > Note: obtain the newest version from the tag name at the top of the page
+
+Maven:
+```xml
+<project>
+	<repositories>
+		<repository>
+			<id>jcenter</id>
+			<url>https://jcenter.bintray.com/</url>
+		</repository>
+	</repositories>
+	<dependencies>
+		<dependency>
+			<groupId>com.github.vokorm</groupId>
+			<artifactId>vok-orm</artifactId>
+			<version>x.y</version>
+		</dependency>
+    </dependencies>
+</project>
+```
 
 ## Usage examples
 
