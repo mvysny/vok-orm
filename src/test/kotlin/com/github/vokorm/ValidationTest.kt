@@ -27,6 +27,9 @@ class ValidationTest : DynaTest({
         data class ValidationAlwaysFails(override var id: Long?) : Entity<Long> {
             override fun validate() = fail("Shouldn't be called")
         }
-        ValidationAlwaysFails(25L).save(false)
+        db {
+            con.createQuery("create table ValidationAlwaysFails ( id bigint primary key auto_increment )").executeUpdate()
+        }
+        ValidationAlwaysFails(null).save(false)
     }
 })
