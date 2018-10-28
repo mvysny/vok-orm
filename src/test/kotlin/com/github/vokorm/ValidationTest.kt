@@ -4,6 +4,7 @@ import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectThrows
 import javax.validation.ValidationException
 import kotlin.test.expect
+import kotlin.test.fail
 
 class ValidationTest : DynaTest({
     usingH2Database()
@@ -21,5 +22,11 @@ class ValidationTest : DynaTest({
         expectThrows(ValidationException::class, "name: length must be between 1 and 2147483647") {
             Person(name = "", age = 20).save()
         }
+    }
+    test("validation is skipped when save(false) is called") {
+        data class ValidationAlwaysFails(override var id: Long?) : Entity<Long> {
+            override fun validate() = fail("Shouldn't be called")
+        }
+        ValidationAlwaysFails(25L).save(false)
     }
 })
