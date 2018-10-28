@@ -64,7 +64,6 @@ interface Entity<ID: Any> : Serializable {
      */
     fun save(validate: Boolean = true) {
         if (validate) { validate() }
-        validate()
         db {
             if (id == null) {
                 // not yet in the database, run the INSERT statement
