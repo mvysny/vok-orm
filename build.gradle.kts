@@ -41,7 +41,7 @@ dependencies {
 
     // validation support
     compile("javax.validation:validation-api:2.0.0.Final")  // to have JSR303 validations in the entities
-    testCompile("org.hibernate.validator:hibernate-validator:6.0.11.Final")
+    testCompile("org.hibernate.validator:hibernate-validator:6.0.13.Final")
     // EL is required: http://hibernate.org/validator/documentation/getting-started/
     testCompile("org.glassfish:javax.el:3.0.1-b08")
 
