@@ -2,6 +2,7 @@ package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaNodeGroup
 import org.hibernate.validator.constraints.Length
+import org.intellij.lang.annotations.Language
 import java.time.Instant
 import java.time.LocalDate
 import java.util.*
@@ -64,7 +65,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
         }
         VokOrm.init()
         db {
-            con.createQuery(
+            ddl(
                 """create table if not exists Test (
                 id bigserial primary key,
                 name varchar(400) not null,
@@ -75,7 +76,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
                 alive boolean,
                 maritalStatus varchar(200)
                  )"""
-            ).executeUpdate()
+            )
         }
     }
 
@@ -100,7 +101,7 @@ private fun DynaNodeGroup.usingDockerizedMysql() {
         }
         VokOrm.init()
         db {
-            con.createQuery(
+            ddl(
                 """create table if not exists Test (
                 id bigint primary key auto_increment,
                 name varchar(400) not null,
@@ -111,7 +112,7 @@ private fun DynaNodeGroup.usingDockerizedMysql() {
                 alive boolean,
                 maritalStatus varchar(200)
                  )"""
-            ).executeUpdate()
+            )
         }
     }
 
@@ -126,16 +127,20 @@ private fun DynaNodeGroup.usingDockerizedMysql() {
 fun DynaNodeGroup.usingH2Database() {
     beforeGroup {
         VokOrm.dataSourceConfig.apply {
-            minimumIdle = 0
-            maximumPoolSize = 30
             jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
             username = "sa"
             password = ""
         }
         VokOrm.init()
+    }
+
+    afterGroup { VokOrm.destroy() }
+
+    beforeEach {
         db {
-            con.createQuery(
-                """create table if not exists Test (
+            ddl("DROP ALL OBJECTS")
+            ddl(
+                """create table Test (
                 id bigint primary key auto_increment,
                 name varchar not null,
                 age integer not null,
@@ -145,15 +150,16 @@ fun DynaNodeGroup.usingH2Database() {
                 alive boolean,
                 maritalStatus varchar
                  )"""
-            ).executeUpdate()
+            )
         }
     }
+    afterEach {
+        db { ddl("DROP ALL OBJECTS") }
+    }
+}
 
-    afterGroup { VokOrm.destroy() }
-
-    fun clearDb() = Person.deleteAll()
-    beforeEach { clearDb() }
-    afterEach { clearDb() }
+fun PersistenceContext.ddl(@Language("sql") sql: String) {
+    con.createQuery(sql).executeUpdate()
 }
 
 private fun DynaNodeGroup.usingDockerizedMariaDB() {
@@ -169,7 +175,7 @@ private fun DynaNodeGroup.usingDockerizedMariaDB() {
         }
         VokOrm.init()
         db {
-            con.createQuery(
+            ddl(
                 """create table if not exists Test (
                 id bigint primary key auto_increment,
                 name varchar(400) not null,
@@ -180,7 +186,7 @@ private fun DynaNodeGroup.usingDockerizedMariaDB() {
                 alive boolean,
                 maritalStatus varchar(200)
                  )"""
-            ).executeUpdate()
+            )
         }
     }
 
