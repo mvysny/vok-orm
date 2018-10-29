@@ -65,8 +65,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
         }
         VokOrm.init()
         db {
-            ddl(
-                """create table if not exists Test (
+            ddl("""create table if not exists Test (
                 id bigserial primary key,
                 name varchar(400) not null,
                 age integer not null,
@@ -75,8 +74,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
                 modified timestamp,
                 alive boolean,
                 maritalStatus varchar(200)
-                 )"""
-            )
+                 )""")
         }
     }
 
@@ -101,8 +99,7 @@ private fun DynaNodeGroup.usingDockerizedMysql() {
         }
         VokOrm.init()
         db {
-            ddl(
-                """create table if not exists Test (
+            ddl("""create table if not exists Test (
                 id bigint primary key auto_increment,
                 name varchar(400) not null,
                 age integer not null,
@@ -111,8 +108,7 @@ private fun DynaNodeGroup.usingDockerizedMysql() {
                 modified timestamp(3) NULL,
                 alive boolean,
                 maritalStatus varchar(200)
-                 )"""
-            )
+                 )""")
         }
     }
 
@@ -139,8 +135,7 @@ fun DynaNodeGroup.usingH2Database() {
     beforeEach {
         db {
             ddl("DROP ALL OBJECTS")
-            ddl(
-                """create table Test (
+            ddl("""create table Test (
                 id bigint primary key auto_increment,
                 name varchar not null,
                 age integer not null,
@@ -149,8 +144,7 @@ fun DynaNodeGroup.usingH2Database() {
                 modified timestamp,
                 alive boolean,
                 maritalStatus varchar
-                 )"""
-            )
+                 )""")
         }
     }
     afterEach {
