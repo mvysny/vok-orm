@@ -21,7 +21,7 @@ interface Dao<T: Entity<*>>
  *
  * ```
  * data class Log(...) {
- *   companion class : DaoUntyped<Log>
+ *   companion class : DaoOfAny<Log>
  * }
  * ```
  *
