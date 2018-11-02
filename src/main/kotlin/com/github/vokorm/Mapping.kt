@@ -61,6 +61,7 @@ interface Entity<ID: Any> : Serializable {
      *
      * The bean is validated first, by calling [Entity.validate]. You can bypass this by setting [validate] to false, but that's not
      * recommended.
+     * @throws IllegalStateException if the database didn't provide a new ID (upon new row creation), or if there was no row (if [id] was not null).
      */
     fun save(validate: Boolean = true) {
         if (validate) { validate() }
@@ -81,6 +82,7 @@ interface Entity<ID: Any> : Serializable {
                     .bindAliased(this@Entity)
                     .setColumnMappings(meta.getSql2oColumnMappings())
                     .executeUpdate()
+                check(con.result == 1) { "We expected to update only one row but we updated ${con.result} - perhaps there is no row with id $id?" }
             }
         }
     }
