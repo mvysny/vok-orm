@@ -86,11 +86,11 @@ data class IsNotNullFilter<T: Any>(override val databaseColumnName: String) : Be
  * There is no point in supporting substring matching: it performs a full table scan when used, regardless of whether the column contains
  * the index or not. If you really wish for substring matching, you probably want a full-text search instead which is implemented using
  * a different keywords.
- * @param substring the substring, automatically appended with `%` when the SQL query is constructed. The substring is matched
+ * @param startsWith the prefix, automatically appended with `%` when the SQL query is constructed. The 'starts-with' is matched
  * case-sensitive.
  */
-class LikeFilter<T: Any>(override val databaseColumnName: String, substring: String) : BeanFilter<T>() {
-    override val value = "${substring.trim()}%"
+class LikeFilter<T: Any>(override val databaseColumnName: String, startsWith: String) : BeanFilter<T>() {
+    override val value = "${startsWith.trim()}%"
     override fun toString() = """$databaseColumnName LIKE "$value""""
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -116,12 +116,11 @@ class LikeFilter<T: Any>(override val databaseColumnName: String, substring: Str
  * There is no point in supporting substring matching: it performs a full table scan when used, regardless of whether the column contains
  * the index or not. If you really wish for substring matching, you probably want a full-text search instead which is implemented using
  * a different keywords.
- * @param substring the substring, automatically appended with `%` when the SQL query is constructed. The substring is matched
+ * @param startsWith the prefix, automatically appended with `%` when the SQL query is constructed. The 'starts-with' is matched
  * case-insensitive.
  */
-class ILikeFilter<T: Any>(override val databaseColumnName: String, substring: String) : BeanFilter<T>() {
-    private val substring = substring.trim()
-    override val value = "%${substring.trim()}%"
+class ILikeFilter<T: Any>(override val databaseColumnName: String, startsWith: String) : BeanFilter<T>() {
+    override val value = "${startsWith.trim()}%"
     override fun toString() = """$databaseColumnName ILIKE "$value""""
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -224,10 +223,10 @@ class SqlWhereBuilder<T: Any>(val clazz: Class<T>) {
      * There is no point in supporting substring matching: it performs a full table scan when used, regardless of whether the column contains
      * the index or not. If you really wish for substring matching, you probably want a full-text search instead which is implemented using
      * a different keywords.
-     * @param value the prefix, automatically appended with `%` when the SQL query is constructed. The substring is matched
+     * @param prefix the prefix, automatically appended with `%` when the SQL query is constructed. The 'starts-with' is matched
      * case-sensitive.
      */
-    infix fun KProperty1<T, String?>.like(value: String): Filter<T> = LikeFilter(dbname, value)
+    infix fun KProperty1<T, String?>.like(prefix: String): Filter<T> = LikeFilter(dbname, prefix)
 
     /**
      * An ILIKE filter, performs case-insensitive matching. It performs the 'starts-with' matching which tends to perform quite well on indexed columns. If you need a substring
@@ -237,10 +236,10 @@ class SqlWhereBuilder<T: Any>(val clazz: Class<T>) {
      * There is no point in supporting substring matching: it performs a full table scan when used, regardless of whether the column contains
      * the index or not. If you really wish for substring matching, you probably want a full-text search instead which is implemented using
      * a different keywords.
-     * @param value the substring, automatically appended with `%` when the SQL query is constructed. The substring is matched
+     * @param prefix the prefix, automatically appended with `%` when the SQL query is constructed. The 'starts-with' is matched
      * case-insensitive.
      */
-    infix fun KProperty1<T, String?>.ilike(value: String): Filter<T> = ILikeFilter(dbname, value)
+    infix fun KProperty1<T, String?>.ilike(prefix: String): Filter<T> = ILikeFilter(dbname, prefix)
     /**
      * Matches only values contained in given range.
      * @param range the range
