@@ -105,5 +105,26 @@ class DaoTest : DynaTest({
                 expectThrows(IllegalArgumentException::class, "too many Person satisfying name =") { Person.findSpecificBy { Person::name eq "Albedo" } }
             }
         }
+        group("exists") {
+            test("returns false on empty table") {
+                expect(false) { Person.existsAny() }
+                expect(false) { Person.existsById(25) }
+                expect(false) { Person.existsBy { Person::age le 26 } }
+            }
+            test("returns true on matching entity") {
+                val p = Person(name = "Albedo", age = 130)
+                p.save()
+                expect(true) { Person.existsAny() }
+                expect(true) { Person.existsById(p.id!!) }
+                expect(true) { Person.existsBy { Person::age ge 26 } }
+            }
+            test("returns true on non-matching entity") {
+                val p = Person(name = "Albedo", age = 130)
+                p.save()
+                expect(true) { Person.existsAny() }
+                expect(false) { Person.existsById(p.id!! + 1) }
+                expect(false) { Person.existsBy { Person::age le 26 } }
+            }
+        }
     }
 })

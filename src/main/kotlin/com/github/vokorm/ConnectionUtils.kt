@@ -87,7 +87,13 @@ fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, filter: Filter<T>): 
  * Deletes all entities with given [clazz] matching given criteria [block].
  */
 fun <T: Any> Connection.deleteBy(clazz: Class<T>, block: SqlWhereBuilder<T>.()-> Filter<T>) {
-    val filter = block(SqlWhereBuilder(clazz))
+    deleteBy(clazz, block(SqlWhereBuilder(clazz)))
+}
+
+/**
+ * Deletes all entities with given [clazz] matching given criteria [block].
+ */
+fun <T: Any> Connection.deleteBy(clazz: Class<T>, filter: Filter<T>) {
     val query = createQuery("delete from ${clazz.entityMeta.databaseTableName} where ${filter.toSQL92()}")
     filter.getSQL92Parameters().entries.forEach { (name, value) -> query.addParameter(name, value) }
     query.executeUpdate()
@@ -100,4 +106,28 @@ fun <T: Any> Connection.deleteById(clazz: Class<T>, id: Any) {
     createQuery("delete from ${clazz.entityMeta.databaseTableName} where ${clazz.entityMeta.idProperty.dbColumnName}=:id")
         .addParameter("id", id)
         .executeUpdate()
+}
+
+/**
+ * Checks whether there exists any instance of [clazz].
+ */
+fun Connection.existsAny(clazz: Class<*>): Boolean = createQuery("select count(1) from ${clazz.entityMeta.databaseTableName}")
+        .executeScalar(Long::class.java) > 0
+
+/**
+ * Checks whether there exists any instance of [clazz] matching given criteria [block].
+ */
+fun <T: Any> Connection.existsBy(clazz: Class<T>, filter: Filter<T>): Boolean {
+    val query = createQuery("select count(1) from ${clazz.entityMeta.databaseTableName} where ${filter.toSQL92()}")
+    filter.getSQL92Parameters().entries.forEach { (name, value) -> query.addParameter(name, value) }
+    return query.executeScalar(Long::class.java) > 0
+}
+
+/**
+ * Checks whether there exists any instance of [clazz] matching given criteria [block].
+ */
+fun <T: Any> Connection.existsById(clazz: Class<T>, id: Any): Boolean {
+    val query = createQuery("select count(1) from ${clazz.entityMeta.databaseTableName} where ${clazz.entityMeta.idProperty.dbColumnName}=:id")
+            .addParameter("id", id)
+    return query.executeScalar(Long::class.java) > 0
 }

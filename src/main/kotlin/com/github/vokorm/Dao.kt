@@ -98,8 +98,8 @@ inline fun <reified T: Any> DaoOfAny<T>.getBy(noinline block: SqlWhereBuilder<T>
  *
  * Example:
  * ```
- * Person.findSingleBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
- * Person.findSingleBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
+ * Person.findSpecificBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
+ * Person.findSpecificBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
  * ```
  *
  * This function returns `null` if there is no such entity. Use [getBy] if you wish an exception to be thrown in case that
@@ -173,7 +173,7 @@ inline fun <reified T: Any> DaoOfAny<T>.count(noinline block: SqlWhereBuilder<T>
 /**
  * Deletes row with given ID. Does nothing if there is no such row.
  */
-inline fun <reified T: Entity<*>> Dao<T>.deleteById(id: Any): Unit = db { con.deleteById(T::class.java, id) }
+inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.deleteById(id: ID): Unit = db { con.deleteById(T::class.java, id) }
 
 /**
  * Deletes row with given ID. Does nothing if there is no such row.
@@ -256,3 +256,40 @@ inline fun <reified T: Any> DaoOfAny<T>.findBy(limit: Int = Int.MAX_VALUE, noinl
  */
 inline fun <ID, reified T: Entity<ID>> Dao<T>.findBy(limit: Int = Int.MAX_VALUE, noinline block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
     db { con.findBy(T::class.java, limit, block(SqlWhereBuilder(T::class.java))) }
+
+/**
+ * Checks whether there is any instance of this entity in the database.
+ */
+inline fun <ID, reified T: Entity<ID>> Dao<T>.existsAny(): Boolean = db { con.existsAny(T::class.java) }
+
+/**
+ * Checks whether there is any instance matching given block:
+ *
+ * ```
+ * Person.existsBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, preferred
+ * Person.existsBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
+ * ```
+ *
+ * If you want more complex stuff or even joins, fall back and just write SQL:
+ *
+ * ```
+ * db { con.createQuery("select count(1) from Foo where name = :name").addParameter("name", name).executeScalar(Long::class.java) > 0 }
+ * ```
+ */
+inline fun <ID, reified T: Entity<ID>> Dao<T>.existsBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Boolean = db {
+    con.existsBy(T::class.java, block(SqlWhereBuilder(T::class.java)))
+}
+
+/**
+ * Checks whether there is an instance of this entity in the database with given [id].
+ */
+inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.existsById(id: ID): Boolean = db { con.existsById(T::class.java, id) }
+
+/**
+ * Checks whether there is any instance of this entity in the database.
+ */
+inline fun <reified T: Any> DaoOfAny<T>.existsAny(): Boolean = db { con.existsAny(T::class.java) }
+
+inline fun <reified T: Any> DaoOfAny<T>.existsBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Boolean = db {
+    con.existsBy(T::class.java, block(SqlWhereBuilder(T::class.java)))
+}
