@@ -24,7 +24,6 @@ version = "0.13-SNAPSHOT"
 
 repositories {
     jcenter()
-    maven { setUrl("https://dl.bintray.com/mvysny/github") }
 }
 
 tasks.withType<KotlinCompile> {
@@ -117,7 +116,7 @@ bintray {
     key = local.getProperty("bintray.key")
     pkg(closureOf<BintrayExtension.PackageConfig> {
         repo = "github"
-        name = "com.github.vokorm"
+        name = "com.github.mvysny.vokorm"
         setLicenses("MIT")
         vcsUrl = "https://github.com/mvysny/vok-orm"
         publish = true
