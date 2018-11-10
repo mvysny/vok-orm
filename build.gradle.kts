@@ -61,6 +61,8 @@ dependencies {
     testCompile("com.intellij:annotations:12.0")
 }
 
+val java: JavaPluginConvention = convention.getPluginByName("java")
+
 val sourceJar = task("sourceJar", Jar::class) {
     dependsOn(tasks.findByName("classes"))
     classifier = "sources"
