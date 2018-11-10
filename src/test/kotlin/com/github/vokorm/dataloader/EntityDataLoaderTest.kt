@@ -23,14 +23,14 @@ class EntityDataProviderTest : DynaTest({
             val ds = Person.dataLoader
             db { for (i in 15..90) Person(name = "test$i", age = i).save() }
             expect(76) { ds.getCount() }
-            expect((90 downTo 15).toList()) { ds.fetch(sortBy = listOf("age".desc), range = 0..99).map { it.age } }
+            expect((90 downTo 15).toList()) { ds.fetch(sortBy = listOf("age".desc), range = 0L..99).map { it.age } }
         }
 
         test("filterTest1") {
             db { for (i in 15..90) Person(name = "test$i", age = i).save() }
             val ds = Person.dataLoader.withFilter { Person::age between 30..60 }
             expect(31) { ds.getCount() }
-            expect((30..60).toList()) { ds.fetch(sortBy = listOf("age".asc), range = 0..99).map { it.age } }
+            expect((30..60).toList()) { ds.fetch(sortBy = listOf("age".asc), range = 0L..99).map { it.age } }
         }
 
         test("filterTest2") {
@@ -38,14 +38,14 @@ class EntityDataProviderTest : DynaTest({
             val ds = Person.dataLoader
             val filter = buildFilter<Person> { Person::age between 30..60 }
             expect(31) { ds.getCount(filter) }
-            expect((30..60).toList()) { ds.fetch(sortBy = listOf("age".asc), filter = filter, range = 0..99).map { it.age } }
+            expect((30..60).toList()) { ds.fetch(sortBy = listOf("age".asc), filter = filter, range = 0L..99).map { it.age } }
         }
 
         test("paging") {
             db { for (i in 15..90) Person(name = "test$i", age = i).save() }
             val ds = Person.dataLoader.withFilter { Person::age between 30..60 }
-            expect((30..39).toList()) { ds.fetch(sortBy = listOf("age".asc), range = 0..9).map { it.age } }
-            expect((40..49).toList()) { ds.fetch(sortBy = listOf("age".asc), range = 10..19).map { it.age } }
+            expect((30..39).toList()) { ds.fetch(sortBy = listOf("age".asc), range = 0L..9).map { it.age } }
+            expect((40..49).toList()) { ds.fetch(sortBy = listOf("age".asc), range = 10L..19).map { it.age } }
         }
 
         test("nativeQuery") {

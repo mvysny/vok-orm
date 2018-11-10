@@ -10,18 +10,16 @@ import org.sql2o.Query
 class EntityDataLoader<T : Entity<*>>(val clazz: Class<T>) : DataLoader<T> {
     override fun toString() = "EntityDataLoader($clazz)"
 
-    override fun getCount(filter: Filter<T>?): Int = db {
+    override fun getCount(filter: Filter<T>?): Long = db {
         var where = filter?.toSQL92() ?: ""
         if (!where.isBlank()) where = "where $where"
         val count = con.createQuery("select count(*) from ${clazz.entityMeta.databaseTableName} $where")
                 .fillInParamsFromFilters(filter)
-                .executeScalar()
-        (count as Number).toInt()
+                .executeScalar(Long::class.java)!!
+        count
     }
 
-    private val IntRange.length: Int get() = if (isEmpty()) 0 else endInclusive - start + 1
-
-    override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: IntRange): List<T> {
+    override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: LongRange): List<T> {
         require(range.start >= 0) { "range.start: ${range.start} must be 0 or more" }
         require(range.endInclusive >= 0) { "limit: ${range.endInclusive} must be 0 or more" }
         val where: String? = filter?.toSQL92()
@@ -31,7 +29,7 @@ class EntityDataLoader<T : Entity<*>>(val clazz: Class<T>) : DataLoader<T> {
             if (where != null && where.isNotBlank()) append(" where $where")
             if (orderBy.isNotBlank()) append(" order by $orderBy")
             // MariaDB requires LIMIT first, then OFFSET: https://mariadb.com/kb/en/library/limit/
-            if (range != 0..Int.MAX_VALUE) append(" LIMIT ${range.length} OFFSET ${range.start}")
+            if (range != 0..Long.MAX_VALUE) append(" LIMIT ${range.length} OFFSET ${range.start}")
         }
         val dbnameToJavaFieldName = clazz.entityMeta.getSql2oColumnMappings()
         return db {
@@ -49,3 +47,5 @@ class EntityDataLoader<T : Entity<*>>(val clazz: Class<T>) : DataLoader<T> {
         return this
     }
 }
+
+val LongRange.length: Long get() = if (isEmpty()) 0 else endInclusive - start + 1

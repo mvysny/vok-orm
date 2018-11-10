@@ -18,7 +18,7 @@ interface DataLoader<T: Any> : Serializable {
      * @param filter optional filter which defines filtering to be used for counting the
      * number of items. If null all items are considered.
      */
-    fun getCount(filter: Filter<T>? = null): Int
+    fun getCount(filter: Filter<T>? = null): Long
 
     /**
      * Fetches data from the back end. The items must match given [filter]
@@ -28,7 +28,7 @@ interface DataLoader<T: Any> : Serializable {
      * @param range offset and limit to fetch
      * @return a list of items matching the query, may be empty.
      */
-    fun fetch(filter: Filter<T>? = null, sortBy: List<SortClause> = listOf(), range: IntRange = 0..Int.MAX_VALUE): List<T>
+    fun fetch(filter: Filter<T>? = null, sortBy: List<SortClause> = listOf(), range: LongRange = 0..Long.MAX_VALUE): List<T>
 }
 
 /**
@@ -45,8 +45,8 @@ inline fun <reified T: Any> DataLoader<T>.withFilter(block: SqlWhereBuilder<T>.(
 internal class FilteredDataLoader<T: Any>(val filter: Filter<T>, val delegate: DataLoader<T>) : DataLoader<T> {
     private fun and(other: Filter<T>?) = if (other == null) filter else filter.and(other)
 
-    override fun getCount(filter: Filter<T>?): Int = delegate.getCount(and(filter))
+    override fun getCount(filter: Filter<T>?): Long = delegate.getCount(and(filter))
 
-    override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: IntRange): List<T> =
+    override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: LongRange): List<T> =
             delegate.fetch(and(filter), sortBy, range)
 }

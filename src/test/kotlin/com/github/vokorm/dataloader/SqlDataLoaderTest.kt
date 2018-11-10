@@ -24,15 +24,15 @@ class SqlDataLoaderTest : DynaTest({
             expect(0) { dp.getCount(f) }
             expectList() { dp.fetch(f) }
             expect(0) { dp.getCount() }
-            expectList() { dp.fetch(sortBy = nameAsc, range = 0..19) }
+            expectList() { dp.fetch(sortBy = nameAsc, range = 0L..19) }
             expect(0) { dp.getCount(f) }
-            expectList() { dp.fetch(f, nameAsc, 0..19) }
+            expectList() { dp.fetch(f, nameAsc, 0L..19) }
             expect(0) { dp.getCount(f) }
-            expectList() { dp.fetch(f, nameAsc, 0..Int.MAX_VALUE) }
+            expectList() { dp.fetch(f, nameAsc, 0L..Long.MAX_VALUE) }
             expect(0) { dp.getCount(f) }
-            expectList() { dp.fetch(f, range = 0..Int.MAX_VALUE) }
+            expectList() { dp.fetch(f, range = 0L..Long.MAX_VALUE) }
             expect(0) { dp.getCount() }
-            expectList() { dp.fetch(range = 0..Int.MAX_VALUE) }
+            expectList() { dp.fetch(range = 0L..Long.MAX_VALUE) }
         }
 
         test("overwriting parameters is forbidden") {
@@ -55,20 +55,20 @@ class SqlDataLoaderTest : DynaTest({
             expect(25) { dp.getCount() }
             expect((26..50).map { "name $it" }) { dp.fetch().map { it.name } }
             expect(25) { dp.getCount() }
-            expect((26..45).map { "name $it" }) { dp.fetch(range = 0..19).map { it.name } }
+            expect((26..45).map { "name $it" }) { dp.fetch(range = 0L..19L).map { it.name } }
 
             // limit is ignored with size queries; also test that filter f ANDs with SqlDataLoader's filter
             expect(22) { dp.getCount(f) }
-            expect((47 downTo 28).map { "name $it" }) { dp.fetch(f, nameDesc, 0..19).map { it.name } }
+            expect((47 downTo 28).map { "name $it" }) { dp.fetch(f, nameDesc, 0L..19).map { it.name } }
             expect(22) { dp.getCount(f) }
 
             // limit of Int.MAX_VALUE works as if no limit was specified
             expect((26..47).map { "name $it" }) { dp.fetch(f, nameAsc).map { it.name } }
             expect(22) { dp.getCount(f) }
-            expect((26..47).map { "name $it" }) { dp.fetch(f, range = 0..Int.MAX_VALUE).map { it.name } }
+            expect((26..47).map { "name $it" }) { dp.fetch(f, range = 0L..Long.MAX_VALUE).map { it.name } }
 
             expect(25) { dp.getCount() }
-            expect((26..50).map { "name $it" }) { dp.fetch(range = 0..Int.MAX_VALUE).map { it.name } }
+            expect((26..50).map { "name $it" }) { dp.fetch(range = 0L..Long.MAX_VALUE).map { it.name } }
         }
 
         // https://github.com/mvysny/vok-orm/issues/5

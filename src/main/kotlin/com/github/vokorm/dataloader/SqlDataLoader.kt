@@ -44,15 +44,15 @@ import org.sql2o.Query
 class SqlDataLoader<T: Any>(val clazz: Class<T>, val sql: String, val params: Map<String, Any?> = mapOf()) : DataLoader<T> {
     override fun toString() = "SqlDataLoader($clazz:$sql($params))"
 
-    override fun getCount(filter: Filter<T>?): Int = db {
+    override fun getCount(filter: Filter<T>?): Long = db {
         val q: Query = con.createQuery(computeSQL(true, filter))
         params.entries.forEach { (name, value) -> q.addParameter(name, value) }
         q.fillInParamsFromFilters(filter)
-        val count: Int = q.executeScalar(Int::class.java) ?: 0
+        val count: Long = q.executeScalar(Long::class.java) ?: 0
         count
     }
 
-    override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: IntRange): List<T> = db {
+    override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: LongRange): List<T> = db {
         val q = con.createQuery(computeSQL(false, filter, sortBy, range))
         params.entries.forEach { (name, value) -> q.addParameter(name, value) }
         q.fillInParamsFromFilters(filter)
@@ -70,12 +70,10 @@ class SqlDataLoader<T: Any>(val clazz: Class<T>, val sql: String, val params: Ma
         return this
     }
 
-    private val IntRange.length: Int get() = if (isEmpty()) 0 else endInclusive - start + 1
-
     /**
      * Using [sql] as a template, computes the replacement strings for the `{{WHERE}}`, `{{ORDER}}` and `{{PAGING}}` replacement strings.
      */
-    private fun computeSQL(isCountQuery: Boolean, filter: Filter<T>?, sortOrders: List<SortClause> = listOf(), range: IntRange = 0..Int.MAX_VALUE): String {
+    private fun computeSQL(isCountQuery: Boolean, filter: Filter<T>?, sortOrders: List<SortClause> = listOf(), range: LongRange = 0..Long.MAX_VALUE): String {
         // compute the {{WHERE}} replacement
         var where: String = filter?.toSQL92() ?: ""
         if (where.isNotBlank()) where = "and $where"
@@ -86,7 +84,7 @@ class SqlDataLoader<T: Any>(val clazz: Class<T>, val sql: String, val params: Ma
 
         // compute the {{PAGING}} replacement
         // MariaDB requires LIMIT first, then OFFSET: https://mariadb.com/kb/en/library/limit/
-        val paging: String = if (!isCountQuery && range != 0..Int.MAX_VALUE) " LIMIT ${range.length} OFFSET ${range.start}" else ""
+        val paging: String = if (!isCountQuery && range != 0..Long.MAX_VALUE) " LIMIT ${range.length} OFFSET ${range.start}" else ""
 
         var s: String = sql.replace("{{WHERE}}", where).replace("{{ORDER}}", orderBy).replace("{{PAGING}}", paging)
 
