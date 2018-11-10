@@ -20,7 +20,7 @@ plugins {
 defaultTasks("clean", "build")
 
 group = "com.github.mvysny.vokorm"
-version = "0.14"
+version = "0.15-SNAPSHOT"
 
 repositories {
     jcenter()
