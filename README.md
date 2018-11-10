@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/mvysny/vok-orm.svg?branch=master)](https://travis-ci.org/mvysny/vok-orm)
 [![Join the chat at https://gitter.im/vaadin/vaadin-on-kotlin](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/vaadin/vaadin-on-kotlin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![GitHub tag](https://img.shields.io/github/tag/mvysny/vok-orm.svg)](https://github.com/mvysny/vok-orm/tags)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.mvysny.vokorm/vok-orm/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.mvysny.vokorm/vok-orm)
 
 # Vaadin-On-Kotlin database mapping library
 
@@ -11,7 +12,7 @@
 Just add the following lines to your Gradle script, to include this library in your project:
 ```groovy
 repositories {
-    jcenter()
+    jcenter()  // or mavenCentral()
 }
 dependencies {
     compile("com.github.mvysny.vokorm:vok-orm:x.y")
@@ -20,15 +21,10 @@ dependencies {
 
 > Note: obtain the newest version from the tag name at the top of the page
 
-Maven:
+Maven: (it's very simple since vok-orm is in Maven Central):
+
 ```xml
 <project>
-	<repositories>
-		<repository>
-			<id>jcenter</id>
-			<url>https://jcenter.bintray.com/</url>
-		</repository>
-	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>com.github.mvysny.vokorm</groupId>
@@ -39,7 +35,7 @@ Maven:
 </project>
 ```
 
-## Usage examples
+## Usage Examples
 
 Say that we have a table containing a list of beverage categories, such as Cider or Beer. The H2 DDL for such table is simple:
 

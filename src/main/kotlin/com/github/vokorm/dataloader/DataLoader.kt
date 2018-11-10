@@ -7,7 +7,11 @@ import java.io.Serializable
 /**
  * Sorts the outcome of the SELECT command by given [columnName], ascending or descending based on the value of the [asc] parameter.
  */
-data class SortClause(val columnName: String, val asc: Boolean) : Serializable
+data class SortClause(val columnName: String, val asc: Boolean) : Serializable {
+    init {
+        require(columnName.isNotBlank()) { "columnName must not be blank" }
+    }
+}
 
 /**
  * Provides paged access to instances of bean of type [T]. Typically provides data for some kind of a scrollable/paged table.
