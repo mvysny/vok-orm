@@ -14,7 +14,7 @@ repositories {
     jcenter()
 }
 dependencies {
-    compile("com.github.vokorm:vok-orm:x.y")
+    compile("com.github.mvysny.vokorm:vok-orm:x.y")
 }
 ```
 
@@ -31,7 +31,7 @@ Maven:
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>com.github.vokorm</groupId>
+			<groupId>com.github.mvysny.vokorm</groupId>
 			<artifactId>vok-orm</artifactId>
 			<version>x.y</version>
 		</dependency>

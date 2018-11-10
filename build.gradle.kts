@@ -19,7 +19,7 @@ plugins {
 
 defaultTasks("clean", "build")
 
-group = "com.github.vokorm"
+group = "com.github.mvysny.vokorm"
 version = "0.14-SNAPSHOT"
 
 repositories {
