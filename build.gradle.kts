@@ -23,7 +23,7 @@ group = "com.github.mvysny.vokorm"
 version = "0.15-SNAPSHOT"
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 tasks.withType<KotlinCompile> {
