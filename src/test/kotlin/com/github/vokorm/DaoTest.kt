@@ -2,6 +2,10 @@ package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectThrows
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.*
 import kotlin.test.expect
 
 class DaoTest : DynaTest({
@@ -103,6 +107,15 @@ class DaoTest : DynaTest({
             test("fails if there are ten matching entities") {
                 repeat(10) { Person(name = "Albedo", age = 130).save() }
                 expectThrows(IllegalArgumentException::class, "too many Person satisfying name =") { Person.findSpecificBy { Person::name eq "Albedo" } }
+            }
+
+            test("test filter by date") {
+                val p = Person(name = "Albedo", age = 130, dateOfBirth = LocalDate.of(1980, 2, 2))
+                p.save()
+                expect(p) { Person.findSpecificBy { Person::dateOfBirth eq LocalDate.of(1980, 2, 2) } }
+                // here I don't care about whether it selects something or not, I'm only testing the database compatibility
+                Person.findSpecificBy { "dateOfBirth = :a"("a" to Instant.now()) }
+                Person.findSpecificBy { "dateOfBirth = :a"("a" to Date()) }
             }
         }
         group("exists") {
