@@ -11,7 +11,7 @@ if (localProperties.exists()) {
 }
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.3.0"
+    id("org.jetbrains.kotlin.jvm") version "1.3.10"
     id("com.jfrog.bintray") version "1.8.1"
     `maven-publish`
     id("org.jetbrains.dokka") version "0.9.17"
