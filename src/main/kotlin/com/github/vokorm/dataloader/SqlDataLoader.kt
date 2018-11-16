@@ -94,7 +94,7 @@ class SqlDataLoader<T: Any>(val clazz: Class<T>, val sql: String, val params: Ma
 
         // compute the {{PAGING}} replacement
         // MariaDB requires LIMIT first, then OFFSET: https://mariadb.com/kb/en/library/limit/
-        val paging: String = if (!isCountQuery && range != 0..Long.MAX_VALUE) " LIMIT ${range.length} OFFSET ${range.start}" else ""
+        val paging: String = if (!isCountQuery && range != 0..Long.MAX_VALUE) " LIMIT ${range.length.coerceAtMost(Int.MAX_VALUE.toLong())} OFFSET ${range.start}" else ""
 
         var s: String = sql.replace("{{WHERE}}", where).replace("{{ORDER}}", orderBy).replace("{{PAGING}}", paging)
 
