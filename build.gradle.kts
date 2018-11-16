@@ -33,7 +33,7 @@ tasks.withType<KotlinCompile> {
 
 dependencies {
     compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    compile("com.github.mvysny.vokdataloader:vok-dataloader:0.1")
+    compile("com.github.mvysny.vokdataloader:vok-dataloader:0.2")
 
     // logging
     compile("org.slf4j:slf4j-api:1.7.25")
