@@ -2,6 +2,10 @@ package com.github.vokorm.dataloader
 
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectList
+import com.github.mvysny.vokdataloader.DataLoader
+import com.github.mvysny.vokdataloader.SortClause
+import com.github.mvysny.vokdataloader.buildFilter
+import com.github.mvysny.vokdataloader.withFilter
 import com.github.vokorm.*
 import kotlin.test.expect
 

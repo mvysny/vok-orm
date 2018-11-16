@@ -1,8 +1,9 @@
 package com.github.vokorm.dataloader
 
-import com.github.vokorm.Filter
-import com.github.vokorm.db
-import com.github.vokorm.entityMeta
+import com.github.mvysny.vokdataloader.DataLoader
+import com.github.mvysny.vokdataloader.Filter
+import com.github.mvysny.vokdataloader.SortClause
+import com.github.vokorm.*
 import org.sql2o.Query
 
 /**
@@ -34,6 +35,15 @@ import org.sql2o.Query
  * No bloody annotations! Work in progress. It is expected that a holder class is written for every select, tailored to show the outcome
  * of that particular select.
  *
+ * ## Property Names And Mapping Details
+ *
+ * The `NativePropertyName` is the database column name of the database table linked to by this entity (using the
+ * [Table] mapping). The `DataLoaderPropertyName` is the Java Bean Property Name or the Kotlin Property name of the [Entity],
+ * but it also accepts the database column name.
+ *
+ * The database column name is mapped 1:1 to the Java Bean Property Name. If you however use `UPPER_UNDERSCORE` naming scheme
+ * in your database, you can map it to `camelCase` using the [As] annotation.
+
  * @param clazz the type of the holder class which will hold the result
  * @param sql the select which can map into the holder class (that is, it selects columns whose names match the holder class fields). It should contain
  * `{{WHERE}}`, `{{ORDER}}` and `{{PAGING}}` strings which will be replaced by a simple substring replacement.
@@ -45,26 +55,26 @@ class SqlDataLoader<T: Any>(val clazz: Class<T>, val sql: String, val params: Ma
     override fun toString() = "SqlDataLoader($clazz:$sql($params))"
 
     override fun getCount(filter: Filter<T>?): Long = db {
-        val q: Query = con.createQuery(computeSQL(true, filter))
+        val sql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
+        val q: Query = con.createQuery(computeSQL(true, sql))
         params.entries.forEach { (name, value) -> q.addParameter(name, value) }
-        q.fillInParamsFromFilters(filter)
+        q.fillInParamsFromFilters(sql)
         val count: Long = q.executeScalar(Long::class.java) ?: 0
         count
     }
 
     override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: LongRange): List<T> = db {
-        val q = con.createQuery(computeSQL(false, filter, sortBy, range))
+        val sql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
+        val q = con.createQuery(computeSQL(false, sql, sortBy, range))
         params.entries.forEach { (name, value) -> q.addParameter(name, value) }
-        q.fillInParamsFromFilters(filter)
+        q.fillInParamsFromFilters(sql)
         q.columnMappings = clazz.entityMeta.getSql2oColumnMappings()
         q.executeAndFetch(clazz)
     }
 
-    private fun Query.fillInParamsFromFilters(filter: Filter<T>?): org.sql2o.Query {
-        val filters: Filter<T> = filter ?: return this
-        val params: Map<String, Any?> = filters.getSQL92Parameters()
-        params.entries.forEach { (name, value) ->
-            require(!this@SqlDataLoader.params.containsKey(name)) { "Filters tries to set the parameter $name to $value but that parameter is already forced by SqlDataLoader to ${params[name]}: filter=$filters dp=${this@SqlDataLoader}" }
+    private fun Query.fillInParamsFromFilters(filter: ParametrizedSql): org.sql2o.Query {
+        filter.sql92Parameters.entries.forEach { (name, value) ->
+            require(!this@SqlDataLoader.params.containsKey(name)) { "Filters tries to set the parameter $name to $value but that parameter is already forced by SqlDataLoader to ${params[name]}: filter=$sql dp=${this@SqlDataLoader}" }
             addParameter(name, value)
         }
         return this
@@ -73,9 +83,9 @@ class SqlDataLoader<T: Any>(val clazz: Class<T>, val sql: String, val params: Ma
     /**
      * Using [sql] as a template, computes the replacement strings for the `{{WHERE}}`, `{{ORDER}}` and `{{PAGING}}` replacement strings.
      */
-    private fun computeSQL(isCountQuery: Boolean, filter: Filter<T>?, sortOrders: List<SortClause> = listOf(), range: LongRange = 0..Long.MAX_VALUE): String {
+    private fun computeSQL(isCountQuery: Boolean, filter: ParametrizedSql, sortOrders: List<SortClause> = listOf(), range: LongRange = 0..Long.MAX_VALUE): String {
         // compute the {{WHERE}} replacement
-        var where: String = filter?.toSQL92() ?: ""
+        var where: String = filter.sql92
         if (where.isNotBlank()) where = "and $where"
 
         // compute the {{ORDER}} replacement
@@ -101,7 +111,7 @@ class SqlDataLoader<T: Any>(val clazz: Class<T>, val sql: String, val params: Ma
     /**
      * Converts [SortClause] to something like "name ASC".
      */
-    private fun SortClause.toSql92OrderByClause(): String = "$columnName ${if (asc) "ASC" else "DESC"}"
+    private fun SortClause.toSql92OrderByClause(): String = "${propertyName.toNativeColumnName(clazz)} ${if (asc) "ASC" else "DESC"}"
 
     /**
      * Converts a list of [SortClause] to something like "name DESC, age ASC". If the list is empty, returns an empty string.

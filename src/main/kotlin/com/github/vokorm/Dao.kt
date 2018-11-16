@@ -1,5 +1,8 @@
 package com.github.vokorm
 
+import com.github.mvysny.vokdataloader.Filter
+import com.github.mvysny.vokdataloader.SqlWhereBuilder
+
 /**
  * Data access object, provides instances of given [Entity]. To use, just let your [Entity]'s companion class implement this interface, say:
  *

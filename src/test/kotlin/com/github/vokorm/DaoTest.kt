@@ -2,9 +2,9 @@ package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectThrows
+import com.github.mvysny.vokdataloader.EqFilter
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.util.*
 import kotlin.test.expect
 
@@ -138,6 +138,11 @@ class DaoTest : DynaTest({
                 expect(false) { Person.existsById(p.id!! + 1) }
                 expect(false) { Person.existsBy { Person::age le 26 } }
             }
+        }
+        test("sql92 filter works") {
+            val p = Person(name = "Albedo", age = 130, dateOfBirth = LocalDate.of(1980, 2, 2), isAlive25 = true)
+            p.save()
+            expect(p) { db { con.findSpecificBy(Person::class.java, EqFilter("alive", true)) } }
         }
     }
 })

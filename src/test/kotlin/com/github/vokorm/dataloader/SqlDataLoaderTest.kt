@@ -3,8 +3,9 @@ package com.github.vokorm.dataloader
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectList
 import com.github.mvysny.dynatest.expectThrows
+import com.github.mvysny.vokdataloader.SortClause
+import com.github.mvysny.vokdataloader.buildFilter
 import com.github.vokorm.*
-import org.hibernate.validator.constraints.Length
 import kotlin.test.expect
 
 class SqlDataLoaderTest : DynaTest({

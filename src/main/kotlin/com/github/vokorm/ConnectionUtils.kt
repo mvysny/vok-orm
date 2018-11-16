@@ -1,10 +1,12 @@
 package com.github.vokorm
 
+import com.github.mvysny.vokdataloader.Filter
+import com.github.mvysny.vokdataloader.SqlWhereBuilder
 import org.sql2o.Connection
 import org.sql2o.Query
 
 /**
- * Finds all instances of given entity. Fails if there is no table in the database with the name of [databaseTableName]. The list is eager
+ * Finds all instances of given entity. Fails if there is no table in the database with the name of [EntityMeta.databaseTableName]. The list is eager
  * and thus it's useful for smallish tables only.
  */
 fun <T : Any> Connection.findAll(clazz: Class<T>): List<T> =
@@ -45,8 +47,9 @@ fun <T: Any> Connection.getCount(clazz: Class<T>): Long =
  * Counts all rows in given table [clazz] satisfying given [filter].
  */
 fun <T: Any> Connection.getCount(clazz: Class<T>, filter: Filter<T>): Long {
-    val query: Query = createQuery("select count(*) from ${clazz.entityMeta.databaseTableName} where ${filter.toSQL92()}")
-    filter.getSQL92Parameters().entries.forEach { (name, value) -> query.addParameter(name, value) }
+    val sql = filter.toParametrizedSql(clazz)
+    val query: Query = createQuery("select count(*) from ${clazz.entityMeta.databaseTableName} where ${sql.sql92}")
+    sql.sql92Parameters.entries.forEach { (name, value) -> query.addParameter(name, value) }
     return query.executeScalar(Long::class.java)
 }
 
@@ -59,7 +62,7 @@ fun <T: Any> Connection.getCount(clazz: Class<T>, filter: Filter<T>): Long {
  */
 fun <T: Any> Connection.findSpecificBy(clazz: Class<T>, filter: Filter<T>): T? {
     val result: List<T> = findBy(clazz, 2, filter)
-    require(result.size < 2) { "too many ${clazz.simpleName} satisfying ${filter.toSQL92()}:${filter.getSQL92Parameters()}: $result and perhaps more" }
+    require(result.size < 2) { "too many ${clazz.simpleName} satisfying ${filter.toParametrizedSql(clazz)}: $result and perhaps more" }
     return result.firstOrNull()
 }
 
@@ -68,7 +71,7 @@ fun <T: Any> Connection.findSpecificBy(clazz: Class<T>, filter: Filter<T>): T? {
  * @throws IllegalArgumentException if there is none entity matching, or if there are two or more matching entities.
  */
 fun <T: Any> Connection.getBy(clazz: Class<T>, filter: Filter<T>): T =
-    findSpecificBy(clazz, filter) ?: throw IllegalArgumentException("no ${clazz.simpleName} satisfying ${filter.toSQL92()}:${filter.getSQL92Parameters()}")
+    findSpecificBy(clazz, filter) ?: throw IllegalArgumentException("no ${clazz.simpleName} satisfying ${filter.toParametrizedSql(clazz)}")
 
 /**
  * Returns a list of entities with given [clazz] matching given [filter].
@@ -77,8 +80,9 @@ fun <T: Any> Connection.getBy(clazz: Class<T>, filter: Filter<T>): T =
  */
 fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, filter: Filter<T>): List<T> {
     require (limit >= 0) { "$limit is less than 0" }
-    val query = createQuery("select * from ${clazz.entityMeta.databaseTableName} where ${filter.toSQL92()} limit $limit")
-    filter.getSQL92Parameters().entries.forEach { (name, value) -> query.addParameter(name, value) }
+    val sql = filter.toParametrizedSql(clazz)
+    val query = createQuery("select * from ${clazz.entityMeta.databaseTableName} where ${sql.sql92} limit $limit")
+    sql.sql92Parameters.entries.forEach { (name, value) -> query.addParameter(name, value) }
     query.setColumnMappings(clazz.entityMeta.getSql2oColumnMappings())
     return query.executeAndFetch(clazz)
 }
@@ -91,11 +95,12 @@ fun <T: Any> Connection.deleteBy(clazz: Class<T>, block: SqlWhereBuilder<T>.()->
 }
 
 /**
- * Deletes all entities with given [clazz] matching given criteria [block].
+ * Deletes all entities with given [clazz] matching given criteria [filter].
  */
 fun <T: Any> Connection.deleteBy(clazz: Class<T>, filter: Filter<T>) {
-    val query = createQuery("delete from ${clazz.entityMeta.databaseTableName} where ${filter.toSQL92()}")
-    filter.getSQL92Parameters().entries.forEach { (name, value) -> query.addParameter(name, value) }
+    val sql = filter.toParametrizedSql(clazz)
+    val query = createQuery("delete from ${clazz.entityMeta.databaseTableName} where ${sql.sql92}")
+    sql.sql92Parameters.entries.forEach { (name, value) -> query.addParameter(name, value) }
     query.executeUpdate()
 }
 
@@ -115,16 +120,17 @@ fun Connection.existsAny(clazz: Class<*>): Boolean = createQuery("select count(1
         .executeScalar(Long::class.java) > 0
 
 /**
- * Checks whether there exists any instance of [clazz] matching given criteria [block].
+ * Checks whether there exists any instance of [clazz] matching given criteria [filter].
  */
 fun <T: Any> Connection.existsBy(clazz: Class<T>, filter: Filter<T>): Boolean {
-    val query = createQuery("select count(1) from ${clazz.entityMeta.databaseTableName} where ${filter.toSQL92()}")
-    filter.getSQL92Parameters().entries.forEach { (name, value) -> query.addParameter(name, value) }
+    val sql = filter.toParametrizedSql(clazz)
+    val query = createQuery("select count(1) from ${clazz.entityMeta.databaseTableName} where ${sql.sql92}")
+    sql.sql92Parameters.entries.forEach { (name, value) -> query.addParameter(name, value) }
     return query.executeScalar(Long::class.java) > 0
 }
 
 /**
- * Checks whether there exists any instance of [clazz] matching given criteria [block].
+ * Checks whether there exists any instance of [clazz] with given id.
  */
 fun <T: Any> Connection.existsById(clazz: Class<T>, id: Any): Boolean {
     val query = createQuery("select count(1) from ${clazz.entityMeta.databaseTableName} where ${clazz.entityMeta.idProperty.dbColumnName}=:id")
