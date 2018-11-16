@@ -21,6 +21,7 @@ class EntityDataProviderTest : DynaTest({
             val ds = Person.dataLoader
             expect(0) { ds.getCount() }
             expectList() { ds.fetch() }
+            expectList() { ds.fetch(range = 0L..(Long.MAX_VALUE - 1)) }
         }
 
         test("sorting") {

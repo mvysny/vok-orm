@@ -34,6 +34,7 @@ class SqlDataLoaderTest : DynaTest({
             expectList() { dp.fetch(f, range = 0L..Long.MAX_VALUE) }
             expect(0) { dp.getCount() }
             expectList() { dp.fetch(range = 0L..Long.MAX_VALUE) }
+            expectList() { dp.fetch(range = 0L..(Long.MAX_VALUE - 1)) }
         }
 
         test("overwriting parameters is forbidden") {

@@ -39,7 +39,7 @@ class EntityDataLoader<T : Entity<*>>(val clazz: Class<T>) : DataLoader<T> {
             if (where.isNotBlank()) append(" where $where")
             if (orderBy.isNotBlank()) append(" order by $orderBy")
             // MariaDB requires LIMIT first, then OFFSET: https://mariadb.com/kb/en/library/limit/
-            if (range != 0..Long.MAX_VALUE) append(" LIMIT ${range.length} OFFSET ${range.start}")
+            if (range != (0L..Long.MAX_VALUE)) append(" LIMIT ${range.length.coerceAtMost(Int.MAX_VALUE.toLong())} OFFSET ${range.start}")
         }
         val dbnameToJavaFieldName = clazz.entityMeta.getSql2oColumnMappings()
         return db {
