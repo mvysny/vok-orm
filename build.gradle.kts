@@ -24,7 +24,6 @@ version = "0.15-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    maven { setUrl("https://dl.bintray.com/mvysny/github") }
 }
 
 tasks.withType<KotlinCompile> {
