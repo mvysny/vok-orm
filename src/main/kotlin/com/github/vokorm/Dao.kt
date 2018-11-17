@@ -72,10 +72,17 @@ inline fun <reified T: Any> DaoOfAny<T>.getById(id: Any): T = db { con.getById(T
  * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
-inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.getBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T {
-    val filter = block(SqlWhereBuilder(T::class.java))
-    return db { con.getBy(T::class.java, filter) }
-}
+inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.getBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T =
+        getBy(block(SqlWhereBuilder(T::class.java)))
+
+/**
+ * Retrieves single entity matching given [filter]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
+ *
+ * This function fails if there is no such entity or there are 2 or more. Use [findSpecificBy] if you wish to return `null` in case that
+ * the entity does not exist.
+ * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
+ */
+inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.getBy(filter: Filter<T>): T = db { con.getBy(T::class.java, filter) }
 
 /**
  * Retrieves single entity matching given criteria [block]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
@@ -90,10 +97,17 @@ inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.getBy(noinline block: SqlWher
  * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
-inline fun <reified T: Any> DaoOfAny<T>.getBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T {
-    val filter = block(SqlWhereBuilder(T::class.java))
-    return db { con.getBy(T::class.java, filter) }
-}
+inline fun <reified T: Any> DaoOfAny<T>.getBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T =
+        getBy(block(SqlWhereBuilder(T::class.java)))
+
+/**
+ * Retrieves single entity matching given [filter]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
+ *
+ * This function fails if there is no such entity or there are 2 or more. Use [findSpecificBy] if you wish to return `null` in case that
+ * the entity does not exist.
+ * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
+ */
+inline fun <reified T: Any> DaoOfAny<T>.getBy(filter: Filter<T>): T = db { con.getBy(T::class.java, filter) }
 
 /**
  * Retrieves specific entity matching given criteria [block]. Returns `null` if there is no such entity.
@@ -109,10 +123,19 @@ inline fun <reified T: Any> DaoOfAny<T>.getBy(noinline block: SqlWhereBuilder<T>
  * the entity does not exist.
  * @throws IllegalArgumentException if there are two or more matching entities.
  */
-inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.findSpecificBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T? {
-    val filter = block(SqlWhereBuilder(T::class.java))
-    return db { con.findSpecificBy(T::class.java, filter) }
-}
+inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.findSpecificBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T? =
+        findSpecificBy(block(SqlWhereBuilder(T::class.java)))
+
+/**
+ * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.
+ * Fails if there are two or more entities matching the criteria.
+ *
+ * This function returns `null` if there is no such entity. Use [getBy] if you wish an exception to be thrown in case that
+ * the entity does not exist.
+ * @throws IllegalArgumentException if there are two or more matching entities.
+ */
+inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.findSpecificBy(filter: Filter<T>): T? =
+        db { con.findSpecificBy(T::class.java, filter) }
 
 /**
  * Retrieves specific entity matching given criteria [block]. Fails if there are two or more entities matching the criteria.
@@ -127,10 +150,18 @@ inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.findSpecificBy(noinline block
  * the entity does not exist.
  * @throws IllegalArgumentException if there are two or more matching entities.
  */
-inline fun <reified T: Any> DaoOfAny<T>.findSpecificBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T? {
-    val filter = block(SqlWhereBuilder(T::class.java))
-    return db { con.findSpecificBy(T::class.java, filter) }
-}
+inline fun <reified T: Any> DaoOfAny<T>.findSpecificBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T? =
+        findSpecificBy(block(SqlWhereBuilder(T::class.java)))
+
+/**
+ * Retrieves specific entity matching given [filter]. Fails if there are two or more entities matching the criteria.
+ *
+ * This function returns `null` if there is no such entity. Use [getBy] if you wish an exception to be thrown in case that
+ * the entity does not exist.
+ * @throws IllegalArgumentException if there are two or more matching entities.
+ */
+inline fun <reified T: Any> DaoOfAny<T>.findSpecificBy(filter: Filter<T>): T? =
+        db { con.findSpecificBy(T::class.java, filter) }
 
 /**
  * Retrieves entity with given [id]. Returns null if there is no such entity.
@@ -166,12 +197,26 @@ inline fun <reified T: Any> DaoOfAny<T>.count(): Long = db { con.getCount(T::cla
 /**
  * Counts all rows in given table which matches given [block] clause.
  */
-inline fun <reified T: Entity<*>> Dao<T>.count(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Long = db { con.getCount(T::class.java, SqlWhereBuilder<T>(T::class.java).block()) }
+inline fun <reified T: Entity<*>> Dao<T>.count(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Long =
+        count(SqlWhereBuilder(T::class.java).block())
+
+/**
+ * Counts all rows in given table which matches given [filter].
+ */
+inline fun <reified T: Entity<*>> Dao<T>.count(filter: Filter<T>): Long =
+        db { con.getCount(T::class.java, filter) }
 
 /**
  * Counts all rows in given table which matches given [block] clause.
  */
-inline fun <reified T: Any> DaoOfAny<T>.count(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Long = db { con.getCount(T::class.java, SqlWhereBuilder<T>(T::class.java).block()) }
+inline fun <reified T: Any> DaoOfAny<T>.count(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Long =
+        count(SqlWhereBuilder(T::class.java).block())
+
+/**
+ * Counts all rows in given table which matches given [filter].
+ */
+inline fun <reified T: Any> DaoOfAny<T>.count(filter: Filter<T>): Long =
+        db { con.getCount(T::class.java, filter) }
 
 /**
  * Deletes row with given ID. Does nothing if there is no such row.
@@ -239,8 +284,20 @@ inline val <reified T: Entity<*>> Dao<T>.meta: EntityMeta
  * ```
  */
 inline fun <reified T: Any> DaoOfAny<T>.findBy(limit: Int = Int.MAX_VALUE, noinline block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
-    db { con.findBy(T::class.java, limit, block(SqlWhereBuilder(T::class.java))) }
+    findBy(limit, block(SqlWhereBuilder(T::class.java)))
 
+/**
+ * Allows you to find rows by given [filter], with the maximum of [limit] rows:
+ *
+ * If you want more complex stuff or even joins, fall back and just write
+ * SQL:
+ *
+ * ```
+ * db { con.createQuery("select * from Foo where name = :name").addParameter("name", name).executeAndFetch(Person::class.java) }
+ * ```
+ */
+inline fun <reified T: Any> DaoOfAny<T>.findBy(limit: Int = Int.MAX_VALUE, filter: Filter<T>): List<T> =
+        db { con.findBy(T::class.java, limit, filter) }
 
 /**
  * Allows you to find rows by given `where` clause, with the maximum of [limit] rows:
@@ -258,7 +315,20 @@ inline fun <reified T: Any> DaoOfAny<T>.findBy(limit: Int = Int.MAX_VALUE, noinl
  * ```
  */
 inline fun <ID, reified T: Entity<ID>> Dao<T>.findBy(limit: Int = Int.MAX_VALUE, noinline block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
-    db { con.findBy(T::class.java, limit, block(SqlWhereBuilder(T::class.java))) }
+    findBy(limit, block(SqlWhereBuilder(T::class.java)))
+
+/**
+ * Allows you to find rows by given [filter], with the maximum of [limit] rows:
+ *
+ * If you want more complex stuff or even joins, fall back and just write
+ * SQL:
+ *
+ * ```
+ * db { con.createQuery("select * from Foo where name = :name").addParameter("name", name).executeAndFetch(Person::class.java) }
+ * ```
+ */
+inline fun <ID, reified T: Entity<ID>> Dao<T>.findBy(limit: Int = Int.MAX_VALUE, filter: Filter<T>): List<T> =
+        db { con.findBy(T::class.java, limit, filter) }
 
 /**
  * Checks whether there is any instance of this entity in the database.
@@ -279,9 +349,19 @@ inline fun <ID, reified T: Entity<ID>> Dao<T>.existsAny(): Boolean = db { con.ex
  * db { con.createQuery("select count(1) from Foo where name = :name").addParameter("name", name).executeScalar(Long::class.java) > 0 }
  * ```
  */
-inline fun <ID, reified T: Entity<ID>> Dao<T>.existsBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Boolean = db {
-    con.existsBy(T::class.java, block(SqlWhereBuilder(T::class.java)))
-}
+inline fun <ID, reified T: Entity<ID>> Dao<T>.existsBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Boolean =
+        existsBy(block(SqlWhereBuilder(T::class.java)))
+
+/**
+ * Checks whether there is any instance matching given [filter].
+ *
+ * If you want more complex stuff or even joins, fall back and just write SQL:
+ *
+ * ```
+ * db { con.createQuery("select count(1) from Foo where name = :name").addParameter("name", name).executeScalar(Long::class.java) > 0 }
+ * ```
+ */
+inline fun <ID, reified T : Entity<ID>> Dao<T>.existsBy(filter: Filter<T>): Boolean = db { con.existsBy(T::class.java, filter) }
 
 /**
  * Checks whether there is an instance of this entity in the database with given [id].
@@ -293,6 +373,9 @@ inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.existsById(id: ID): Boolean =
  */
 inline fun <reified T: Any> DaoOfAny<T>.existsAny(): Boolean = db { con.existsAny(T::class.java) }
 
-inline fun <reified T: Any> DaoOfAny<T>.existsBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Boolean = db {
-    con.existsBy(T::class.java, block(SqlWhereBuilder(T::class.java)))
+inline fun <reified T: Any> DaoOfAny<T>.existsBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): Boolean =
+        existsBy(block(SqlWhereBuilder(T::class.java)))
+
+inline fun <reified T: Any> DaoOfAny<T>.existsBy(filter: Filter<T>): Boolean = db {
+    con.existsBy(T::class.java, filter)
 }
