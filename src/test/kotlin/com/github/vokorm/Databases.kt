@@ -86,7 +86,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
     afterEach { clearDb() }
 }
 
-private fun DynaNodeGroup.usingDockerizedMysql() {
+fun DynaNodeGroup.usingDockerizedMysql() {
     check(Docker.isPresent) { "Docker not available" }
     beforeGroup { Docker.startMysql(port = databasePort) }
     beforeGroup {

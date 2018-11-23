@@ -4,6 +4,8 @@ import com.github.mvysny.vokdataloader.Filter
 import com.github.mvysny.vokdataloader.SqlWhereBuilder
 import org.sql2o.Connection
 import org.sql2o.Query
+import org.sql2o.data.LazyTable
+import org.sql2o.data.Row
 
 /**
  * Finds all instances of given entity. Fails if there is no table in the database with the name of [EntityMeta.databaseTableName]. The list is eager
@@ -136,4 +138,37 @@ fun <T: Any> Connection.existsById(clazz: Class<T>, id: Any): Boolean {
     val query = createQuery("select count(1) from ${clazz.entityMeta.databaseTableName} where ${clazz.entityMeta.idProperty.dbColumnName}=:id")
             .addParameter("id", id)
     return query.executeScalar(Long::class.java) > 0
+}
+
+/**
+ * Dumps the result of the query and returns it as a string formatted as follows:
+ * ```
+ * id, name, age, dateOfBirth, created, modified, alive, maritalStatus
+ * -------------------------------------------------------------------
+ * 1, Chuck Norris, 25, null, 2018-11-23 20:41:07.143, 2018-11-23 20:41:07.145, null, null
+ * -------------------------------------------------------------------1 row(s)
+ * ```
+ * @return a pretty-printed outcome of given select
+ */
+fun Query.dump(): String = executeAndFetchTableLazy().use { table: LazyTable ->
+    fun Row.dump(): String = (0 until table.columns().size).joinToString { "${getObject(it)}" }
+    buildString {
+
+        // bug in sql2o: we need to ask for rows().iterator() otherwise columns() will be null :-(
+        val rows: Iterator<Row> = table.rows().iterator()
+
+        // draw the header and the separator
+        val header: String = table.columns().joinToString { it.name }
+        appendln(header)
+        repeat(header.length) { append("-") }
+        appendln()
+
+        // draw the table body
+        var rowCount = 0
+        rows.forEach { row -> rowCount++; appendln(row.dump()) }
+
+        // the bottom separator
+        repeat(header.length) { append("-") }
+        appendln("$rowCount row(s)")
+    }
 }
