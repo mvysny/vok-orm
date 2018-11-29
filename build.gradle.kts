@@ -12,7 +12,7 @@ if (localProperties.exists()) {
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.3.10"
-    id("com.jfrog.bintray") version "1.8.1"
+    id("com.jfrog.bintray") version "1.8.3"
     `maven-publish`
     id("org.jetbrains.dokka") version "0.9.17"
 }
@@ -48,7 +48,7 @@ dependencies {
     testCompile("org.glassfish:javax.el:3.0.1-b08")
 
     // tests
-    testCompile("com.github.mvysny.dynatest:dynatest-engine:0.12")
+    testCompile("com.github.mvysny.dynatest:dynatest-engine:0.13")
     testCompile("com.google.code.gson:gson:2.8.5")
     testCompile("ch.qos.logback:logback-classic:1.2.3")
     testCompile("com.h2database:h2:1.4.197")
@@ -62,16 +62,14 @@ dependencies {
     testCompile("com.intellij:annotations:12.0")
 }
 
-val java: JavaPluginConvention = convention.getPluginByName("java")
-
 val sourceJar = task("sourceJar", Jar::class) {
-    dependsOn(tasks.findByName("classes"))
+    dependsOn(tasks["classes"])
     classifier = "sources"
-    from(java.sourceSets["main"].allSource)
+    from(sourceSets.main.get().allSource)
 }
 
 val javadocJar = task("javadocJar", Jar::class) {
-    val javadoc = tasks.findByName("dokka") as DokkaTask
+    val javadoc = tasks["dokka"] as DokkaTask
     javadoc.outputFormat = "javadoc"
     javadoc.outputDirectory = "$buildDir/javadoc"
     dependsOn(javadoc)
@@ -107,7 +105,7 @@ publishing {
                     url.set("https://github.com/mvysny/vok-orm")
                 }
             }
-            from(components.findByName("java")!!)
+            from(components["java"])
             artifact(sourceJar)
             artifact(javadocJar)
         }
