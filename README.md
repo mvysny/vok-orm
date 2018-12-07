@@ -120,7 +120,7 @@ db {
 ```
 
 You can call this function from anywhere; you don't need to use dependency injection or anything like that.
-That is precisely how the `save()` function saves the bean - it simply calls the `db{}` function and executes
+That is precisely how the `save()` function saves the bean - it simply calls the `db {}` function and executes
 an appropriate INSERT/UPDATE statement.
 
 The function will automatically roll back the transaction on any exception thrown out from the block (both checked and unchecked).
@@ -147,6 +147,10 @@ fun main(args: Array<String>) {
     VokOrm.destroy()
 }
 ```
+
+See the [vok-orm-playground](https://gitlab.com/mvysny/vok-orm-playground)
+project which contains such `main` method, all JDBC drivers pre-loaded and
+simple instructions on how to query different database kinds.
 
 > *Note*: for the sake of simplicity we're running the `CREATE TABLE` as a query. For a persistent database
 it's definitely better to use [Flyway](https://flywaydb.org/) as described below.
