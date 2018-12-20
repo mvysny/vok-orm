@@ -68,3 +68,12 @@ internal fun DataLoaderPropertyName.toNativeColumnName(clazz: Class<*>): NativeP
 }
 
 internal fun SortClause.getNativeColumnName(clazz: Class<*>): NativePropertyName = propertyName.toNativeColumnName(clazz)
+
+/**
+ * Provides instances of this entity from a database. Does not support joins on any of the like; supports filtering
+ * and sorting. Only supports simple views over one database table (one entity) - for anything more complex please use [SqlDataLoader].
+ *
+ * Example of use: `grid.setDataLoader(Person.dataLoader)`.
+ */
+inline val <reified T: Entity<*>> Dao<T>.dataLoader: DataLoader<T>
+    get() = EntityDataLoader(T::class.java)

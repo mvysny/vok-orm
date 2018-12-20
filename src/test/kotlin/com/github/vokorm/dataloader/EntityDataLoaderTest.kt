@@ -9,8 +9,6 @@ import com.github.mvysny.vokdataloader.withFilter
 import com.github.vokorm.*
 import kotlin.test.expect
 
-inline val <reified T: Entity<*>> Dao<T>.dataLoader: DataLoader<T>
-    get() = EntityDataLoader(T::class.java)
 val String.desc get() = SortClause(this, false)
 val String.asc get() = SortClause(this, true)
 
