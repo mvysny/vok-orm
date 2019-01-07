@@ -20,7 +20,7 @@ fun <T : Any> Connection.findAll(clazz: Class<T>): List<T> =
  * Retrieves entity with given [id]. Returns null if there is no such entity.
  */
 fun <T : Any> Connection.findById(clazz: Class<T>, id: Any): T? =
-    createQuery("select * from ${clazz.entityMeta.databaseTableName} where id = :id")
+    createQuery("select * from ${clazz.entityMeta.databaseTableName} where ${clazz.entityMeta.idProperty.dbColumnName} = :id")
         .addParameter("id", id)
         .setColumnMappings(clazz.entityMeta.getSql2oColumnMappings())
         .executeAndFetchFirst(clazz)
@@ -85,7 +85,7 @@ fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, filter: Filter<T>): 
     val sql = filter.toParametrizedSql(clazz)
     val query = createQuery("select * from ${clazz.entityMeta.databaseTableName} where ${sql.sql92} limit $limit")
     sql.sql92Parameters.entries.forEach { (name, value) -> query.addParameter(name, value) }
-    query.setColumnMappings(clazz.entityMeta.getSql2oColumnMappings())
+    query.columnMappings = clazz.entityMeta.getSql2oColumnMappings()
     return query.executeAndFetch(clazz)
 }
 
