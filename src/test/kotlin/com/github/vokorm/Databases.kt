@@ -53,7 +53,7 @@ enum class MaritalStatus {
 val databasePort = 12345
 
 /**
- * Tests for TODO github bug link
+ * Tests for https://github.com/mvysny/vok-orm/issues/7
  */
 data class EntityWithAliasedId(
         @As("myid")
