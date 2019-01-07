@@ -52,6 +52,17 @@ enum class MaritalStatus {
 
 val databasePort = 12345
 
+/**
+ * Tests for TODO github bug link
+ */
+data class EntityWithAliasedId(
+        @As("myid")
+        override var id: Long? = null,
+        var name: String
+) : Entity<Long> {
+    companion object : Dao<EntityWithAliasedId>
+}
+
 private fun DynaNodeGroup.usingDockerizedPosgresql() {
     check(Docker.isPresent) { "Docker not available" }
     beforeGroup { Docker.startPostgresql(port = databasePort) }
@@ -75,6 +86,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
                 alive boolean,
                 maritalStatus varchar(200)
                  )""")
+            ddl("""create table if not exists EntityWithAliasedId(myid bigserial primary key, name varchar(400) not null)""")
         }
     }
 
@@ -109,6 +121,7 @@ fun DynaNodeGroup.usingDockerizedMysql() {
                 alive boolean,
                 maritalStatus varchar(200)
                  )""")
+            ddl("""create table if not exists EntityWithAliasedId(myid bigint primary key auto_increment, name varchar(400) not null)""")
         }
     }
 
@@ -145,6 +158,7 @@ fun DynaNodeGroup.usingH2Database() {
                 alive boolean,
                 maritalStatus varchar
                  )""")
+            ddl("""create table EntityWithAliasedId(myid bigint primary key auto_increment, name varchar not null)""")
         }
     }
     afterEach {
@@ -181,6 +195,7 @@ private fun DynaNodeGroup.usingDockerizedMariaDB() {
                 maritalStatus varchar(200)
                  )"""
             )
+            ddl("""create table if not exists EntityWithAliasedId(myid bigint primary key auto_increment, name varchar(400) not null)""")
         }
     }
 
