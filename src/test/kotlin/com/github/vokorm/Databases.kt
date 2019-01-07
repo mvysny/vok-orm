@@ -93,7 +93,10 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
     afterGroup { VokOrm.destroy() }
     afterGroup { Docker.stopPostgresql() }
 
-    fun clearDb() = Person.deleteAll()
+    fun clearDb() {
+        Person.deleteAll()
+        EntityWithAliasedId.deleteAll()
+    }
     beforeEach { clearDb() }
     afterEach { clearDb() }
 }
@@ -128,7 +131,10 @@ fun DynaNodeGroup.usingDockerizedMysql() {
     afterGroup { VokOrm.destroy() }
     afterGroup { Docker.stopMysql() }
 
-    fun clearDb() = Person.deleteAll()
+    fun clearDb() {
+        Person.deleteAll()
+        EntityWithAliasedId.deleteAll()
+    }
     beforeEach { clearDb() }
     afterEach { clearDb() }
 }
@@ -202,7 +208,10 @@ private fun DynaNodeGroup.usingDockerizedMariaDB() {
     afterGroup { VokOrm.destroy() }
     afterGroup { Docker.stopMariaDB() }
 
-    fun clearDb() = Person.deleteAll()
+    fun clearDb() {
+        Person.deleteAll()
+        EntityWithAliasedId.deleteAll()
+    }
     beforeEach { clearDb() }
     afterEach { clearDb() }
 }
