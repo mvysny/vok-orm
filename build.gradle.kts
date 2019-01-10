@@ -20,7 +20,7 @@ plugins {
 defaultTasks("clean", "build")
 
 group = "com.github.mvysny.vokorm"
-version = "0.16-SNAPSHOT"
+version = "0.16"
 
 repositories {
     mavenCentral()
