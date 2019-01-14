@@ -20,8 +20,24 @@ import kotlin.reflect.KProperty1
 annotation class Table(val dbname: String = "")
 
 /**
- * Optional annotation which tells the underlying column name for a property, so that we can properly construct the WHERE clause (in WHERE
- * clause we can't use aliases but the actual underlying column name).
+ * Optional annotation which tells the underlying column name for a property. This is used by:
+ * * all entity methods including [Entity.save]
+ * * by all [Dao] finders to properly load the entity from database.
+ *
+ * This annotation can not be replaced by database aliasing unfortunately, since WHERE
+ * clause can't reference aliased columns, see [Issue 5](https://github.com/mvysny/vok-orm/issues/5) for more details).
+ *
+ * Warning: This annotation does not apply automatically to Sql2o queries! If you need to run something like
+ * ```
+ * db { con.createQuery("SELECT * FROM Foo").executeAndFetch(Foo::class.java)
+ * ```
+ * where Foo has aliased columns, you need
+ * to call [Query.setColumnMappings] with mappings computed from Foo class via [EntityMeta.getSql2oColumnMappings]
+ * as follows:
+ * ```
+ * db { con.createQuery("SELECT * FROM Foo").setColumnMappings(Foo::class.entityMeta.getSql2oColumnMappings()).executeAndFetch(Foo::class.java)
+ * ```
+ * See [Issue 9](https://github.com/mvysny/vok-orm/issues/9) for more details.
  */
 @Target(AnnotationTarget.FIELD)
 annotation class As(val databaseColumnName: String)
@@ -39,7 +55,7 @@ annotation class Ignore
  * Automatically will try to store/update/retrieve all non-transient fields declared by this class and all superclasses; either use
  * [Transient] or [Ignore] to exclude fields.
  *
- * Note that [Sql2o] works with all pojos and does not require any annotation/interface. Thus, if your table has no primary
+ * Note that Sql2o works with all pojos and does not require any annotation/interface. Thus, if your table has no primary
  * key or there is other reason you don't want to use this interface, you can still use your class with [db], you'll only
  * lose those utility methods.
  * @param ID the type of the primary key. All finder methods will only accept this type of ids.
