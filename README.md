@@ -323,6 +323,10 @@ the `numberOfPets` alias - that's not supported by SQL databases. See [Issue #5]
 Currently we don't use WHERE in our examples so you're free to use aliases, but aliases do not work with Data Loaders and therefore it's a good
 practice to use `@As` instead of SQL aliases.
 
+> *Warning:* `@As` does not automatically apply to Sql2o Queries - you need to call
+`setColumnMappings(clazz.entityMeta.getSql2oColumnMappings())` on your Query in order
+for the mapping to work. See [Issue 9](https://github.com/mvysny/vok-orm/issues/9) for more details.
+
 Now we can add a new finder function into `Review`'s companion object:
 
 ```kotlin
