@@ -46,7 +46,7 @@ annotation class Ignore
  */
 interface Entity<ID: Any> : Serializable {
     /**
-     * The ID primary key. You can use the [Column] annotation to change the actual db column name.
+     * The ID primary key. You can use the [As] annotation to change the actual db column name.
      */
     var id: ID?
 
