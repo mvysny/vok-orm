@@ -152,10 +152,7 @@ class VokConvertersProvider : ConvertersProvider {
  * See https://github.com/mvysny/vok-orm/issues/8 for more details.
  */
 private class MysqlUuidConverter : Converter<UUID> {
-    override fun toDatabaseParam(`val`: UUID?): Any? = when(`val`) {
-        null -> null
-        else -> `val`.toByteArray()
-    }
+    override fun toDatabaseParam(`val`: UUID?): Any? = `val`?.toByteArray()
 
     override fun convert(`val`: Any?): UUID? = when(`val`) {
         null -> null
