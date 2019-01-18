@@ -119,6 +119,30 @@ class MappingTest : DynaTest({
                 expect(setOf("myid", "name")) { meta.persistedFieldDbNames }
             }
         }
+        group("NaturalPerson") {
+            test("save fails") {
+                val p = NaturalPerson(id = "12345678", name = "Albedo")
+                expectThrows(IllegalStateException::class, message = "We expected to update only one row but we updated 0 - perhaps there is no row with id 12345678?") {
+                    p.save()
+                }
+            }
+            test("Save") {
+                val p = NaturalPerson(id = "12345678", name = "Albedo")
+                p.create()
+                expect(listOf("Albedo")) { NaturalPerson.findAll().map { it.name } }
+                p.name = "Rubedo"
+                p.save()
+                expect(listOf("Rubedo")) { NaturalPerson.findAll().map { it.name } }
+                NaturalPerson(id = "aaa", name = "Nigredo").create()
+                expect(listOf("Rubedo", "Nigredo")) { NaturalPerson.findAll().map { it.name } }
+            }
+            test("delete") {
+                val p = NaturalPerson(id = "foo", name = "Albedo")
+                p.create()
+                p.delete()
+                expect(listOf()) { NaturalPerson.findAll() }
+            }
+        }
     }
 })
 
