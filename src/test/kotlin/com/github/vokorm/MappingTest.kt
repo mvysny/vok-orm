@@ -1,6 +1,7 @@
 package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaTest
+import com.github.mvysny.dynatest.expectList
 import com.github.mvysny.dynatest.expectThrows
 import com.google.gson.Gson
 import java.lang.IllegalStateException
@@ -13,30 +14,30 @@ import kotlin.test.expect
 class MappingTest : DynaTest({
     withAllDatabases {
         test("FindAll") {
-            expect(listOf()) { Person.findAll() }
+            expectList() { Person.findAll() }
             val p = Person(name = "Zaphod", age = 42, ignored2 = Object())
             p.save()
             expect(true) { p.id != null }
             p.ignored2 = null
-            expect(listOf(p)) { Person.findAll() }
+            expectList(p) { Person.findAll() }
         }
         group("Person") {
             group("save") {
                 test("Save") {
                     val p = Person(name = "Albedo", age = 130)
                     p.save()
-                    expect(listOf("Albedo")) { Person.findAll().map { it.name } }
+                    expectList("Albedo") { Person.findAll().map { it.name } }
                     p.name = "Rubedo"
                     p.save()
-                    expect(listOf("Rubedo")) { Person.findAll().map { it.name } }
+                    expectList("Rubedo") { Person.findAll().map { it.name } }
                     Person(name = "Nigredo", age = 130).save()
-                    expect(listOf("Rubedo", "Nigredo")) { Person.findAll().map { it.name } }
+                    expectList("Rubedo", "Nigredo") { Person.findAll().map { it.name } }
                 }
                 test("SaveEnum") {
                     val p = Person(name = "Zaphod", age = 42, maritalStatus = MaritalStatus.Divorced)
                     p.save()
                     class Foo(var maritalStatus: String? = null)
-                    expect(listOf("Divorced")) {
+                    expectList("Divorced") {
                         db {
                             con.createQuery("select maritalStatus from Test").executeAndFetch<Foo>(Foo::class.java).map { it.maritalStatus }
                         }
@@ -65,7 +66,7 @@ class MappingTest : DynaTest({
                 val p = Person(name = "Albedo", age = 130)
                 p.save()
                 p.delete()
-                expect(listOf()) { Person.findAll() }
+                expectList() { Person.findAll() }
             }
             test("JsonSerializationIgnoresMeta") {
                 expect("""{"name":"Zaphod","age":42}""") { Gson().toJson(Person(name = "Zaphod", age = 42)) }
@@ -94,12 +95,12 @@ class MappingTest : DynaTest({
             test("Save") {
                 val p = EntityWithAliasedId(name = "Albedo")
                 p.save()
-                expect(listOf("Albedo")) { EntityWithAliasedId.findAll().map { it.name } }
+                expectList("Albedo") { EntityWithAliasedId.findAll().map { it.name } }
                 p.name = "Rubedo"
                 p.save()
-                expect(listOf("Rubedo")) { EntityWithAliasedId.findAll().map { it.name } }
+                expectList("Rubedo") { EntityWithAliasedId.findAll().map { it.name } }
                 EntityWithAliasedId(name = "Nigredo").save()
-                expect(listOf("Rubedo", "Nigredo")) { EntityWithAliasedId.findAll().map { it.name } }
+                expectList("Rubedo", "Nigredo") { EntityWithAliasedId.findAll().map { it.name } }
             }
             test("delete") {
                 val p = EntityWithAliasedId(name = "Albedo")
@@ -129,18 +130,18 @@ class MappingTest : DynaTest({
             test("Save") {
                 val p = NaturalPerson(id = "12345678", name = "Albedo")
                 p.create()
-                expect(listOf("Albedo")) { NaturalPerson.findAll().map { it.name } }
+                expectList("Albedo") { NaturalPerson.findAll().map { it.name } }
                 p.name = "Rubedo"
                 p.save()
-                expect(listOf("Rubedo")) { NaturalPerson.findAll().map { it.name } }
+                expectList("Rubedo") { NaturalPerson.findAll().map { it.name } }
                 NaturalPerson(id = "aaa", name = "Nigredo").create()
-                expect(listOf("Rubedo", "Nigredo")) { NaturalPerson.findAll().map { it.name } }
+                expectList("Rubedo", "Nigredo") { NaturalPerson.findAll().map { it.name } }
             }
             test("delete") {
                 val p = NaturalPerson(id = "foo", name = "Albedo")
                 p.create()
                 p.delete()
-                expect(listOf()) { NaturalPerson.findAll() }
+                expectList() { NaturalPerson.findAll() }
             }
         }
         group("LogRecord") {
@@ -153,18 +154,18 @@ class MappingTest : DynaTest({
             test("Save") {
                 val p = LogRecord(id = UUID.randomUUID(), text = "Albedo")
                 p.create()
-                expect(listOf("Albedo")) { LogRecord.findAll().map { it.text } }
+                expectList("Albedo") { LogRecord.findAll().map { it.text } }
                 p.text = "Rubedo"
                 p.save()
-                expect(listOf("Rubedo")) { LogRecord.findAll().map { it.text } }
-                NaturalPerson(id = "aaa", name = "Nigredo").create()
-                expect(listOf("Rubedo", "Nigredo")) { LogRecord.findAll().map { it.text } }
+                expectList("Rubedo") { LogRecord.findAll().map { it.text } }
+                LogRecord(id = UUID.randomUUID(), text = "Nigredo").create()
+                expect(setOf("Rubedo", "Nigredo")) { LogRecord.findAll().map { it.text } .toSet() }
             }
             test("delete") {
                 val p = LogRecord(id = UUID.randomUUID(), text = "foo")
                 p.create()
                 p.delete()
-                expect(listOf()) { LogRecord.findAll() }
+                expectList() { LogRecord.findAll() }
             }
         }
     }
