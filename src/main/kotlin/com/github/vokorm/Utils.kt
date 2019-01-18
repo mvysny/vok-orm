@@ -1,7 +1,8 @@
 package com.github.vokorm
 
 import org.slf4j.LoggerFactory
-import java.io.Closeable
+import java.io.*
+import java.util.*
 import javax.validation.ConstraintViolation
 import javax.validation.ValidationException
 import javax.validation.Validator
@@ -39,4 +40,24 @@ object NoopValidator : Validator {
     override fun <T : Any?> unwrap(type: Class<T>?): T = throw ValidationException("unsupported $type")
 
     override fun forExecutables(): ExecutableValidator = throw UnsupportedOperationException("unimplemented")
+}
+
+/**
+ * Converts UUID to a byte array with the length of 16. Writes [UUID.getMostSignificantBits] first, then
+ * [UUID.getLeastSignificantBits].
+ */
+fun UUID.toByteArray(): ByteArray = ByteArrayOutputStream().apply {
+    val dout = DataOutputStream(this)
+    dout.writeLong(mostSignificantBits)
+    dout.writeLong(leastSignificantBits)
+}.toByteArray()
+
+/**
+ * Reads UUID from [bytes].
+ * @param bytes 16-byte-long byte array; first is the [UUID.getMostSignificantBits], then [UUID.getLeastSignificantBits].
+ */
+fun uuidFromByteArray(bytes: ByteArray): UUID {
+    check(bytes.size == 16) { "Expected 16-bytes array but got ${bytes.size}" }
+    val din = DataInputStream(ByteArrayInputStream(bytes))
+    return UUID(din.readLong(), din.readLong())
 }

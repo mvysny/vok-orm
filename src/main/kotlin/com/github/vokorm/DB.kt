@@ -11,11 +11,15 @@ import org.sql2o.Connection
 import org.sql2o.converters.Converter
 import org.sql2o.converters.ConverterException
 import org.sql2o.converters.ConvertersProvider
+import org.sql2o.quirks.NoQuirks
+import org.sql2o.quirks.Quirks
+import org.sql2o.quirks.QuirksProvider
 import java.io.Closeable
 import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.*
 import javax.sql.DataSource
 import javax.validation.NoProviderFoundException
 import javax.validation.Validation
@@ -139,6 +143,48 @@ class VokConvertersProvider : ConvertersProvider {
         mapToFill.apply {
             put(LocalDate::class.java, LocalDateConverter())
             put(Instant::class.java, InstantConverter())
+        }
+    }
+}
+
+/**
+ * Converts  [UUID] to [ByteArray] to be able to store UUID into binary(16).
+ * See https://github.com/mvysny/vok-orm/issues/8 for more details.
+ */
+private class MysqlUuidConverter : Converter<UUID> {
+    override fun toDatabaseParam(`val`: UUID?): Any? = when(`val`) {
+        null -> null
+        else -> `val`.toByteArray()
+    }
+
+    override fun convert(`val`: Any?): UUID? = when(`val`) {
+        null -> null
+        is ByteArray -> uuidFromByteArray(`val`)
+        is UUID -> `val`
+        else -> throw IllegalArgumentException("Failed to convert $`val` to UUID")
+    }
+}
+
+/**
+ * Works around MySQL drivers not able to convert [UUID] to [ByteArray].
+ * See https://github.com/mvysny/vok-orm/issues/8 for more details.
+ */
+class MysqlQuirks : NoQuirks(mapOf(UUID::class.java to MysqlUuidConverter()))
+
+/**
+ * Provides specialized quirks for MySQL. See [MysqlQuirks] for more details.
+ */
+class VokOrmQuirksProvider : QuirksProvider {
+    override fun forURL(jdbcUrl: String): Quirks? = when {
+        jdbcUrl.startsWith("jdbc:mysql:") || jdbcUrl.startsWith("jdbc:mariadb:") -> MysqlQuirks()
+        else -> null
+    }
+
+    override fun forObject(jdbcObject: Any): Quirks? {
+        val className = jdbcObject.javaClass.canonicalName
+        return when {
+            className.startsWith("com.mysql.") || className.startsWith("org.mariadb.jdbc.") -> MysqlQuirks()
+            else -> null
         }
     }
 }
