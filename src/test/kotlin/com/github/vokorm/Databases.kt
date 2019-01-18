@@ -73,6 +73,13 @@ data class NaturalPerson(override var id: String? = null, var name: String) : En
     companion object : Dao<NaturalPerson>
 }
 
+/**
+ * Demoes app-generated UUID ids.
+ */
+data class LogRecord(override var id: UUID?, var text: String) : Entity<UUID> {
+    companion object : Dao<LogRecord>
+}
+
 private fun DynaNodeGroup.usingDockerizedPosgresql() {
     check(Docker.isPresent) { "Docker not available" }
     beforeGroup { Docker.startPostgresql(port = databasePort) }
@@ -98,6 +105,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
                  )""")
             ddl("""create table if not exists EntityWithAliasedId(myid bigserial primary key, name varchar(400) not null)""")
             ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null)""")
+            ddl("""create table if not exists LogRecord(id UUID primary key, name varchar(400) not null)""")
         }
     }
 
@@ -108,6 +116,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
         Person.deleteAll()
         EntityWithAliasedId.deleteAll()
         NaturalPerson.deleteAll()
+        LogRecord.deleteAll()
     }
     beforeEach { clearDb() }
     afterEach { clearDb() }
@@ -138,6 +147,7 @@ fun DynaNodeGroup.usingDockerizedMysql() {
                  )""")
             ddl("""create table if not exists EntityWithAliasedId(myid bigint primary key auto_increment, name varchar(400) not null)""")
             ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null)""")
+            ddl("""create table if not exists LogRecord(id binary(16) primary key, name varchar(400) not null)""")
         }
     }
 
@@ -148,6 +158,7 @@ fun DynaNodeGroup.usingDockerizedMysql() {
         Person.deleteAll()
         EntityWithAliasedId.deleteAll()
         NaturalPerson.deleteAll()
+        LogRecord.deleteAll()
     }
     beforeEach { clearDb() }
     afterEach { clearDb() }
@@ -180,6 +191,7 @@ fun DynaNodeGroup.usingH2Database() {
                  )""")
             ddl("""create table EntityWithAliasedId(myid bigint primary key auto_increment, name varchar not null)""")
             ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null)""")
+            ddl("""create table if not exists LogRecord(id UUID primary key, name varchar(400) not null)""")
         }
     }
     afterEach {
@@ -218,6 +230,7 @@ private fun DynaNodeGroup.usingDockerizedMariaDB() {
             )
             ddl("""create table if not exists EntityWithAliasedId(myid bigint primary key auto_increment, name varchar(400) not null)""")
             ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null)""")
+            ddl("""create table if not exists LogRecord(id binary(16) primary key, name varchar(400) not null)""")
         }
     }
 
@@ -228,6 +241,7 @@ private fun DynaNodeGroup.usingDockerizedMariaDB() {
         Person.deleteAll()
         EntityWithAliasedId.deleteAll()
         NaturalPerson.deleteAll()
+        LogRecord.deleteAll()
     }
     beforeEach { clearDb() }
     afterEach { clearDb() }

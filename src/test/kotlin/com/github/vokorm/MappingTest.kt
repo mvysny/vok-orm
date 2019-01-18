@@ -143,6 +143,30 @@ class MappingTest : DynaTest({
                 expect(listOf()) { NaturalPerson.findAll() }
             }
         }
+        group("LogRecord") {
+            test("save fails") {
+                val p = LogRecord(id = UUID.randomUUID(), text = "foo")
+                expectThrows(IllegalStateException::class, message = "We expected to update only one row but we updated 0 - perhaps there is no row with id") {
+                    p.save()
+                }
+            }
+            test("Save") {
+                val p = LogRecord(id = UUID.randomUUID(), text = "Albedo")
+                p.create()
+                expect(listOf("Albedo")) { LogRecord.findAll().map { it.text } }
+                p.text = "Rubedo"
+                p.save()
+                expect(listOf("Rubedo")) { LogRecord.findAll().map { it.text } }
+                NaturalPerson(id = "aaa", name = "Nigredo").create()
+                expect(listOf("Rubedo", "Nigredo")) { LogRecord.findAll().map { it.text } }
+            }
+            test("delete") {
+                val p = LogRecord(id = UUID.randomUUID(), text = "foo")
+                p.create()
+                p.delete()
+                expect(listOf()) { LogRecord.findAll() }
+            }
+        }
     }
 })
 
