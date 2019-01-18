@@ -107,6 +107,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
     fun clearDb() {
         Person.deleteAll()
         EntityWithAliasedId.deleteAll()
+        NaturalPerson.deleteAll()
     }
     beforeEach { clearDb() }
     afterEach { clearDb() }
@@ -146,6 +147,7 @@ fun DynaNodeGroup.usingDockerizedMysql() {
     fun clearDb() {
         Person.deleteAll()
         EntityWithAliasedId.deleteAll()
+        NaturalPerson.deleteAll()
     }
     beforeEach { clearDb() }
     afterEach { clearDb() }
@@ -225,6 +227,7 @@ private fun DynaNodeGroup.usingDockerizedMariaDB() {
     fun clearDb() {
         Person.deleteAll()
         EntityWithAliasedId.deleteAll()
+        NaturalPerson.deleteAll()
     }
     beforeEach { clearDb() }
     afterEach { clearDb() }
