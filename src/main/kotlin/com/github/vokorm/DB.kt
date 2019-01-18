@@ -14,7 +14,9 @@ import org.sql2o.converters.ConvertersProvider
 import org.sql2o.quirks.NoQuirks
 import org.sql2o.quirks.Quirks
 import org.sql2o.quirks.QuirksProvider
+import org.sql2o.reflection.PojoMetadata
 import java.io.Closeable
+import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
@@ -166,7 +168,47 @@ private class MysqlUuidConverter : Converter<UUID> {
  * Works around MySQL drivers not able to convert [UUID] to [ByteArray].
  * See https://github.com/mvysny/vok-orm/issues/8 for more details.
  */
-class MysqlQuirks : NoQuirks(mapOf(UUID::class.java to MysqlUuidConverter()))
+class MysqlQuirks : NoQuirks(mapOf(UUID::class.java to MysqlUuidConverter())) {
+
+    override fun <E : Any?> converterOf(ofClass: Class<E>): Converter<E>? {
+        if (Entity::class.java.isAssignableFrom(ofClass)) {
+            currentEntity.set(ofClass)
+        }
+        return super.converterOf(ofClass)
+    }
+
+    override fun getRSVal(rs: ResultSet, idx: Int): Any? {
+        val rsval: Any? = super.getRSVal(rs, idx)
+        // here the issue is that Sql2o may misdetect the type of the ID column as Object
+        // that is because there are two setId() methods on every Entity:
+        // 1. setId(Object); and
+        // 2. setId(T);
+        // depending on the order of methods in Java reflection, Sql2o may pick the incorrect one
+        // and may store it into its PojoMetadata.
+        // I failed to hook into PojoMetadata and fix the type there.
+        //
+        // This is just a dumb workaround: I'll simply run the converter myself.
+        if (rsval != null) {
+            val e = currentEntity.get()!!
+            val isIdColumn = e.entityMeta.idProperty.dbColumnName == getColumnName(rs.metaData, idx)
+            if (isIdColumn) {
+                val metadata = PojoMetadata(e, false, false, mapOf(), true)!!
+                val isIdTypeMisdetected = metadata.getPropertySetter(e.entityMeta.idProperty.name).type == Object::class.java
+                if (isIdTypeMisdetected) {
+                    val converter = converterOf(e.entityMeta.idProperty.valueType)
+                    if (converter != null) {
+                        return converter.convert(rsval)
+                    }
+                }
+            }
+        }
+        return rsval
+    }
+
+    companion object {
+        private val currentEntity = ThreadLocal<Class<*>>()
+    }
+}
 
 /**
  * Provides specialized quirks for MySQL. See [MysqlQuirks] for more details.

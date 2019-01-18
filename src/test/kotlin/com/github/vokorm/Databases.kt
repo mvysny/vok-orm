@@ -69,14 +69,17 @@ data class EntityWithAliasedId(
 /**
  * A table demoing natural person with government-issued ID (birth number, social security number, etc).
  */
-data class NaturalPerson(override var id: String? = null, var name: String) : Entity<String> {
+data class NaturalPerson(override var id: String? = null, var name: String, var bytes: ByteArray) : Entity<String> {
     companion object : Dao<NaturalPerson>
 }
 
 /**
  * Demoes app-generated UUID ids.
+ *
+ * Warning: do NOT add any additional fields in here, since that would mysteriously make the compiler generate
+ * `void setId(UUID)` instead of `void setId(Object)` and we wouldn't test the metadata hook that fixes this issue.
  */
-data class LogRecord(override var id: UUID?, var text: String, var bytes: ByteArray) : Entity<UUID> {
+data class LogRecord(override var id: UUID?, var text: String) : Entity<UUID> {
     companion object : Dao<LogRecord>
 }
 
@@ -104,8 +107,8 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
                 maritalStatus varchar(200)
                  )""")
             ddl("""create table if not exists EntityWithAliasedId(myid bigserial primary key, name varchar(400) not null)""")
-            ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null)""")
-            ddl("""create table if not exists LogRecord(id UUID primary key, text varchar(400) not null, bytes bytea not null)""")
+            ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null, bytes bytea not null)""")
+            ddl("""create table if not exists LogRecord(id UUID primary key, text varchar(400) not null)""")
         }
     }
 
@@ -146,8 +149,8 @@ fun DynaNodeGroup.usingDockerizedMysql() {
                 maritalStatus varchar(200)
                  )""")
             ddl("""create table if not exists EntityWithAliasedId(myid bigint primary key auto_increment, name varchar(400) not null)""")
-            ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null)""")
-            ddl("""create table if not exists LogRecord(id binary(16) primary key, text varchar(400) not null, bytes binary(16) not null)""")
+            ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null, bytes binary(16) not null)""")
+            ddl("""create table if not exists LogRecord(id binary(16) primary key, text varchar(400) not null)""")
         }
     }
 
@@ -190,8 +193,8 @@ fun DynaNodeGroup.usingH2Database() {
                 maritalStatus varchar
                  )""")
             ddl("""create table EntityWithAliasedId(myid bigint primary key auto_increment, name varchar not null)""")
-            ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null)""")
-            ddl("""create table if not exists LogRecord(id UUID primary key, text varchar(400) not null, bytes binary(16) not null)""")
+            ddl("""create table NaturalPerson(id varchar(10) primary key, name varchar(400) not null, bytes binary(16) not null)""")
+            ddl("""create table LogRecord(id UUID primary key, text varchar(400) not null)""")
         }
     }
     afterEach {
@@ -229,8 +232,8 @@ private fun DynaNodeGroup.usingDockerizedMariaDB() {
                  )"""
             )
             ddl("""create table if not exists EntityWithAliasedId(myid bigint primary key auto_increment, name varchar(400) not null)""")
-            ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null)""")
-            ddl("""create table if not exists LogRecord(id binary(16) primary key, text varchar(400) not null, bytes binary(16) not null)""")
+            ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null, bytes binary(16) not null)""")
+            ddl("""create table if not exists LogRecord(id binary(16) primary key, text varchar(400) not null)""")
         }
     }
 

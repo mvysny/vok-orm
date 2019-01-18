@@ -1,3 +1,5 @@
+@file:Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+
 package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaTest
@@ -122,23 +124,23 @@ class MappingTest : DynaTest({
         }
         group("NaturalPerson") {
             test("save fails") {
-                val p = NaturalPerson(id = "12345678", name = "Albedo")
+                val p = NaturalPerson(id = "12345678", name = "Albedo", bytes = byteArrayOf(5))
                 expectThrows(IllegalStateException::class, message = "We expected to update only one row but we updated 0 - perhaps there is no row with id 12345678?") {
                     p.save()
                 }
             }
             test("Save") {
-                val p = NaturalPerson(id = "12345678", name = "Albedo")
+                val p = NaturalPerson(id = "12345678", name = "Albedo", bytes = byteArrayOf(5))
                 p.create()
                 expectList("Albedo") { NaturalPerson.findAll().map { it.name } }
                 p.name = "Rubedo"
                 p.save()
                 expectList("Rubedo") { NaturalPerson.findAll().map { it.name } }
-                NaturalPerson(id = "aaa", name = "Nigredo").create()
+                NaturalPerson(id = "aaa", name = "Nigredo", bytes = byteArrayOf(5)).create()
                 expectList("Rubedo", "Nigredo") { NaturalPerson.findAll().map { it.name } }
             }
             test("delete") {
-                val p = NaturalPerson(id = "foo", name = "Albedo")
+                val p = NaturalPerson(id = "foo", name = "Albedo", bytes = byteArrayOf(5))
                 p.create()
                 p.delete()
                 expectList() { NaturalPerson.findAll() }
@@ -146,23 +148,23 @@ class MappingTest : DynaTest({
         }
         group("LogRecord") {
             test("save fails") {
-                val p = LogRecord(id = UUID.randomUUID(), text = "foo", bytes = byteArrayOf(5))
+                val p = LogRecord(id = UUID.randomUUID(), text = "foo")
                 expectThrows(IllegalStateException::class, message = "We expected to update only one row but we updated 0 - perhaps there is no row with id") {
                     p.save()
                 }
             }
             test("Save") {
-                val p = LogRecord(id = UUID.randomUUID(), text = "Albedo", bytes = byteArrayOf(5))
+                val p = LogRecord(id = UUID.randomUUID(), text = "Albedo")
                 p.create()
                 expectList("Albedo") { LogRecord.findAll().map { it.text } }
                 p.text = "Rubedo"
                 p.save()
                 expectList("Rubedo") { LogRecord.findAll().map { it.text } }
-                LogRecord(id = UUID.randomUUID(), text = "Nigredo", bytes = byteArrayOf(5)).create()
+                LogRecord(id = UUID.randomUUID(), text = "Nigredo").create()
                 expect(setOf("Rubedo", "Nigredo")) { LogRecord.findAll().map { it.text } .toSet() }
             }
             test("delete") {
-                val p = LogRecord(id = UUID.randomUUID(), text = "foo", bytes = byteArrayOf(5))
+                val p = LogRecord(id = UUID.randomUUID(), text = "foo")
                 p.create()
                 p.delete()
                 expectList() { LogRecord.findAll() }
@@ -170,4 +172,3 @@ class MappingTest : DynaTest({
         }
     }
 })
-
