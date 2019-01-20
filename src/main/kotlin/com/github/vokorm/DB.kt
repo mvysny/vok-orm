@@ -171,7 +171,10 @@ private class MysqlUuidConverter : Converter<UUID> {
 class MysqlQuirks : NoQuirks(mapOf(UUID::class.java to MysqlUuidConverter())) {
 
     override fun <E : Any?> converterOf(ofClass: Class<E>): Converter<E>? {
-        if (Entity::class.java.isAssignableFrom(ofClass)) {
+        if (ofClass.implements(Entity::class.java)) {
+            // we need to know the current entity being read from the ResultSet (by the
+            // DefaultResultSetHandlerFactory:144), in order to reliably detect whether the column asked
+            // in getRSVal() is the ID column with mis-detected type. See getRSVal() below for more details.
             currentEntity.set(ofClass)
         }
         return super.converterOf(ofClass)
@@ -192,7 +195,7 @@ class MysqlQuirks : NoQuirks(mapOf(UUID::class.java to MysqlUuidConverter())) {
             val e = currentEntity.get()!!
             val isIdColumn = e.entityMeta.idProperty.dbColumnName == getColumnName(rs.metaData, idx)
             if (isIdColumn) {
-                val metadata = PojoMetadata(e, false, false, mapOf(), true)!!
+                val metadata = PojoMetadata(e, false, false, mapOf(), true)
                 val isIdTypeMisdetected = metadata.getPropertySetter(e.entityMeta.idProperty.name).type == Object::class.java
                 if (isIdTypeMisdetected) {
                     val converter = converterOf(e.entityMeta.idProperty.valueType)

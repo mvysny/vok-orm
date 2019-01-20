@@ -9,4 +9,9 @@ class UtilsTest : DynaTest({
         val uuid = UUID.randomUUID()
         expect(uuid) { uuidFromByteArray(uuid.toByteArray()) }
     }
+
+    test("implements") {
+        expect(true) { Person::class.java.implements(Entity::class.java) }
+        expect(false) { String::class.java.implements(Entity::class.java) }
+    }
 })
