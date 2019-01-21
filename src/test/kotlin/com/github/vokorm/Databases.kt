@@ -53,8 +53,6 @@ enum class MaritalStatus {
     Widowed
 }
 
-val databasePort = 12345
-
 /**
  * Tests for https://github.com/mvysny/vok-orm/issues/7
  */
@@ -90,14 +88,14 @@ data class LogRecord(override var id: UUID? = null, var text: String) : UuidEnti
     companion object : Dao<LogRecord>
 }
 
-private fun DynaNodeGroup.usingDockerizedPosgresql() {
+private fun DynaNodeGroup.usingDockerizedPosgresql(databasePort: Int) {
     check(Docker.isPresent) { "Docker not available" }
     beforeGroup { Docker.startPostgresql(port = databasePort) }
     beforeGroup {
         VokOrm.dataSourceConfig.apply {
             minimumIdle = 0
             maximumPoolSize = 30
-            jdbcUrl = "jdbc:postgresql://localhost:12345/postgres"
+            jdbcUrl = "jdbc:postgresql://localhost:$databasePort/postgres"
             username = "postgres"
             password = "mysecretpassword"
         }
@@ -132,14 +130,14 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
     afterEach { clearDb() }
 }
 
-fun DynaNodeGroup.usingDockerizedMysql() {
+fun DynaNodeGroup.usingDockerizedMysql(databasePort: Int) {
     check(Docker.isPresent) { "Docker not available" }
     beforeGroup { Docker.startMysql(port = databasePort) }
     beforeGroup {
         VokOrm.dataSourceConfig.apply {
             minimumIdle = 0
             maximumPoolSize = 30
-            jdbcUrl = "jdbc:mysql://localhost:12345/db"
+            jdbcUrl = "jdbc:mysql://localhost:$databasePort/db"
             username = "testuser"
             password = "mysqlpassword"
         }
@@ -213,14 +211,14 @@ fun PersistenceContext.ddl(@Language("sql") sql: String) {
     con.createQuery(sql).executeUpdate()
 }
 
-private fun DynaNodeGroup.usingDockerizedMariaDB() {
+private fun DynaNodeGroup.usingDockerizedMariaDB(databasePort: Int) {
     check(Docker.isPresent) { "Docker not available" }
     beforeGroup { Docker.startMariaDB(port = databasePort) }
     beforeGroup {
         VokOrm.dataSourceConfig.apply {
             minimumIdle = 0
             maximumPoolSize = 30
-            jdbcUrl = "jdbc:mariadb://localhost:12345/db"
+            jdbcUrl = "jdbc:mariadb://localhost:$databasePort/db"
             username = "testuser"
             password = "mysqlpassword"
         }
@@ -265,17 +263,17 @@ fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.()->Unit) {
 
     if (Docker.isPresent) {
         group("PostgreSQL 10.3") {
-            usingDockerizedPosgresql()
+            usingDockerizedPosgresql(12345)
             block()
         }
 
         group("MySQL 5.7.21") {
-            usingDockerizedMysql()
+            usingDockerizedMysql(12346)
             block()
         }
 
         group("MariaDB 10.1.31") {
-            usingDockerizedMariaDB()
+            usingDockerizedMariaDB(12347)
             block()
         }
     }
