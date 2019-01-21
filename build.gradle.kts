@@ -4,6 +4,8 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
+val sql2oVersion = "1.6.0"
+
 val local = Properties()
 val localProperties: java.io.File = rootProject.file("local.properties")
 if (localProperties.exists()) {
@@ -38,7 +40,8 @@ dependencies {
     compile("org.slf4j:slf4j-api:1.7.25")
 
     // db
-    compile("org.sql2o:sql2o:1.6.0")
+    compile("org.sql2o:sql2o:$sql2oVersion")
+    compile("org.sql2o.extensions:sql2o-postgres:$sql2oVersion")
     compile("com.zaxxer:HikariCP:3.2.0")
 
     // validation support
