@@ -10,11 +10,12 @@ and write the data back into the database. No JPA dirty tricks are used: no runt
 enhancements, no lazy loading, no `DetachedExceptions`, no change tracking
 behind the scenes - everything happens explicitly. No compiler
 plugin is needed - `vok-orm` uses Kotlin language features to add a standard
-set of finders to your entities. You can add any business logic methods as
-you like; the database transaction is easy to launch simply by calling the
+set of finders to your entities. You can add any number of business logic methods as
+you like to your entities; the database transaction is easy to launch simply by calling the
 global `db {}` function.
 
-No dependency injection framework is required.
+No dependency injection framework is required - the library works in all
+sorts of environments.
 
 ## Usage
 
