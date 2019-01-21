@@ -7,6 +7,7 @@ import org.sql2o.quirks.NoQuirks
 import org.sql2o.quirks.Quirks
 import org.sql2o.quirks.QuirksProvider
 import org.sql2o.reflection.PojoMetadata
+import java.lang.RuntimeException
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.Instant
@@ -90,15 +91,21 @@ object MysqlQuirks : NoQuirks(mapOf(UUID::class.java to MysqlUuidConverter())) {
         //
         // This is just a dumb workaround: I'll simply run the converter myself.
         if (rsval != null) {
-            val e = currentEntity.get()!!
-            val isIdColumn = e.entityMeta.idProperty.dbColumnName == getColumnName(rs.metaData, idx)
+            val entityClass = currentEntity.get()!!
+            val dbColumnName = getColumnName(rs.metaData, idx)
+            val idProperty = entityClass.entityMeta.idProperty
+            val isIdColumn = idProperty.dbColumnName == dbColumnName
             if (isIdColumn) {
-                val metadata = PojoMetadata(e, false, false, mapOf(), true)
-                val isIdTypeMisdetected = metadata.getPropertySetter(e.entityMeta.idProperty.name).type == Object::class.java
+                val metadata = PojoMetadata(entityClass, false, false, mapOf(), true)
+                val isIdTypeMisdetected = metadata.getPropertySetter(idProperty.name).type == Object::class.java
                 if (isIdTypeMisdetected) {
-                    val converter = converterOf(e.entityMeta.idProperty.valueType)
+                    val converter = converterOf(idProperty.valueType)
                     if (converter != null) {
-                        return converter.convert(rsval)
+                        return try {
+                            converter.convert(rsval)
+                        } catch (e: Exception) {
+                            throw RuntimeException("Failed to convert $rsval for entity $e ID column $idProperty idx=$idx colName=$dbColumnName")
+                        }
                     }
                 }
             }
