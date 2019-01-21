@@ -58,7 +58,7 @@ private class MysqlUuidConverter : Converter<UUID> {
         null -> null
         is ByteArray -> uuidFromByteArray(`val`)
         is UUID -> `val`
-        else -> throw IllegalArgumentException("Failed to convert $`val` to UUID")
+        else -> throw IllegalArgumentException("Failed to convert $`val` of type ${`val`.javaClass} to UUID")
     }
 }
 
