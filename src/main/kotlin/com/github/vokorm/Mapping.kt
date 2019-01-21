@@ -257,7 +257,7 @@ data class PropertyMeta(val field: Field) {
         return field.get(entity)
     }
 
-    override fun toString() = "PropertyMeta($field, dbColumnName=$dbColumnName of type $valueType)"
+    override fun toString() = "PropertyMeta($field, dbColumnName=$dbColumnName)"
 }
 
 private fun Class<*>.findDeclaredField(name: String): Field? {

@@ -104,7 +104,7 @@ object MysqlQuirks : NoQuirks(mapOf(UUID::class.java to MysqlUuidConverter())) {
                         return try {
                             converter.convert(rsval)
                         } catch (e: Exception) {
-                            throw RuntimeException("Failed to convert $rsval for entity $e ID column $idProperty idx=$idx colName=$dbColumnName")
+                            throw RuntimeException("Failed to convert $rsval for entity $entityClass ID column $idProperty idx=$idx colName=$dbColumnName", e)
                         }
                     }
                 }
