@@ -14,6 +14,8 @@ set of finders to your entities. You can add any business logic methods as
 you like; the database transaction is easy to launch simply by calling the
 global `db {}` function.
 
+No dependency injection framework is required.
+
 ## Usage
 
 Just add the following lines to your Gradle script, to include this library in your project:
