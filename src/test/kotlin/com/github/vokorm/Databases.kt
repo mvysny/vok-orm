@@ -73,18 +73,20 @@ data class NaturalPerson(override var id: String? = null, var name: String, var 
     companion object : Dao<NaturalPerson>
 }
 
+interface UuidEntity : Entity<UUID> {
+    override fun create(validate: Boolean) {
+        id = UUID.randomUUID()
+        super.create(validate)
+    }
+}
+
 /**
  * Demoes app-generated UUID ids. Note how [create] is overridden to auto-generate the ID, so that [save] works properly.
  *
  * Warning: do NOT add any additional fields in here, since that would mysteriously make the compiler generate
  * `void setId(UUID)` instead of `void setId(Object)` and we wouldn't test the metadata hook that fixes this issue.
  */
-data class LogRecord(override var id: UUID? = null, var text: String) : Entity<UUID> {
-    override fun create(validate: Boolean) {
-        id = UUID.randomUUID()
-        super.create(validate)
-    }
-
+data class LogRecord(override var id: UUID? = null, var text: String) : UuidEntity {
     companion object : Dao<LogRecord>
 }
 

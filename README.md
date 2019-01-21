@@ -327,13 +327,26 @@ NaturalPerson(id = "12345678", name = "Albedo").create()
 ```
 
 For entities with IDs created by the application you can make `save()` work properly, by overriding the `create()` method
-as follows:
+in your every entity as follows:
 ```
 override fun create(validate: Boolean) {
   id = UUID.randomUUID()
   super.create(validate)
 }
 ```
+
+Even better, you can inherit from the `Entity` interface as follows:
+
+```
+interface UuidEntity : Entity<UUID> {
+    override fun create(validate: Boolean) {
+        id = UUID.randomUUID()
+        super.create(validate)
+    }
+}
+```
+
+And simply make all of your entities implement the `UuidEntity` interface.
 
 ### Joins
 
