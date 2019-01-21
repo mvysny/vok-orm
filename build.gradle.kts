@@ -38,7 +38,7 @@ dependencies {
     compile("org.slf4j:slf4j-api:1.7.25")
 
     // db
-    compile("org.sql2o:sql2o:1.5.4")
+    compile("org.sql2o:sql2o:1.6.0")
     compile("com.zaxxer:HikariCP:3.2.0")
 
     // validation support

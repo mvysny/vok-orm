@@ -13,7 +13,7 @@ class Sql2oPatchesTest : DynaTest({
     val isIdTypeMisdetected = metadata.getPropertySetter(LogRecord::class.java.entityMeta.idProperty.name).type == Object::class.java
     if (isIdTypeMisdetected) {
         test("mysql converter is applied to the UUID ID column") {
-            val quirks = MysqlQuirks()
+            val quirks = MysqlQuirks
             quirks.converterOf(LogRecord::class.java)
             val uuid = UUID.randomUUID()
             val rs = SimpleResultSet().apply {

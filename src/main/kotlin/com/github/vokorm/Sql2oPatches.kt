@@ -66,7 +66,7 @@ private class MysqlUuidConverter : Converter<UUID> {
  * Works around MySQL drivers not able to convert [UUID] to [ByteArray].
  * See https://github.com/mvysny/vok-orm/issues/8 for more details.
  */
-class MysqlQuirks : NoQuirks(mapOf(UUID::class.java to MysqlUuidConverter())) {
+object MysqlQuirks : NoQuirks(mapOf(UUID::class.java to MysqlUuidConverter())) {
 
     override fun <E : Any?> converterOf(ofClass: Class<E>): Converter<E>? {
         if (ofClass.implements(Entity::class.java)) {
@@ -106,25 +106,14 @@ class MysqlQuirks : NoQuirks(mapOf(UUID::class.java to MysqlUuidConverter())) {
         return rsval
     }
 
-    companion object {
-        private val currentEntity = ThreadLocal<Class<*>>()
-    }
+    private val currentEntity = ThreadLocal<Class<*>>()
 }
 
 /**
  * Provides specialized quirks for MySQL. See [MysqlQuirks] for more details.
  */
 class VokOrmQuirksProvider : QuirksProvider {
-    override fun forURL(jdbcUrl: String): Quirks? = when {
-        jdbcUrl.startsWith("jdbc:mysql:") || jdbcUrl.startsWith("jdbc:mariadb:") -> MysqlQuirks()
-        else -> null
-    }
-
-    override fun forObject(jdbcObject: Any): Quirks? {
-        val className = jdbcObject.javaClass.canonicalName
-        return when {
-            className.startsWith("com.mysql.") || className.startsWith("org.mariadb.jdbc.") -> MysqlQuirks()
-            else -> null
-        }
-    }
+    override fun isUsableForClass(className: String): Boolean = className.startsWith("com.mysql.") || className.startsWith("org.mariadb.jdbc.")
+    override fun provide(): Quirks = MysqlQuirks
+    override fun isUsableForUrl(url: String): Boolean = url.startsWith("jdbc:mysql:") || url.startsWith("jdbc:mariadb:")
 }
