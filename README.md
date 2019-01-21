@@ -5,7 +5,14 @@
 
 # Vaadin-On-Kotlin database mapping library
 
-`vok-orm` allows you to present the data from database rows as objects and embellish these data objects with business logic methods.
+`vok-orm` allows you to load the data from database rows into objects (POJOs)
+and write the data back into the database. No JPA dirty tricks are used: no runtime
+enhancements, no lazy loading, no `DetachedExceptions`, no change tracking
+behind the scenes - everything happens explicitly. No compiler
+plugin is needed - `vok-orm` uses Kotlin language features to add a standard
+set of finders to your entities. You can add any business logic methods as
+you like; the database transaction is easy to launch simply by calling the
+global `db {}` function.
 
 ## Usage
 
