@@ -6,8 +6,6 @@ import org.sql2o.converters.ConvertersProvider
 import org.sql2o.quirks.NoQuirks
 import org.sql2o.quirks.Quirks
 import org.sql2o.quirks.QuirksProvider
-import org.sql2o.reflection.PojoMetadata
-import java.lang.RuntimeException
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.Instant
@@ -69,16 +67,6 @@ private class MysqlUuidConverter : Converter<UUID> {
  */
 object MysqlQuirks : NoQuirks(mapOf(UUID::class.java to MysqlUuidConverter())) {
 
-    override fun <E : Any?> converterOf(ofClass: Class<E>): Converter<E>? {
-        if (ofClass.implements(Entity::class.java)) {
-            // we need to know the current entity being read from the ResultSet (by the
-            // DefaultResultSetHandlerFactory:144), in order to reliably detect whether the column asked
-            // in getRSVal() is the ID column with mis-detected type. See getRSVal() below for more details.
-            currentEntity.set(ofClass)
-        }
-        return super.converterOf(ofClass)
-    }
-
     override fun getRSVal(rs: ResultSet, idx: Int): Any? {
         val rsval: Any? = super.getRSVal(rs, idx)
         // here the issue is that Sql2o may misdetect the type of the ID column as Object
@@ -90,30 +78,17 @@ object MysqlQuirks : NoQuirks(mapOf(UUID::class.java to MysqlUuidConverter())) {
         // I failed to hook into PojoMetadata and fix the type there.
         //
         // This is just a dumb workaround: I'll simply run the converter myself.
+        // This is until this is fixed: https://github.com/aaberg/sql2o/issues/314
         if (rsval != null) {
-            val entityClass = currentEntity.get()!!
             val dbColumnName = getColumnName(rs.metaData, idx)
-            val idProperty = entityClass.entityMeta.idProperty
-            val isIdColumn = idProperty.dbColumnName == dbColumnName
+            val isIdColumn = idx == 1 && dbColumnName.equals("ID", true) && rsval is ByteArray  // yeah, very fragile workaround :( Luckily it's only temporary.
             if (isIdColumn) {
-                val metadata = PojoMetadata(entityClass, false, false, mapOf(), true)
-                val isIdTypeMisdetected = metadata.getPropertySetter(idProperty.name).type == Object::class.java
-                if (isIdTypeMisdetected) {
-                    val converter = converterOf(idProperty.valueType)
-                    if (converter != null) {
-                        return try {
-                            converter.convert(rsval)
-                        } catch (e: Exception) {
-                            throw RuntimeException("Failed to convert $rsval for entity $entityClass ID column $idProperty idx=$idx colName=$dbColumnName", e)
-                        }
-                    }
-                }
+                val converter = converterOf(UUID::class.java)!!
+                return converter.convert(rsval)
             }
         }
         return rsval
     }
-
-    private val currentEntity = ThreadLocal<Class<*>>()
 }
 
 /**
