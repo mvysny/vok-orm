@@ -85,8 +85,10 @@ By implementing the `Entity<Long>` interface, we are telling vok-orm that the pr
 The [Entity](src/main/kotlin/com/github/vokorm/Mapping.kt) interface brings in three useful methods:
 
 * `save()` which either creates a new row by generating the INSERT statement (if the ID is null), or updates the row by generating the UPDATE statement (if the ID is not null)
+* `create()` for special cases when the ID is pre-known (social security number) and `save()` wouldn't work. More info in the 'Pre-known IDs' chapter.
 * `delete()` which deletes the row identified by the `id` primary key from the database.
 * `validate()` validates the bean. By default all `javax.validation` annotations are validated; you can override this method to provide further bean-level validations.
+  Please read the 'Validation' chapter below, for further details.
 
 The INSERT/UPDATE statement is automatically constructed by the `save()` method, simply by enumerating all non-transient and non-ignored properties of
 the bean using reflection and fetching their values. See the [Entity](src/main/kotlin/com/github/vokorm/Mapping.kt) sources for more details.
@@ -408,6 +410,60 @@ data class Beverage(@As("beverageName") var name: String = "", @As("name") var c
 
 We just have to make sure that all of the `Beverage`'s fields are pre-initialized, so that the `Beverage` class has a zero-arg constructor.
 If not, Sql2o will throw an exception in runtime, stating that the `Beverage` class has no zero-arg constructor.
+
+## Validations
+
+Often the database entities are connected to UI forms which need to provide sensible
+validation errors to the users as they enter invalid values. The validation
+could be done on the database level, but databases tend to provide unlocalized
+cryptic error messages. Also, some validations are either impossible to do, or very hard
+to do on the database level. That's why `vok-orm` provides additional validation
+layer for your entities.
+
+`vok-orm` uses [JSR303 Java Standard for Validation](https://en.wikipedia.org/wiki/Bean_Validation); you can
+quickly skim over [JSR303 tutorial](https://dzone.com/articles/bean-validation-made-simple) to see how to start
+using the validation.
+In a nutshell, you annotate your Entity's fields with validation annotations; the fields are
+then checked for valid values with the JSR303 Validator (invoked when
+`entity.validate()`/`entity.save()`/`entity.create()` is called). The validation is
+also mentioned in [Vaadin-on-Kotlin Forms](http://www.vaadinonkotlin.eu/forms.html) documentation.
+
+For example:
+```
+data class Person(
+        override var id: Long? = null,
+
+        @field:NotNull
+        @field:Size(min = 1, max = 200)
+        var name: String? = null,
+
+        @field:NotNull
+        @field:Min(15)
+        @field:Max(100)
+        var age: Int? = null) : Entity<Long>
+val p = Person(name = "John", age = 10)
+p.validate() // throws an exception since age must be at least 15
+```
+
+*Important note:* the validation is an optional feature in `vok-orm`, and by default
+the validation is disabled. This fact is advertised in the `vok-orm` logs as the following message:
+
+> JSR 303 Validator Provider was not found on your classpath, disabling entity validation
+
+In order to activate the entity validations, you need to add a JSR303 Validation Provider jar
+to your classpath. Just use Hibernate-Validator (don't worry it will not pull in Hibernate nor
+JPA) and add this to your `build.gradle`:
+
+```
+dependencies {
+  compile("org.hibernate.validator:hibernate-validator:6.0.13.Final")
+  // EL is required: http://hibernate.org/validator/documentation/getting-started/
+  compile("org.glassfish:javax.el:3.0.1-b08")
+}
+```
+
+You can check out the [vok-orm-playground](https://gitlab.com/mvysny/vok-orm-playground) which
+has validations enabled and all necessary jars included.
 
 ## Data Loaders
 
