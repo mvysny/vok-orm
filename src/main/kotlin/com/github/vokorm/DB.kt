@@ -69,7 +69,7 @@ object VokOrm {
     var validator: Validator = try {
         Validation.buildDefaultValidatorFactory().validator
     } catch (ex: NoProviderFoundException) {
-        logger.info("JSR 303 Validator Provider was not found on your classpath, disabling entity validation")
+        logger.info("JSR 303 Validator Provider was not found on your classpath, disabling entity validation. See https://github.com/mvysny/vok-orm#validations for more details.")
         logger.debug("The Validator Provider stacktrace follows", ex)
         NoopValidator
     }
