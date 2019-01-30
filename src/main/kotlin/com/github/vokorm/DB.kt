@@ -23,6 +23,8 @@ import javax.validation.Validator
  * and then call [init].
  */
 object VokOrm {
+    private val logger = LoggerFactory.getLogger(VokOrm::class.java)
+
     /**
      * First, fill in [dataSourceConfig] properly and then call this function once per JVM.
      */
@@ -67,7 +69,8 @@ object VokOrm {
     var validator: Validator = try {
         Validation.buildDefaultValidatorFactory().validator
     } catch (ex: NoProviderFoundException) {
-        LoggerFactory.getLogger(VokOrm::class.java).warn("vok-orm failed to build the default validator, using no-op", ex)
+        logger.info("JSR 303 Validator Provider was not found on your classpath, disabling entity validation")
+        logger.debug("The Validator Provider stacktrace follows", ex)
         NoopValidator
     }
 }
