@@ -20,21 +20,21 @@ class DBTest : DynaTest({
             expectThrows(IOException::class) {
                 db {
                     Person(name = "foo", age = 25).save()
-                    expectList(25) { db { com.github.vokorm.Person.findAll().map { it.age } } }
+                    expectList(25) { db { Person.findAll().map { it.age } } }
                     throw IOException("simulated")
                 }
             }
-            expect(listOf()) { db { com.github.vokorm.Person.findAll() } }
+            expect(listOf()) { db { Person.findAll() } }
         }
         test("commitInNestedDbBlocks") {
             val person = db {
                 db {
                     db {
-                        Person(name = "foo", age = 25).apply { save() }
+                        Person(name = "foo", age = 25).apply { save(); modified = modified!!.withZeroNanos }
                     }
                 }
             }
-            expect(listOf(person)) { db { com.github.vokorm.Person.findAll() } }
+            expect(listOf(person)) { db { Person.findAll() } }
         }
         test("exceptionRollsBackInNestedDbBlocks") {
             expectThrows(IOException::class) {

@@ -22,6 +22,7 @@ class MappingTest : DynaTest({
             p.save()
             expect(true) { p.id != null }
             p.ignored2 = null
+            p.modified = p.modified!!.withZeroNanos
             expectList(p) { Person.findAll() }
         }
         group("Person") {

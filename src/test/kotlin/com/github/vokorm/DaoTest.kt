@@ -133,6 +133,7 @@ class DaoTest : DynaTest({
                 test("returns true on matching entity") {
                     val p = Person(name = "Albedo", age = 130)
                     p.save()
+                    p.modified = p.modified!!.withZeroNanos
                     expect(true) { Person.existsAny() }
                     expect(true) { Person.existsById(p.id!!) }
                     expect(true) { Person.existsBy { Person::age ge 26 } }
@@ -140,6 +141,7 @@ class DaoTest : DynaTest({
                 test("returns true on non-matching entity") {
                     val p = Person(name = "Albedo", age = 130)
                     p.save()
+                    p.modified = p.modified!!.withZeroNanos
                     expect(true) { Person.existsAny() }
                     expect(false) { Person.existsById(p.id!! + 1) }
                     expect(false) { Person.existsBy { Person::age le 26 } }
@@ -148,6 +150,7 @@ class DaoTest : DynaTest({
             test("sql92 filter works") {
                 val p = Person(name = "Albedo", age = 130, dateOfBirth = LocalDate.of(1980, 2, 2), isAlive25 = true)
                 p.save()
+                p.modified = p.modified!!.withZeroNanos
                 expect(p) { db { con.findSpecificBy(Person::class.java, EqFilter("alive", true)) } }
             }
         }
