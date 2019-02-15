@@ -51,7 +51,7 @@ dependencies {
     testCompile("org.glassfish:javax.el:3.0.1-b08")
 
     // tests
-    testCompile("com.github.mvysny.dynatest:dynatest-engine:0.13")
+    testCompile("com.github.mvysny.dynatest:dynatest-engine:0.14")
     testCompile("com.google.code.gson:gson:2.8.5")
     testCompile("ch.qos.logback:logback-classic:1.2.3")
     testCompile("com.h2database:h2:1.4.197")
