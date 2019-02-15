@@ -10,6 +10,7 @@ import java.lang.IllegalStateException
 import java.lang.Long
 import java.time.Instant
 import java.time.LocalDate
+import java.time.temporal.ChronoField
 import java.util.*
 import kotlin.test.expect
 
@@ -44,6 +45,7 @@ class MappingTest : DynaTest({
                             con.createQuery("select maritalStatus from Test").executeAndFetch<Foo>(Foo::class.java).map { it.maritalStatus }
                         }
                     }
+                    p.modified = p.modified!!.withZeroNanos
                     expect(p) { db { com.github.vokorm.Person.findAll()[0] } }
                 }
                 test("SaveLocalDate") {
@@ -171,3 +173,5 @@ class MappingTest : DynaTest({
         }
     }
 })
+
+val Instant.withZeroNanos: Instant get() = with(ChronoField.NANO_OF_SECOND, get(ChronoField.MILLI_OF_SECOND).toLong() * 1000000)

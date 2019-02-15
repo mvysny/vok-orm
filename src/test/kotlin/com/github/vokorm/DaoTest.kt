@@ -15,11 +15,13 @@ class DaoTest : DynaTest({
                 expect(null) { Person.findById(25) }
                 val p = Person(name = "Albedo", age = 130)
                 p.save()
+                p.modified = p.modified!!.withZeroNanos
                 expect(p) { Person.findById(p.id!!) }
             }
             test("GetById") {
                 val p = Person(name = "Albedo", age = 130)
                 p.save()
+                p.modified = p.modified!!.withZeroNanos
                 expect(p) { Person.getById(p.id!!) }
             }
             test("GetById fails if there is no such entity") {
@@ -31,6 +33,7 @@ class DaoTest : DynaTest({
                 test("succeeds if there is exactly one matching entity") {
                     val p = Person(name = "Albedo", age = 130)
                     p.save()
+                    p.modified = p.modified!!.withZeroNanos
                     expect(p) { Person.getBy { Person::name eq "Albedo" } }
                 }
 
@@ -93,6 +96,7 @@ class DaoTest : DynaTest({
                 test("succeeds if there is exactly one matching entity") {
                     val p = Person(name = "Albedo", age = 130)
                     p.save()
+                    p.modified = p.modified!!.withZeroNanos
                     expect(p) { Person.findSpecificBy { Person::name eq "Albedo" } }
                 }
 
@@ -113,6 +117,7 @@ class DaoTest : DynaTest({
                 test("test filter by date") {
                     val p = Person(name = "Albedo", age = 130, dateOfBirth = LocalDate.of(1980, 2, 2))
                     p.save()
+                    p.modified = p.modified!!.withZeroNanos
                     expect(p) { Person.findSpecificBy { Person::dateOfBirth eq LocalDate.of(1980, 2, 2) } }
                     // here I don't care about whether it selects something or not, I'm only testing the database compatibility
                     Person.findSpecificBy { "dateOfBirth = :a"("a" to Instant.now()) }

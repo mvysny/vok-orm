@@ -27,7 +27,7 @@ object Docker {
      */
     val isPresent: Boolean by lazy {
         try {
-            ProcessExecutor().command("docker", "version").execute().exitValue == 0
+            false //ProcessExecutor().command("docker", "version").execute().exitValue == 0
         } catch (e: ProcessInitException) {
             if (e.errorCode == 2) {
                 // no such file or directory
