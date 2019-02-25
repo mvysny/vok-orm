@@ -105,7 +105,8 @@ private fun DynaNodeGroup.usingDockerizedPosgresql(databasePort: Int) {
         VokOrm.dataSourceConfig.apply {
             minimumIdle = 0
             maximumPoolSize = 30
-            jdbcUrl = "jdbc:postgresql://localhost:$databasePort/postgres"
+            // stringtype=unspecified : see https://github.com/mvysny/vok-orm/issues/12 for more details.
+            jdbcUrl = "jdbc:postgresql://localhost:$databasePort/postgres?stringtype=unspecified"
             username = "postgres"
             password = "mysecretpassword"
         }
