@@ -172,7 +172,17 @@ class MappingTest : DynaTest({
                 expectList() { LogRecord.findAll() }
             }
         }
+        group("TypeMapping") {
+            test("java enum to native db enum") {
+                for (it in MaritalStatus.values().plusNull) {
+                    val id: kotlin.Long? = TypeMappingEntity(enumTest = it).run { save(); id }
+                    val loaded = TypeMappingEntity.findById(id!!)!!
+                    expect(it) { loaded.enumTest }
+                }
+            }
+        }
     }
 })
 
 val Instant.withZeroNanos: Instant get() = with(ChronoField.NANO_OF_SECOND, get(ChronoField.MILLI_OF_SECOND).toLong() * 1000000)
+val <T> Array<T>.plusNull: List<T?> get() = toList<T?>() + listOf(null)

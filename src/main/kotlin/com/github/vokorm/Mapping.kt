@@ -13,7 +13,7 @@ import javax.validation.ValidationException
 import kotlin.reflect.KProperty1
 
 /**
- * Optional annotation which allows you to change the table name.
+ * Optional annotation which allows you to change the database table name.
  * @property dbname the database table name; defaults to an empty string which will use the [Class.getSimpleName] as the table name.
  */
 @Target(AnnotationTarget.CLASS)
@@ -119,7 +119,7 @@ interface Entity<ID: Any> : Serializable {
                 create(validate = false)  // no need to validate again
             } else {
                 val fields = meta.persistedFieldDbNames - meta.idProperty.dbColumnName
-                con.createQuery("update ${meta.databaseTableName} set ${fields.map { "$it = :$it" }.joinToString()} where ${meta.idProperty.dbColumnName} = :${meta.idProperty.dbColumnName}")
+                con.createQuery("update ${meta.databaseTableName} set ${fields.joinToString { "$it = :$it" }} where ${meta.idProperty.dbColumnName} = :${meta.idProperty.dbColumnName}")
                     .bindAliased(this@Entity)
                     .setColumnMappings(meta.getSql2oColumnMappings())
                     .executeUpdate()

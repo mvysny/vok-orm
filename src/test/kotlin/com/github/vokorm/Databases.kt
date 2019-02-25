@@ -81,11 +81,21 @@ interface UuidEntity : Entity<UUID> {
 /**
  * Demoes app-generated UUID ids. Note how [create] is overridden to auto-generate the ID, so that [save] works properly.
  *
- * Warning: do NOT add any additional fields in here, since that would mysteriously make the compiler generate
- * `void setId(UUID)` instead of `void setId(Object)` and we wouldn't test the metadata hook that fixes this issue.
+ * Warning: do NOT add any additional fields in here, since that would make java place synthetic `setId(Object) before
+ * `setId(UUID)` and we wouldn't test the metadata hook that fixes this issue.
  */
 data class LogRecord(override var id: UUID? = null, var text: String) : UuidEntity {
     companion object : Dao<LogRecord>
+}
+
+/**
+ * Tests all sorts of type mapping:
+ * @property enumTest tests Java Enum mapping to native database enum mapping: https://github.com/mvysny/vok-orm/issues/12
+ */
+data class TypeMappingEntity(override var id: Long? = null,
+                             var enumTest: MaritalStatus? = null
+                             ) : Entity<Long> {
+    companion object : Dao<TypeMappingEntity>
 }
 
 private fun DynaNodeGroup.usingDockerizedPosgresql(databasePort: Int) {
@@ -114,6 +124,8 @@ private fun DynaNodeGroup.usingDockerizedPosgresql(databasePort: Int) {
             ddl("""create table if not exists EntityWithAliasedId(myid bigserial primary key, name varchar(400) not null)""")
             ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null, bytes bytea not null)""")
             ddl("""create table if not exists LogRecord(id UUID primary key, text varchar(400) not null)""")
+            ddl("""CREATE TYPE marital_status AS ENUM ('Single', 'Married', 'Widowed', 'Divorced')""")
+            ddl("""CREATE TABLE IF NOT EXISTS TypeMappingEntity(id bigserial primary key, enumTest marital_status)""")
         }
     }
 
@@ -156,6 +168,7 @@ fun DynaNodeGroup.usingDockerizedMysql(databasePort: Int) {
             ddl("""create table if not exists EntityWithAliasedId(myid bigint primary key auto_increment, name varchar(400) not null)""")
             ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null, bytes binary(16) not null)""")
             ddl("""create table if not exists LogRecord(id binary(16) primary key, text varchar(400) not null)""")
+            ddl("""create table TypeMappingEntity(id bigint primary key auto_increment, enumTest ENUM('Single', 'Married', 'Divorced', 'Widowed'))""")
         }
     }
 
@@ -167,6 +180,7 @@ fun DynaNodeGroup.usingDockerizedMysql(databasePort: Int) {
         EntityWithAliasedId.deleteAll()
         NaturalPerson.deleteAll()
         LogRecord.deleteAll()
+        TypeMappingEntity.deleteAll()
     }
     beforeEach { clearDb() }
     afterEach { clearDb() }
@@ -200,6 +214,7 @@ fun DynaNodeGroup.usingH2Database() {
             ddl("""create table EntityWithAliasedId(myid bigint primary key auto_increment, name varchar not null)""")
             ddl("""create table NaturalPerson(id varchar(10) primary key, name varchar(400) not null, bytes binary(16) not null)""")
             ddl("""create table LogRecord(id UUID primary key, text varchar(400) not null)""")
+            ddl("""create table TypeMappingEntity(id bigint primary key auto_increment, enumTest ENUM('Single', 'Married', 'Divorced', 'Widowed'))""")
         }
     }
     afterEach {
@@ -239,6 +254,7 @@ private fun DynaNodeGroup.usingDockerizedMariaDB(databasePort: Int) {
             ddl("""create table if not exists EntityWithAliasedId(myid bigint primary key auto_increment, name varchar(400) not null)""")
             ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null, bytes binary(16) not null)""")
             ddl("""create table if not exists LogRecord(id binary(16) primary key, text varchar(400) not null)""")
+            ddl("""create table TypeMappingEntity(id bigint primary key auto_increment, enumTest ENUM('Single', 'Married', 'Divorced', 'Widowed'))""")
         }
     }
 
