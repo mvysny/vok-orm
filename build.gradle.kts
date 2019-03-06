@@ -42,7 +42,7 @@ dependencies {
     // db
     compile("org.sql2o:sql2o:$sql2oVersion")
     compile("org.sql2o.extensions:sql2o-postgres:$sql2oVersion")
-    compile("com.zaxxer:HikariCP:3.2.0")
+    compile("com.zaxxer:HikariCP:3.3.1")
 
     // validation support
     compile("javax.validation:validation-api:2.0.0.Final")  // to have JSR303 validations in the entities
@@ -54,7 +54,7 @@ dependencies {
     testCompile("com.github.mvysny.dynatest:dynatest-engine:0.15")
     testCompile("com.google.code.gson:gson:2.8.5")
     testCompile("ch.qos.logback:logback-classic:1.2.3")
-    testCompile("com.h2database:h2:1.4.197")
+    testCompile("com.h2database:h2:1.4.198")
 
     testCompile("org.postgresql:postgresql:42.2.5")
     testCompile("org.zeroturnaround:zt-exec:1.10")
