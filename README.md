@@ -309,7 +309,10 @@ fun Category.getTotalCountForReviews(): Long = Review.getTotalCountForReviewsInC
 Note how freely and simply we can add useful business logic methods to entities. It's because:
 
 * the entities are just plain old classes with no hidden fields and no runtime enhancements, and
-* because we can invoke `db{}` freely from anywhere.
+* because we can invoke `db{}` freely from anywhere. You don't need transaction annotations and injected entity managers,
+  and you don't need huge container such as Spring or JavaEE which must instantiate your classes
+  in order to activate those annotations and injections.
+  Those are things of the past.
 
 ### Auto-generated IDs vs pre-provided IDs
 There are generally three cases for entity ID generation:
