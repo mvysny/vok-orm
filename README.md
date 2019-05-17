@@ -524,7 +524,7 @@ select c.CUSTOMER_NAME as customerName from Customer c ...;
 The problem with this approach is twofold:
 
 * Databases can't sort nor filter based on aliased column; please see [Issue 5](https://github.com/mvysny/vok-orm/issues/5) for more details.
-  Trying to pass in filter such as `buildFilter<CustomerAddress> { "customerName ILIKE cn"("cn" to "Foo%") }` will cause
+  Using such queries with `SqlDataLoader` and trying to pass in filter such as `buildFilter<CustomerAddress> { "customerName ILIKE cn"("cn" to "Foo%") }` will cause
   the select command to fail in the database.
 * INSERTs/UPDATEs issued by your entity `Dao` will fail since they will use the bean field names instead of actual column name
   and will emit `INSERT INTO Customer (customerName) values ($1)` instead of `INSERT INTO Customer (CUSTOMER_NAME) values ($1)` 
@@ -533,9 +533,11 @@ Therefore, instead of database-based aliases it's better to use the `@As` annota
 such as `Customer` and projection-only entities such as `CustomerAddress`:
 
 ```kotlin
-data class Customer(@field:As("CUSTOMER_NAME") var name: String? = null) : Entity<Long>
-data class CustomerAddress(@field:As("CUSTOMER_NAME") var customerName: String? = null)
+data class Customer(@As("CUSTOMER_NAME") var name: String? = null) : Entity<Long>
+data class CustomerAddress(@As("CUSTOMER_NAME") var customerName: String? = null)
 ```
+
+The `@As` annotation is honored both by `Dao`s and by all data loaders.
 
 ## A main() method Example
 
