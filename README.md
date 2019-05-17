@@ -500,7 +500,14 @@ create a database view.
 ### SqlDataLoader
 
 The [SqlDataLoader](src/main/kotlin/com/github/vokorm/dataloader/SqlDataLoader.kt) is able to map the outcome of any SELECT command supplied by you,
-onto a bean. You can use `SqlDataLoader` to map the outcome of joins, stored procedure calls, anything.
+onto a bean. You can use `SqlDataLoader` to map the outcome of joins, stored procedure calls, anything. For example:
+
+```kotlin
+val provider = SqlDataLoader(CustomerAddress::class.java, """select c.name as customerName, a.street || ' ' || a.city as address
+   from Customer c inner join Address a on c.address_id=a.id where 1=1 {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}""")
+val filter: Filter<CustomerAddress> = buildFilter<CustomerAddress> { "c.age<:age"("age" to 48) }
+val result: List<CustomerAddress> = provider.fetch(filter, sortBy = listOf("name".asc), range = 0L..20L)
+```
 
 The `SqlDataLoader` honors the `@As` annotation when mapping class instances from the outcome of the `SELECT *` clause. If you don't use SQL aliases
 but you stick to use `@As`, then you can use the `Filter` class hierarchy to filter out the results, and you can use `SortClause` to sort
