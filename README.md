@@ -515,13 +515,27 @@ the results. Just keep in mind to pass in the database column name into the `Fil
 
 ## Aliases
 
-As said before, if you want to use `Filter` to add SQL conditions to the SQL WHERE clause, you must annotate fields of your bean using the `@As`
-annotation. You can't use SQL aliases to bypass `@As` and map directly to bean field names:
+Often database columns follow different naming convention than bean fields, e.g. database `CUSTOMER_NAME` should be mapped to the
+`CustomerAddress::customerName` field. The first thing to try is to use aliases in the SQL itself, for example
+```sql
+select c.CUSTOMER_NAME as customerName from Customer c ...;
+```
 
-* INSERTs/UPDATEs issued by the `Dao` for your entities will fail since they will use the bean field names instead of actual column name
-* You will be able to receive outcome of the SELECT and map it onto a bean, but auto-generated `Filter` objects (e.g. from the Grid filter-to-vok-orm-filters,
-  or from the type-safe `SqlWhereBuilder` class) will use aliased column names (bean property names) when constructing the SQL WHERE clause, causing the database
-  to fail to execute such SELECT command. Please see [Issue 5](https://github.com/mvysny/vok-orm/issues/5) for more details.
+The problem with this approach is twofold:
+
+* Databases can't sort nor filter based on aliased column; please see [Issue 5](https://github.com/mvysny/vok-orm/issues/5) for more details.
+  Trying to pass in filter such as `buildFilter<CustomerAddress> { "customerName ILIKE cn"("cn" to "Foo%") }` will cause
+  the select command to fail in the database.
+* INSERTs/UPDATEs issued by your entity `Dao` will fail since they will use the bean field names instead of actual column name
+  and will emit `INSERT INTO Customer (customerName) values ($1)` instead of `INSERT INTO Customer (CUSTOMER_NAME) values ($1)` 
+
+Therefore, instead of database-based aliases it's better to use the `@As` annotation on your beans, both natural entities
+such as `Customer` and projection-only entities such as `CustomerAddress`:
+
+```kotlin
+data class Customer(@field:As("CUSTOMER_NAME") var name: String? = null) : Entity<Long>
+data class CustomerAddress(@field:As("CUSTOMER_NAME") var customerName: String? = null)
+```
 
 ## A main() method Example
 
