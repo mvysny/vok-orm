@@ -58,8 +58,8 @@ dependencies {
 
     testCompile("org.postgresql:postgresql:42.2.5")
     testCompile("org.zeroturnaround:zt-exec:1.10")
-    testCompile("mysql:mysql-connector-java:5.1.47")
-    testCompile("org.mariadb.jdbc:mariadb-java-client:2.3.0")
+    testCompile("mysql:mysql-connector-java:5.1.48")
+    testCompile("org.mariadb.jdbc:mariadb-java-client:2.4.0")
 
     // IDEA language injections
     testCompile("com.intellij:annotations:12.0")
