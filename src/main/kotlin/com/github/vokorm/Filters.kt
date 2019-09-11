@@ -8,13 +8,16 @@ import java.lang.IllegalArgumentException
  * Attempts to convert this filter into a SQL 92 WHERE-clause representation (omitting the `WHERE` keyword). There are two types of filters:
  * * Filters which do not match column to a value, for example [AndFilter] which produces something like `(filter1 and filter2)`
  * * Filters which do match column to a value, for example [LikeFilter] which produces things like `name LIKE :name`. All [BeanFilter]s are expected
- * to match a database column to a value; that value is automatically prefilled into the JDBC query string under the [BeanFilter.databaseColumnName].
+ * to match a [NativePropertyName] database column to a value; that value is automatically prefilled into the JDBC query string.
  *
  * Examples of returned values:
  * * `name = :name`
  * * `(age >= :age AND name ILIKE :name)`
+ * @property sql92 for example `name = :name`, references [NativePropertyName] database column names.
+ * All named parameters must be present in the [sql92Parameters] map.
+ * @property sql92Parameters maps [NativePropertyName] to its value.
  */
-data class ParametrizedSql(val sql92: String, var sql92Parameters: Map<String, Any?>) {
+data class ParametrizedSql(val sql92: String, var sql92Parameters: Map<NativePropertyName, Any?>) {
     override fun toString(): String = "$sql92:$sql92Parameters"
 }
 
