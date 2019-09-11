@@ -243,8 +243,8 @@ data class PropertyMeta(val field: Field) {
      * This column name must be used in the WHERE clauses.
      */
     val dbColumnName: String get() {
-        val a = this.field.getAnnotation<As>(As::class.java)?.databaseColumnName
-        return if (a == null) this.field.name else a
+        return this.field.getAnnotation(As::class.java)?.databaseColumnName
+                ?: this.field.name
     }
 
     /**
@@ -262,7 +262,7 @@ data class PropertyMeta(val field: Field) {
 
 private fun Class<*>.findDeclaredField(name: String): Field? {
     if (this == Object::class.java) return null
-    val f = declaredFields.firstOrNull { it.name == "id" }
+    val f = declaredFields.firstOrNull { it.name == name }
     if (f != null) return f
     return superclass.findDeclaredField(name)
 }

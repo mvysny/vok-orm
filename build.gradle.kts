@@ -13,7 +13,7 @@ if (localProperties.exists()) {
 }
 
 plugins {
-    kotlin("jvm") version "1.3.40"
+    kotlin("jvm") version "1.3.50"
     id("com.jfrog.bintray") version "1.8.3"
     `maven-publish`
     id("org.jetbrains.dokka") version "0.9.17"
@@ -53,7 +53,7 @@ dependencies {
     // tests
     testCompile("com.github.mvysny.dynatest:dynatest-engine:0.15")
     testCompile("com.google.code.gson:gson:2.8.5")
-    testCompile("ch.qos.logback:logback-classic:1.2.3")
+    testCompile("org.slf4j:slf4j-simple:1.7.25")
     testCompile("com.h2database:h2:1.4.198")
 
     testCompile("org.postgresql:postgresql:42.2.5")
