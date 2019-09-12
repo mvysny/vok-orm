@@ -75,15 +75,17 @@ class DaoTest : DynaTest({
                 Person.deleteAll()
                 expect(0) { Person.count() }
             }
-            test("DeleteById") {
-                listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 130).save() }
-                expect(3) { Person.count() }
-                Person.deleteById(Person.findAll().first { it.name == "Albedo" }.id!!)
-                expect(listOf("Nigredo", "Rubedo")) { Person.findAll().map { it.name } }
-            }
-            test("DeleteByIdDoesNothingOnUnknownId") {
-                db { com.github.vokorm.Person.deleteById(25L) }
-                expect(listOf()) { Person.findAll() }
+            group("DeleteById") {
+                test("simple") {
+                    listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 130).save() }
+                    expect(3) { Person.count() }
+                    Person.deleteById(Person.findAll().first { it.name == "Albedo" }.id!!)
+                    expect(listOf("Nigredo", "Rubedo")) { Person.findAll().map { it.name } }
+                }
+                test("DoesNothingOnUnknownId") {
+                    db { com.github.vokorm.Person.deleteById(25L) }
+                    expect(listOf()) { Person.findAll() }
+                }
             }
             test("DeleteBy") {
                 listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 130).save() }
