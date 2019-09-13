@@ -12,7 +12,7 @@ import com.github.mvysny.vokdataloader.SqlWhereBuilder
  * }
  * ```
  *
- * You can now use `Person.findAll()`, `Person[25]` and other nice methods :)
+ * You can now use `Person.findAll()`, `Person.getById(25)` and other nice methods :)
  * @param T the type of the [Entity] provided by this Dao
  */
 interface Dao<T: Entity<*>>
@@ -28,8 +28,7 @@ interface Dao<T: Entity<*>>
  * }
  * ```
  *
- * You can now use `Person.findAll()`, `Person[25]` and other nice methods; the type of the ID will however not be known
- * hence the methods will accept the `Any` type.
+ * You can now use `Log.findAll()`, `Log.count()` and other nice methods.
  * @param T the type of the class provided by this Dao
  */
 interface DaoOfAny<T: Any>
@@ -55,6 +54,8 @@ inline fun <ID: Any, reified T: Entity<ID>> Dao<T>.getById(id: ID): T =
 
 /**
  * Retrieves entity with given [id]. Fails if there is no such entity. See [DaoOfAny] on how to add this to your entities.
+ *
+ * This will only work if there is a field named `id` in the class.
  * @throws IllegalArgumentException if there is no entity with given id.
  */
 inline fun <reified T: Any> DaoOfAny<T>.getById(id: Any): T = db { con.getById(T::class.java, id) }

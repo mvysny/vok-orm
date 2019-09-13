@@ -64,7 +64,7 @@ class DaoTest : DynaTest({
                     expect(3) { Person.count() }
                 }
                 test("count with filters") {
-                    expect(0) { Person.count() }
+                    expect(0) { Person.count { Person::age gt 6 } }
                     listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = it.length).save() }
                     expect(1) { Person.count { Person::age gt 6 } }
                 }
@@ -140,7 +140,7 @@ class DaoTest : DynaTest({
                     expect(true) { Person.existsById(p.id!!) }
                     expect(true) { Person.existsBy { Person::age ge 26 } }
                 }
-                test("returns true on non-matching entity") {
+                test("returns false on non-matching entity") {
                     val p = Person(name = "Albedo", age = 130)
                     p.save()
                     p.modified = p.modified!!.withZeroNanos
