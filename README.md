@@ -327,13 +327,13 @@ case, `save()` emits `INSERT` when the ID is null, and `UPDATE` when the ID is n
 When the ID is pre-provided, you can only use `save()` method to update a row in the database; using `save()` to create a
 row in the database will throw an exception. In order to create an
 entity with a pre-provided ID, you need to use the `create()` method:
-```
+```kotlin
 NaturalPerson(id = "12345678", name = "Albedo").create()
 ```
 
 For entities with IDs created by the application you can make `save()` work properly, by overriding the `create()` method
-in your every entity as follows:
-```
+in your entity as follows:
+```kotlin
 override fun create(validate: Boolean) {
   id = UUID.randomUUID()
   super.create(validate)
@@ -342,7 +342,7 @@ override fun create(validate: Boolean) {
 
 Even better, you can inherit from the `Entity` interface as follows:
 
-```
+```kotlin
 interface UuidEntity : Entity<UUID> {
     override fun create(validate: Boolean) {
         id = UUID.randomUUID()
@@ -432,7 +432,7 @@ then checked for valid values with the JSR303 Validator (invoked when
 also mentioned in [Vaadin-on-Kotlin Forms](http://www.vaadinonkotlin.eu/forms.html) documentation.
 
 For example:
-```
+```kotlin
 data class Person(
         override var id: Long? = null,
 
@@ -457,7 +457,7 @@ In order to activate the entity validations, you need to add a JSR303 Validation
 to your classpath. Just use Hibernate-Validator (don't worry it will not pull in Hibernate nor
 JPA) and add this to your `build.gradle`:
 
-```
+```groovy
 dependencies {
   compile("org.hibernate.validator:hibernate-validator:6.0.13.Final")
   // EL is required: http://hibernate.org/validator/documentation/getting-started/
