@@ -8,15 +8,17 @@ import com.gitlab.mvysny.jdbiorm.EntityMeta
 import com.gitlab.mvysny.jdbiorm.PropertyMeta
 
 /**
- * Provides instances of entities of given [clazz] from a database. Does not support joins on any of the like; supports filtering
+ * Provides instances of entities of given class from a database. Does not support joins on any of the like; supports filtering
  * and sorting. Only supports simple views over one database table (one entity) - for anything more complex please use [SqlDataLoader].
  *
  * The `NativePropertyName` is the database column name of the database table linked to by this entity (using the
- * [Table] mapping). The `DataLoaderPropertyName` is the Java Bean Property Name or the Kotlin Property name of the [Entity],
+ * [com.gitlab.mvysny.jdbiorm.Table] mapping). The `DataLoaderPropertyName` is the Java Bean Property Name or the Kotlin Property name of the [Entity],
  * but it also accepts the database column name.
  *
  * The database column name is mapped 1:1 to the Java Bean Property Name. If you however use `UPPER_UNDERSCORE` naming scheme
- * in your database, you can map it to `camelCase` using the [As] annotation.
+ * in your database, you can map it to `camelCase` using the [org.jdbi.v3.core.mapper.reflect.ColumnName] annotation.
+ * @property dao DAO to use when loading instances of [T]
+ * @param T the entity type
  */
 class EntityDataLoader<T : Entity<*>>(val dao: Dao<T, *>) : DataLoader<T> {
     val clazz: Class<T> get() = dao.entityClass

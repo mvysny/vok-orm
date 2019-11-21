@@ -39,13 +39,13 @@ import org.jdbi.v3.core.statement.Query
  * ## Property Names And Mapping Details
  *
  * The `NativePropertyName` is the database column name of the database table linked to by this entity (using the
- * [Table] mapping). The `DataLoaderPropertyName` is the Java Bean Property Name or the Kotlin Property name of the [Entity],
+ * [com.gitlab.mvysny.jdbiorm.Table] mapping). The `DataLoaderPropertyName` is the Java Bean Property Name or the Kotlin Property name of the [com.gitlab.mvysny.jdbiorm.Entity],
  * but it also accepts the database column name.
  *
  * The database column name is mapped 1:1 to the Java Bean Property Name. If you however use `UPPER_UNDERSCORE` naming scheme
- * in your database, you can map it to `camelCase` using the [As] annotation.
+ * in your database, you can map it to `camelCase` using the [org.jdbi.v3.core.mapper.reflect.ColumnName] annotation.
 
- * @param clazz the type of the holder class which will hold the result
+ * @param dao loads instances of [T]
  * @param sql the select which can map into the holder class (that is, it selects columns whose names match the holder class fields). It should contain
  * `{{WHERE}}`, `{{ORDER}}` and `{{PAGING}}` strings which will be replaced by a simple substring replacement.
  * @param params the [sql] may be parametrized; this map holds all the parameters present in the sql itself.
