@@ -18,15 +18,15 @@ import java.util.*
 data class Person(
         private var id: Long? = null,
         @field:Length(min = 1)
-    var name: String,
-        var age: Int,
+    var name: String = "",
+        var age: Int = -1,
         @Ignore var ignored: String? = null,
         @Transient var ignored2: Any? = null,
         var dateOfBirth: LocalDate? = null,
         var created: Date? = null,
         var modified: Instant? = null,
     // test of aliased field
-        @ColumnName("alive")
+        @field:ColumnName("alive")
     var isAlive25: Boolean? = null,
         var maritalStatus: MaritalStatus? = null
 
@@ -68,9 +68,9 @@ enum class MaritalStatus {
  * Tests for https://github.com/mvysny/vok-orm/issues/7
  */
 data class EntityWithAliasedId(
-        @ColumnName("myid")
+        @field:ColumnName("myid")
         private var id: Long? = null,
-        var name: String
+        var name: String = ""
 ) : Entity<Long> {
     override fun setId(id: Long?) { this.id = id }
     override fun getId(): Long? = id
@@ -81,7 +81,7 @@ data class EntityWithAliasedId(
 /**
  * A table demoing natural person with government-issued ID (birth number, social security number, etc).
  */
-data class NaturalPerson(private var id: String? = null, var name: String, var bytes: ByteArray) : Entity<String> {
+data class NaturalPerson(private var id: String? = null, var name: String = "", var bytes: ByteArray = byteArrayOf()) : Entity<String> {
     override fun setId(id: String?) { this.id = id }
     override fun getId(): String? = id
     companion object : Dao<NaturalPerson, String>(NaturalPerson::class.java)
@@ -101,7 +101,7 @@ interface UuidEntity : Entity<UUID> {
  * Warning: do NOT add any additional fields in here, since that would make java place synthetic `setId(Object) before
  * `setId(UUID)` and we wouldn't test the metadata hook that fixes this issue.
  */
-data class LogRecord(private var id: UUID? = null, var text: String) : UuidEntity {
+data class LogRecord(private var id: UUID? = null, var text: String = "") : UuidEntity {
     override fun setId(id: UUID?) { this.id = id }
     override fun getId(): UUID? = id
     companion object : Dao<LogRecord, UUID>(LogRecord::class.java)

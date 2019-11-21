@@ -10,8 +10,11 @@ import com.gitlab.mvysny.jdbiorm.Table
 import org.jdbi.v3.core.mapper.reflect.ColumnName
 import kotlin.test.expect
 
+data class SelectResult(val id: Long? = null, val name: String? = null)
+@Table("Test")
+data class SelectResult2(@field:ColumnName("name") var personName: String = "")
+
 class SqlDataLoaderTest : DynaTest({
-    data class SelectResult(val id: Long, val name: String)
 
     withAllDatabases {
         val nameAsc: List<SortClause> = listOf("name".asc)
@@ -78,9 +81,6 @@ class SqlDataLoaderTest : DynaTest({
         // https://github.com/mvysny/vok-orm/issues/5
         test("alias") {
             db { (0..49).forEach { Person(name = "name $it", age = it).save() } }
-
-            @Table("Test") data class SelectResult2(@ColumnName("name") var personName: String)
-
             val loader = SqlDataLoader(
                 SelectResult2::class.java,
                 "select p.name from Test p where 1=1 {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}"

@@ -25,7 +25,7 @@ class DaoTest : DynaTest({
                 expect(p) { Person.getById(p.id!!) }
             }
             test("GetById fails if there is no such entity") {
-                expectThrows(IllegalArgumentException::class, message = "There is no Person for id 25") {
+                expectThrows(IllegalStateException::class, message = "There is no Person for id 25") {
                     Person.getById(25L)
                 }
             }
@@ -38,21 +38,21 @@ class DaoTest : DynaTest({
                 }
 
                 test("fails if there is no such entity") {
-                    expectThrows(IllegalArgumentException::class, message = "no Person satisfying name = ") {
+                    expectThrows(IllegalStateException::class, message = "no row matching Person: 'name = ") {
                         Person.getBy { Person::name eq "Albedo" }
                     }
                 }
 
                 test("fails if there are two matching entities") {
                     repeat(2) { Person(name = "Albedo", age = 130).save() }
-                    expectThrows(IllegalArgumentException::class, message = "too many Person satisfying name = ") {
+                    expectThrows(IllegalStateException::class, message = "too many rows matching Person: 'name = ") {
                         Person.getBy { Person::name eq "Albedo" }
                     }
                 }
 
                 test("fails if there are ten matching entities") {
                     repeat(10) { Person(name = "Albedo", age = 130).save() }
-                    expectThrows(IllegalArgumentException::class, message = "too many Person satisfying name = ") {
+                    expectThrows(IllegalStateException::class, message = "too many rows matching Person: 'name = ") {
                         Person.getBy { Person::name eq "Albedo" }
                     }
                 }
@@ -108,12 +108,12 @@ class DaoTest : DynaTest({
 
                 test("fails if there are two matching entities") {
                     repeat(2) { Person(name = "Albedo", age = 130).save() }
-                    expectThrows(IllegalArgumentException::class, "too many Person satisfying name =") { Person.findSpecificBy { Person::name eq "Albedo" } }
+                    expectThrows(IllegalStateException::class, "too many rows matching Person: 'name = ") { Person.findSpecificBy { Person::name eq "Albedo" } }
                 }
 
                 test("fails if there are ten matching entities") {
                     repeat(10) { Person(name = "Albedo", age = 130).save() }
-                    expectThrows(IllegalArgumentException::class, "too many Person satisfying name =") { Person.findSpecificBy { Person::name eq "Albedo" } }
+                    expectThrows(IllegalStateException::class, "too many rows matching Person: 'name = ") { Person.findSpecificBy { Person::name eq "Albedo" } }
                 }
 
                 test("test filter by date") {

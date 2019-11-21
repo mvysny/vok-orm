@@ -110,14 +110,14 @@ fun <T: Any> Handle.existsBy(clazz: Class<T>, filter: Filter<T>): Boolean =
  * @return a pretty-printed outcome of given select
  */
 fun Query.dump(): String {
-    fun ResultSet.dumpCurrentRow(): String = (0 until metaData.columnCount).joinToString { "${getObject(it)}" }
+    fun ResultSet.dumpCurrentRow(): String = (0 until metaData.columnCount).joinToString { "${getObject(it + 1)}" }
 
     val rows: ResultIterator<String> = map { rs, ctx -> rs.dumpCurrentRow() }.iterator()
     val metadata: ResultSetMetaData = rows.context.statement.metaData
     return buildString {
 
         // draw the header and the separator
-        val header: String = (0 until metadata.columnCount).joinToString { metadata.getColumnName(it) }
+        val header: String = (0 until metadata.columnCount).joinToString { metadata.getColumnName(it + 1) }
         appendln(header)
         repeat(header.length) { append("-") }
         appendln()

@@ -5,8 +5,22 @@ import com.github.mvysny.vokdataloader.SqlWhereBuilder
 import com.github.mvysny.vokdataloader.length
 import com.gitlab.mvysny.jdbiorm.DaoOfAny
 import com.gitlab.mvysny.jdbiorm.EntityMeta
+import org.jdbi.v3.core.mapper.RowMapper
 
 internal val DaoOfAny<*>.meta: EntityMeta get() = EntityMeta(entityClass)
+
+internal val <T> DaoOfAny<T>.entityClass: Class<T> get() {
+    // todo remove when v-bumped to jdbi-orm 0.4
+    val f = DaoOfAny::class.java.getDeclaredField("entityClass")
+    f.isAccessible = true
+    return f.get(this) as Class<T>
+}
+internal fun <T> DaoOfAny<T>.getRowMapper(): RowMapper<T> {
+    // todo remove when v-bumped to jdbi-orm 0.4
+    val f = DaoOfAny::class.java.getDeclaredMethod("getRowMapper")
+    f.isAccessible = true
+    return f.invoke(this) as RowMapper<T>
+}
 
 /**
  * Retrieves single entity matching given [filter]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
@@ -44,8 +58,8 @@ fun <T: Any> DaoOfAny<T>.getOneBy(filter: Filter<T>): T {
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
 @Deprecated("use getOneBy()")
-inline fun <reified T: Any> DaoOfAny<T>.getBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T =
-        getBy(block(SqlWhereBuilder(T::class.java)))
+fun <T: Any> DaoOfAny<T>.getBy(block: SqlWhereBuilder<T>.()-> Filter<T>): T =
+        getBy(block(SqlWhereBuilder(entityClass)))
 
 /**
  * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.
@@ -56,7 +70,7 @@ inline fun <reified T: Any> DaoOfAny<T>.getBy(noinline block: SqlWhereBuilder<T>
  * @throws IllegalArgumentException if there are two or more matching entities.
  */
 @Deprecated("use findOneBy()")
-inline fun <reified T: Any> DaoOfAny<T>.findSpecificBy(filter: Filter<T>): T? =
+fun <T: Any> DaoOfAny<T>.findSpecificBy(filter: Filter<T>): T? =
         findOneBy(filter)
 
 /**
@@ -73,8 +87,8 @@ inline fun <reified T: Any> DaoOfAny<T>.findSpecificBy(filter: Filter<T>): T? =
  * @throws IllegalArgumentException if there are two or more matching entities.
  */
 @Deprecated("use findOneBy()")
-inline fun <reified T: Any> DaoOfAny<T>.findSpecificBy(noinline block: SqlWhereBuilder<T>.()-> Filter<T>): T? =
-        findSpecificBy(block(SqlWhereBuilder(T::class.java)))
+fun <T: Any> DaoOfAny<T>.findSpecificBy(block: SqlWhereBuilder<T>.()-> Filter<T>): T? =
+        findSpecificBy(block(SqlWhereBuilder(entityClass)))
 
 /**
  * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.
@@ -93,7 +107,7 @@ fun <T: Any> DaoOfAny<T>.findOneBy(filter: Filter<T>): T? {
  * Counts all rows in given table which matches given [block] clause.
  */
 fun <T: Any> DaoOfAny<T>.count(block: SqlWhereBuilder<T>.()-> Filter<T>): Long =
-        count(SqlWhereBuilder<T>(javaClass).block())
+        count(SqlWhereBuilder<T>(entityClass).block())
 
 /**
  * Counts all rows in given table which matches given [filter].
@@ -142,7 +156,7 @@ fun <T: Any> DaoOfAny<T>.deleteBy(filter: Filter<T>) {
  * ```
  */
 fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE), block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
-    findAllBy(range, block(SqlWhereBuilder<T>(javaClass)))
+    findAllBy(range, block(SqlWhereBuilder<T>(entityClass)))
 
 /**
  * Allows you to find rows by given [filter], with the maximum of [limit] rows:

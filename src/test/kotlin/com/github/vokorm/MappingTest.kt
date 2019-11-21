@@ -15,6 +15,7 @@ import java.time.temporal.ChronoField
 import java.util.*
 import kotlin.test.expect
 
+class Foo(var maritalStatus: String? = null)
 class MappingTest : DynaTest({
     withAllDatabases {
         test("FindAll") {
@@ -41,7 +42,6 @@ class MappingTest : DynaTest({
                 test("SaveEnum") {
                     val p = Person(name = "Zaphod", age = 42, maritalStatus = MaritalStatus.Divorced)
                     p.save()
-                    class Foo(var maritalStatus: String? = null)
                     expectList("Divorced") {
                         db {
                             handle.createQuery("select maritalStatus from Test").map(FieldMapper.of(Foo::class.java)).list().map { it.maritalStatus }
