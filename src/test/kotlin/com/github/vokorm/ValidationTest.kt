@@ -2,6 +2,7 @@ package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectThrows
+import com.gitlab.mvysny.jdbiorm.Entity
 import javax.validation.ValidationException
 import kotlin.test.expect
 import kotlin.test.fail
@@ -24,12 +25,12 @@ class ValidationTest : DynaTest({
         }
     }
     test("validation is skipped when save(false) is called") {
-        data class ValidationAlwaysFails(override var id: Long?) : Entity<Long> {
+        data class ValidationAlwaysFails(private var id: Long?) : Entity<Long> {
+            override fun setId(id: Long?) { this.id = id }
+            override fun getId(): Long? = id
             override fun validate() = fail("Shouldn't be called")
         }
-        db {
-            handle.createQuery("create table ValidationAlwaysFails ( id bigint primary key auto_increment )").executeUpdate()
-        }
+        db { ddl("create table ValidationAlwaysFails ( id bigint primary key auto_increment )") }
         ValidationAlwaysFails(null).save(false)
     }
 })

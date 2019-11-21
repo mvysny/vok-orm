@@ -6,6 +6,8 @@ import com.github.mvysny.dynatest.expectThrows
 import com.github.mvysny.vokdataloader.SortClause
 import com.github.mvysny.vokdataloader.buildFilter
 import com.github.vokorm.*
+import com.gitlab.mvysny.jdbiorm.Table
+import org.jdbi.v3.core.mapper.reflect.ColumnName
 import kotlin.test.expect
 
 class SqlDataLoaderTest : DynaTest({
@@ -77,7 +79,7 @@ class SqlDataLoaderTest : DynaTest({
         test("alias") {
             db { (0..49).forEach { Person(name = "name $it", age = it).save() } }
 
-            @Table("Test") data class SelectResult2(@As("name") var personName: String)
+            @Table("Test") data class SelectResult2(@ColumnName("name") var personName: String)
 
             val loader = SqlDataLoader(
                 SelectResult2::class.java,

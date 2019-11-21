@@ -175,7 +175,6 @@ class DaoTest : DynaTest({
                     val p = EntityWithAliasedId(name = "Albedo")
                     p.save()
                     expect(p) { EntityWithAliasedId.getBy { EntityWithAliasedId::name eq "Albedo" } }
-                    expect(p) { EntityWithAliasedId.getBy { EntityWithAliasedId::id eq p.id!! } }
                 }
             }
             group("count") {
@@ -189,7 +188,6 @@ class DaoTest : DynaTest({
                     listOf("Albedo", "Nigredo", "Rubedo").forEach { EntityWithAliasedId(name = it).save() }
                     expect(1) { EntityWithAliasedId.count { EntityWithAliasedId::name eq "Albedo" } }
                     val id = EntityWithAliasedId.findAll().first { it.name == "Albedo" }.id!!
-                    expect(1) { EntityWithAliasedId.count { EntityWithAliasedId::id eq id } }
                 }
             }
             test("DeleteAll") {
@@ -218,7 +216,6 @@ class DaoTest : DynaTest({
                     val p = EntityWithAliasedId(name = "Albedo")
                     p.save()
                     expect(p) { EntityWithAliasedId.findSpecificBy { EntityWithAliasedId::name eq "Albedo" } }
-                    expect(p) { EntityWithAliasedId.findSpecificBy { EntityWithAliasedId::id eq p.id!! } }
                 }
             }
             group("exists") {
@@ -233,7 +230,6 @@ class DaoTest : DynaTest({
                     expect(true) { EntityWithAliasedId.existsAny() }
                     expect(true) { EntityWithAliasedId.existsById(p.id!!) }
                     expect(true) { EntityWithAliasedId.existsBy { EntityWithAliasedId::name eq "Albedo" } }
-                    expect(true) { EntityWithAliasedId.existsBy { EntityWithAliasedId::id eq p.id!! } }
                 }
             }
         }

@@ -6,6 +6,7 @@ import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectList
 import com.github.mvysny.dynatest.expectThrows
 import com.google.gson.Gson
+import org.jdbi.v3.core.mapper.reflect.FieldMapper
 import java.lang.IllegalStateException
 import java.lang.Long
 import java.time.Instant
@@ -43,22 +44,22 @@ class MappingTest : DynaTest({
                     class Foo(var maritalStatus: String? = null)
                     expectList("Divorced") {
                         db {
-                            handle.createQuery("select maritalStatus from Test").executeAndFetch<Foo>(Foo::class.java).map { it.maritalStatus }
+                            handle.createQuery("select maritalStatus from Test").map(FieldMapper.of(Foo::class.java)).list().map { it.maritalStatus }
                         }
                     }
                     p.modified = p.modified!!.withZeroNanos
-                    expect(p) { db { com.github.vokorm.Person.findAll()[0] } }
+                    expect(p) { db { Person.findAll()[0] } }
                 }
                 test("SaveLocalDate") {
                     val p = Person(name = "Zaphod", age = 42, dateOfBirth = LocalDate.of(1990, 1, 14))
                     p.save()
-                    expect(LocalDate.of(1990, 1, 14)) { db { com.github.vokorm.Person.findAll()[0].dateOfBirth!! } }
+                    expect(LocalDate.of(1990, 1, 14)) { db { Person.findAll()[0].dateOfBirth!! } }
                 }
                 test("save date and instant") {
                     val p = Person(name = "Zaphod", age = 20, created = Date(1000), modified = Instant.ofEpochMilli(120398123))
                     p.save()
-                    expect(1000) { db { com.github.vokorm.Person.findAll()[0].created!!.time } }
-                    expect(Instant.ofEpochMilli(120398123)) { db { com.github.vokorm.Person.findAll()[0].modified!! } }
+                    expect(1000) { db { Person.findAll()[0].created!!.time } }
+                    expect(Instant.ofEpochMilli(120398123)) { db { Person.findAll()[0].modified!! } }
                 }
                 test("updating non-existing row fails") {
                     val p = Person(id = 15, name = "Zaphod", age = 20, created = Date(1000), modified = Instant.ofEpochMilli(120398123))
@@ -79,9 +80,9 @@ class MappingTest : DynaTest({
             test("Meta") {
                 val meta = Person.meta
                 expect("Test") { meta.databaseTableName }  // since Person is annotated with @Entity("Test")
-                expect("id") { meta.idProperty.dbColumnName }
+                expect("id") { meta.idProperty[0].dbColumnName }
                 expect(Person::class.java) { meta.entityClass }
-                expect(Long::class.java) { meta.idProperty.valueType }
+                expect(Long::class.java) { meta.idProperty[0].valueType }
                 expect(
                         setOf(
                                 "id",
@@ -119,9 +120,9 @@ class MappingTest : DynaTest({
             test("Meta") {
                 val meta = EntityWithAliasedId.meta
                 expect("EntityWithAliasedId") { meta.databaseTableName }
-                expect("myid") { meta.idProperty.dbColumnName }
+                expect("myid") { meta.idProperty[0].dbColumnName }
                 expect(EntityWithAliasedId::class.java) { meta.entityClass }
-                expect(Long::class.java) { meta.idProperty.valueType }
+                expect(Long::class.java) { meta.idProperty[0].valueType }
                 expect(setOf("myid", "name")) { meta.persistedFieldDbNames }
             }
         }

@@ -3,7 +3,7 @@ package com.github.vokorm
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectList
 import com.github.mvysny.dynatest.expectThrows
-import org.sql2o.Connection
+import org.jdbi.v3.core.Handle
 import java.io.IOException
 import kotlin.test.expect
 
@@ -13,8 +13,8 @@ import kotlin.test.expect
 class DBTest : DynaTest({
     withAllDatabases {
         test("verifyEntityManagerClosed") {
-            val em: Connection = db { handle }
-            expect(true) { em.jdbcConnection.isClosed }
+            val em: Handle = db { handle }
+            expect(true) { em.connection.isClosed }
         }
         test("exceptionRollsBack") {
             expectThrows(IOException::class) {

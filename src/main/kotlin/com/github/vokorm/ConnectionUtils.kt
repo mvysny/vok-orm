@@ -9,6 +9,7 @@ import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.result.ResultIterator
 import org.jdbi.v3.core.statement.Query
 import java.sql.ResultSet
+import java.sql.ResultSetMetaData
 
 /**
  * Finds all instances of given entity. Fails if there is no table in the database with the name of [EntityMeta.databaseTableName]. The list is eager
@@ -112,7 +113,7 @@ fun Query.dump(): String {
     fun ResultSet.dumpCurrentRow(): String = (0 until metaData.columnCount).joinToString { "${getObject(it)}" }
 
     val rows: ResultIterator<String> = map { rs, ctx -> rs.dumpCurrentRow() }.iterator()
-    val metadata = rows.context.statement.metaData
+    val metadata: ResultSetMetaData = rows.context.statement.metaData
     return buildString {
 
         // draw the header and the separator
