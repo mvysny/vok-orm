@@ -28,24 +28,18 @@ class EntityDataLoader<T : Entity<*>>(val dao: Dao<T, *>) : DataLoader<T> {
             if (filter == null) dao.count() else dao.count(filter)
 
     override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: LongRange): List<T> {
-        require(range.start >= 0) { "range.start: ${range.start} must be 0 or more" }
-        require(range.endInclusive >= 0) { "limit: ${range.endInclusive} must be 0 or more" }
-        val sqlw: ParametrizedSql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
-        val where: String = sqlw.sql92
+        require(range.first >= 0) { "range.start: ${range.first} must be 0 or more" }
+        require(range.last >= 0) { "limit: ${range.last} must be 0 or more" }
+
+        val sqlw: ParametrizedSql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("1=1", mapOf())
         val orderBy: String = sortBy.joinToString { "${it.getNativeColumnName(clazz)} ${if (it.asc) "ASC" else "DESC"}" }
-        val sql = buildString {
-            append("select * from ${dao.meta.databaseTableName}")
-            if (where.isNotBlank()) append(" where $where")
-            if (orderBy.isNotBlank()) append(" order by $orderBy")
-            // MariaDB requires LIMIT first, then OFFSET: https://mariadb.com/kb/en/library/limit/
-            if (range != (0L..Long.MAX_VALUE)) append(" LIMIT ${range.length.coerceAtMost(Int.MAX_VALUE.toLong())} OFFSET ${range.start}")
+        var where: String = sqlw.sql92
+        if (orderBy.isNotBlank()) {
+            where += " order by $orderBy"
         }
-        return db {
-            handle.createQuery(sql)
-                .bind(sqlw)
-                .map(dao.getRowMapper())
-                .list()
-        }
+        val limit: Long? = if (range != (0L..Long.MAX_VALUE)) range.length.coerceAtMost(Int.MAX_VALUE.toLong()) else null
+        val offset: Long? = if (range != (0L..Long.MAX_VALUE)) range.first else null
+        return dao.findAllBy(where, offset, limit) { query -> query.bind(sqlw) }
     }
 }
 
