@@ -22,7 +22,7 @@ class EntityDataLoader<T : Entity<*>>(val clazz: Class<T>) : DataLoader<T> {
         val sql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
         var where = sql.sql92
         if (!where.isBlank()) where = "where $where"
-        val count = con.createQuery("select count(*) from ${clazz.entityMeta.databaseTableName} $where")
+        val count = handle.createQuery("select count(*) from ${clazz.entityMeta.databaseTableName} $where")
                 .fillInParamsFromFilters(sql)
                 .executeScalar(Long::class.java)!!
         count
@@ -43,7 +43,7 @@ class EntityDataLoader<T : Entity<*>>(val clazz: Class<T>) : DataLoader<T> {
         }
         val dbnameToJavaFieldName = clazz.entityMeta.getSql2oColumnMappings()
         return db {
-            con.createQuery(sql)
+            handle.createQuery(sql)
                 .fillInParamsFromFilters(sqlw)
                 .setColumnMappings(dbnameToJavaFieldName)
                 .executeAndFetch(clazz)

@@ -153,7 +153,7 @@ class DaoTest : DynaTest({
                 val p = Person(name = "Albedo", age = 130, dateOfBirth = LocalDate.of(1980, 2, 2), isAlive25 = true)
                 p.save()
                 p.modified = p.modified!!.withZeroNanos
-                expect(p) { db { con.findSpecificBy(Person::class.java, EqFilter("alive", true)) } }
+                expect(p) { db { handle.findSpecificBy(Person::class.java, EqFilter("alive", true)) } }
             }
         }
 

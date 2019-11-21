@@ -13,7 +13,7 @@ import kotlin.test.expect
 class DBTest : DynaTest({
     withAllDatabases {
         test("verifyEntityManagerClosed") {
-            val em: Connection = db { con }
+            val em: Connection = db { handle }
             expect(true) { em.jdbcConnection.isClosed }
         }
         test("exceptionRollsBack") {

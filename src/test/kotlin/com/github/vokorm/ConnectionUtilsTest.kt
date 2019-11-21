@@ -9,12 +9,12 @@ class ConnectionUtilsTest : DynaTest({
 
     group("one column") {
         test("empty dump") {
-            expect("ID\n--\n--0 row(s)\n") { db { con.createQuery("select id from Test").dump() } }
+            expect("ID\n--\n--0 row(s)\n") { db { handle.createQuery("select id from Test").dump() } }
         }
         test("two rows") {
             Person(name = "Chuck", age = 25, dateOfBirth = LocalDate.of(2000, 1, 1)).save()
             Person(name = "Duke", age = 40, dateOfBirth = LocalDate.of(1999, 1, 1)).save()
-            expect("NAME\n----\nChuck\nDuke\n----2 row(s)\n") { db { con.createQuery("select name from Test").dump() } }
+            expect("NAME\n----\nChuck\nDuke\n----2 row(s)\n") { db { handle.createQuery("select name from Test").dump() } }
         }
     }
 
@@ -23,7 +23,7 @@ class ConnectionUtilsTest : DynaTest({
             expect("""ID, NAME, AGE, DATEOFBIRTH, CREATED, MODIFIED, ALIVE, MARITALSTATUS
 -------------------------------------------------------------------
 -------------------------------------------------------------------0 row(s)
-""") { db { con.createQuery("select * from Test").dump() } }
+""") { db { handle.createQuery("select * from Test").dump() } }
         }
         test("two rows") {
             Person(name = "Chuck", age = 25, dateOfBirth = LocalDate.of(2000, 1, 1)).save()
@@ -33,7 +33,7 @@ class ConnectionUtilsTest : DynaTest({
 1, Chuck, 25, 2000-01-01, null, null
 2, Duke, 40, 1999-01-01, null, null
 ------------------------------------------------2 row(s)
-""") { db { con.createQuery("select id, name, age, dateofbirth, alive, maritalstatus from Test").dump() } }
+""") { db { handle.createQuery("select id, name, age, dateofbirth, alive, maritalstatus from Test").dump() } }
         }
     }
 })

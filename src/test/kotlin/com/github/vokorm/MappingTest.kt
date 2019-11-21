@@ -43,7 +43,7 @@ class MappingTest : DynaTest({
                     class Foo(var maritalStatus: String? = null)
                     expectList("Divorced") {
                         db {
-                            con.createQuery("select maritalStatus from Test").executeAndFetch<Foo>(Foo::class.java).map { it.maritalStatus }
+                            handle.createQuery("select maritalStatus from Test").executeAndFetch<Foo>(Foo::class.java).map { it.maritalStatus }
                         }
                     }
                     p.modified = p.modified!!.withZeroNanos

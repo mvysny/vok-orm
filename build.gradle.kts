@@ -4,7 +4,7 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
-val sql2oVersion = "1.6.0"
+val slf4jVersion = "1.7.28"
 
 val local = Properties()
 val localProperties: java.io.File = rootProject.file("local.properties")
@@ -35,26 +35,22 @@ tasks.withType<KotlinCompile> {
 dependencies {
     compile(kotlin("stdlib-jdk8"))
     compile("com.github.mvysny.vokdataloader:vok-dataloader:0.5")
+    compile("com.gitlab.mvysny.jdbiorm:jdbi-orm:0.3")
 
     // logging
-    compile("org.slf4j:slf4j-api:1.7.28")
-
-    // db
-    compile("org.sql2o:sql2o:$sql2oVersion")
-    compile("org.sql2o.extensions:sql2o-postgres:$sql2oVersion")
-    compile("com.zaxxer:HikariCP:3.4.1")
+    compile("org.slf4j:slf4j-api:$slf4jVersion")
 
     // validation support
-    compile("javax.validation:validation-api:2.0.0.Final")  // to have JSR303 validations in the entities
-    testCompile("org.hibernate.validator:hibernate-validator:6.0.13.Final")
+    testCompile("org.hibernate.validator:hibernate-validator:6.0.17.Final")
     // EL is required: http://hibernate.org/validator/documentation/getting-started/
     testCompile("org.glassfish:javax.el:3.0.1-b08")
 
     // tests
     testCompile("com.github.mvysny.dynatest:dynatest-engine:0.15")
     testCompile("com.google.code.gson:gson:2.8.5")
-    testCompile("org.slf4j:slf4j-simple:1.7.28")
+    testCompile("org.slf4j:slf4j-simple:$slf4jVersion")
     testCompile("com.h2database:h2:1.4.200")
+    testCompile("com.zaxxer:HikariCP:3.4.1")
 
     testCompile("org.postgresql:postgresql:42.2.5")
     testCompile("org.zeroturnaround:zt-exec:1.10")

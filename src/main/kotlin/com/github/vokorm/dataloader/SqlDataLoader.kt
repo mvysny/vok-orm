@@ -56,7 +56,7 @@ class SqlDataLoader<T: Any>(val clazz: Class<T>, val sql: String, val params: Ma
 
     override fun getCount(filter: Filter<T>?): Long = db {
         val sql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
-        val q: Query = con.createQuery(computeSQL(true, sql))
+        val q: Query = handle.createQuery(computeSQL(true, sql))
         params.entries.forEach { (name, value) -> q.addParameter(name, value) }
         q.fillInParamsFromFilters(sql)
         val count: Long = q.executeScalar(Long::class.java) ?: 0
@@ -65,7 +65,7 @@ class SqlDataLoader<T: Any>(val clazz: Class<T>, val sql: String, val params: Ma
 
     override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: LongRange): List<T> = db {
         val sql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
-        val q = con.createQuery(computeSQL(false, sql, sortBy, range))
+        val q = handle.createQuery(computeSQL(false, sql, sortBy, range))
         params.entries.forEach { (name, value) -> q.addParameter(name, value) }
         q.fillInParamsFromFilters(sql)
         q.columnMappings = clazz.entityMeta.getSql2oColumnMappings()

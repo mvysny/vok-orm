@@ -28,7 +28,7 @@ class ValidationTest : DynaTest({
             override fun validate() = fail("Shouldn't be called")
         }
         db {
-            con.createQuery("create table ValidationAlwaysFails ( id bigint primary key auto_increment )").executeUpdate()
+            handle.createQuery("create table ValidationAlwaysFails ( id bigint primary key auto_increment )").executeUpdate()
         }
         ValidationAlwaysFails(null).save(false)
     }

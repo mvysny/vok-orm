@@ -224,7 +224,7 @@ fun DynaNodeGroup.usingH2Database() {
 }
 
 fun PersistenceContext.ddl(@Language("sql") sql: String) {
-    con.createQuery(sql).executeUpdate()
+    handle.createQuery(sql).executeUpdate()
 }
 
 private fun DynaNodeGroup.usingDockerizedMariaDB(databasePort: Int) {
