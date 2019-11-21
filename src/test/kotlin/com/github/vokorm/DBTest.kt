@@ -30,7 +30,7 @@ class DBTest : DynaTest({
             val person = db {
                 db {
                     db {
-                        Person(name = "foo", age = 25).apply { save(); modified = modified!!.withZeroNanos }
+                        Person(name = "foo", age = 25).apply { save() }
                     }
                 }
             }

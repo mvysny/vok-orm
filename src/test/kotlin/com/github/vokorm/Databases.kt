@@ -35,7 +35,7 @@ data class Person(
     override fun save(validate: Boolean) {
         if (id == null) {
             if (created == null) created = java.sql.Timestamp(System.currentTimeMillis())
-            if (modified == null) modified = Instant.now()
+            if (modified == null) modified = Instant.now().withZeroNanos
         }
         super.save(validate)
     }
