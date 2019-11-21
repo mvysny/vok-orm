@@ -5,7 +5,10 @@ import com.github.mvysny.vokdataloader.SqlWhereBuilder
 import com.gitlab.mvysny.jdbiorm.Dao
 import com.gitlab.mvysny.jdbiorm.DaoOfAny
 import com.gitlab.mvysny.jdbiorm.Entity
+import com.gitlab.mvysny.jdbiorm.EntityMeta
 import org.jdbi.v3.core.statement.Query
+
+internal val DaoOfAny<*>.meta: EntityMeta get() = EntityMeta(entityClass)
 
 /**
  * Retrieves single entity matching given criteria [block]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
@@ -30,7 +33,20 @@ inline fun <ID: Any, reified T: Entity<ID>> Dao<T, ID>.getBy(noinline block: Sql
  * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
-inline fun <ID: Any, reified T: Entity<ID>> Dao<T, ID>.getBy(filter: Filter<T>): T = db { handle.getBy(T::class.java, filter) }
+@Deprecated("use getOneBy()")
+fun <ID: Any, T: Entity<ID>> Dao<T, ID>.getBy(filter: Filter<T>): T = getOneBy(filter)
+
+/**
+ * Retrieves single entity matching given [filter]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
+ *
+ * This function fails if there is no such entity or there are 2 or more. Use [findSpecificBy] if you wish to return `null` in case that
+ * the entity does not exist.
+ * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
+ */
+fun <ID: Any, T: Entity<ID>> Dao<T, ID>.getOneBy(filter: Filter<T>): T {
+    val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
+    return getOneBy(sql.sql92) { query -> query.bind(sql) }
+}
 
 /**
  * Retrieves single entity matching given criteria [block]. Fails if there is no such entity, or if there are two or more entities matching the criteria.

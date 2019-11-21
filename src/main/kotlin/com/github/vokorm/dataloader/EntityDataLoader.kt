@@ -27,11 +27,11 @@ class EntityDataLoader<T : Entity<*>>(val dao: Dao<T, *>) : DataLoader<T> {
         val sql: ParametrizedSql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
         var where: String = sql.sql92
         if (!where.isBlank()) where = "where $where"
-        val count = handle.createQuery("select count(*) from <TABLE> <WHERE>")
+        val count: Long = handle.createQuery("select count(*) from <TABLE> <WHERE>")
                 .define("TABLE", dao.meta.databaseTableName)
                 .define("WHERE", where)
                 .fillInParamsFromFilters(sql)
-                .mapTo(Long::class.java).one()!!
+                .mapTo(Long::class.java).one()
         count
     }
 
@@ -61,6 +61,9 @@ class EntityDataLoader<T : Entity<*>>(val dao: Dao<T, *>) : DataLoader<T> {
         return this
     }
 }
+
+fun <T: Entity<ID>, ID> EntityDataLoader(clazz: Class<T>): EntityDataLoader<T> =
+        EntityDataLoader(Dao<T, ID>(clazz))
 
 val LongRange.length: Long get() = if (isEmpty()) 0 else endInclusive - start + 1
 

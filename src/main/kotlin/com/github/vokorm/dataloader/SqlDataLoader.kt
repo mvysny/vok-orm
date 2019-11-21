@@ -4,7 +4,6 @@ import com.github.mvysny.vokdataloader.DataLoader
 import com.github.mvysny.vokdataloader.Filter
 import com.github.mvysny.vokdataloader.SortClause
 import com.github.vokorm.*
-import org.sql2o.Query
 
 /**
  * Allows the coder to write any SQL he wishes. This provider must be simple enough to not to get in the way by smart (complex) Kotlin language features.
