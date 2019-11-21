@@ -2,58 +2,52 @@ package com.github.vokorm
 
 import com.github.mvysny.vokdataloader.Filter
 import com.github.mvysny.vokdataloader.SqlWhereBuilder
-import org.sql2o.Connection
-import org.sql2o.Query
-import org.sql2o.data.LazyTable
-import org.sql2o.data.Row
+import com.gitlab.mvysny.jdbiorm.Dao
+import com.gitlab.mvysny.jdbiorm.DaoOfAny
+import com.gitlab.mvysny.jdbiorm.Entity
+import org.jdbi.v3.core.Handle
 
 /**
  * Finds all instances of given entity. Fails if there is no table in the database with the name of [EntityMeta.databaseTableName]. The list is eager
  * and thus it's useful for smallish tables only.
  */
-fun <T : Any> Connection.findAll(clazz: Class<T>): List<T> =
-    createQuery("select * from ${clazz.entityMeta.databaseTableName}")
-        .setColumnMappings(clazz.entityMeta.getSql2oColumnMappings())
-        .executeAndFetch(clazz)
+@Deprecated("use DaoOfAny")
+fun <T : Any> Handle.findAll(clazz: Class<T>): List<T> = DaoOfAny(clazz).findAll()
 
 /**
  * Retrieves entity with given [id]. Returns null if there is no such entity.
  */
-fun <T : Any> Connection.findById(clazz: Class<T>, id: Any): T? =
-    createQuery("select * from ${clazz.entityMeta.databaseTableName} where ${clazz.entityMeta.idProperty.dbColumnName} = :id")
-        .addParameter("id", id)
-        .setColumnMappings(clazz.entityMeta.getSql2oColumnMappings())
-        .executeAndFetchFirst(clazz)
+@Deprecated("use Dao")
+fun <ID, T : Entity<ID>> Handle.findById(clazz: Class<T>, id: ID): T? = Dao<T, ID>(clazz).findById(id)
 
 /**
  * Retrieves entity with given [id]. Fails if there is no such entity.
  * @throws IllegalArgumentException if there is no entity with given id.
  */
-fun <T : Any> Connection.getById(clazz: Class<T>, id: Any): T =
-    requireNotNull(findById(clazz, id)) { "There is no ${clazz.simpleName} for id $id" }
+@Deprecated("use Dao")
+fun <ID, T : Entity<ID>> Handle.getById(clazz: Class<T>, id: ID): T = Dao<T, ID>(clazz).getById(id)
 
 /**
  * Deletes all rows from given database table.
  */
-fun <T: Any> Connection.deleteAll(clazz: Class<T>) {
-    createQuery("delete from ${clazz.entityMeta.databaseTableName}").executeUpdate()
+@Deprecated("use DaoOfAny")
+fun <T: Any> Handle.deleteAll(clazz: Class<T>) {
+    DaoOfAny<T>(clazz).deleteAll()
 }
 
 /**
  * Counts all rows in given table [clazz].
  */
-fun <T: Any> Connection.getCount(clazz: Class<T>): Long =
-    createQuery("select count(*) from ${clazz.entityMeta.databaseTableName}").executeScalar(Long::class.java)
+@Deprecated("use DaoOfAny")
+fun <T: Any> Handle.getCount(clazz: Class<T>): Long =
+        DaoOfAny<T>(clazz).count()
 
 /**
  * Counts all rows in given table [clazz] satisfying given [filter].
  */
-fun <T: Any> Connection.getCount(clazz: Class<T>, filter: Filter<T>): Long {
-    val sql = filter.toParametrizedSql(clazz)
-    val query: Query = createQuery("select count(*) from ${clazz.entityMeta.databaseTableName} where ${sql.sql92}")
-    sql.sql92Parameters.entries.forEach { (name, value) -> query.addParameter(name, value) }
-    return query.executeScalar(Long::class.java)
-}
+@Deprecated("use DaoOfAny")
+fun <T: Any> Handle.getCount(clazz: Class<T>, filter: Filter<T>): Long =
+        DaoOfAny<T>(clazz).count(filter)
 
 /**
  * Retrieves specific entity matching given criteria [filter]. Fails if there are two or more entities matching the criteria.
@@ -62,11 +56,9 @@ fun <T: Any> Connection.getCount(clazz: Class<T>, filter: Filter<T>): Long {
  * the entity does not exist.
  * @throws IllegalArgumentException if there are two or more matching entities.
  */
-fun <T: Any> Connection.findSpecificBy(clazz: Class<T>, filter: Filter<T>): T? {
-    val result: List<T> = findBy(clazz, 2, filter)
-    require(result.size < 2) { "too many ${clazz.simpleName} satisfying ${filter.toParametrizedSql(clazz)}: $result and perhaps more" }
-    return result.firstOrNull()
-}
+@Deprecated("use DaoOfAny.findOneBy()")
+fun <T: Any> Handle.findSpecificBy(clazz: Class<T>, filter: Filter<T>): T? =
+        DaoOfAny(clazz).findOneBy(filter)
 
 /**
  * Returns the one entity with given [clazz] matching given [filter].

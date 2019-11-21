@@ -2,6 +2,8 @@ package com.github.vokorm
 
 import com.github.mvysny.vokdataloader.*
 import com.github.vokorm.dataloader.toNativeColumnName
+import org.jdbi.v3.core.statement.Query
+import org.jdbi.v3.core.statement.SqlStatement
 import java.lang.IllegalArgumentException
 
 /**
@@ -48,4 +50,12 @@ fun Filter<*>.toParametrizedSql(clazz: Class<*>): ParametrizedSql {
         is NativeSqlFilter -> ParametrizedSql(where, params)
         else -> throw IllegalArgumentException("Unsupported: cannot convert filter $this to SQL92")
     }
+}
+
+/**
+ * Binds all [ParametrizedSql.sql92Parameters] to the receiver Query.
+ */
+fun <T: SqlStatement<*>> T.bind(sql: ParametrizedSql): T {
+    sql.sql92Parameters.entries.forEach { (name: NativePropertyName, value: Any?) -> bind(name, value) }
+    return this
 }

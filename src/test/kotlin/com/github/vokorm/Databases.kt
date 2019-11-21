@@ -1,6 +1,9 @@
 package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaNodeGroup
+import com.gitlab.mvysny.jdbiorm.JdbiOrm
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import org.hibernate.validator.constraints.Length
 import org.intellij.lang.annotations.Language
 import java.time.Instant
@@ -102,7 +105,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql(databasePort: Int) {
     check(Docker.isPresent) { "Docker not available" }
     beforeGroup { Docker.startPostgresql(port = databasePort) }
     beforeGroup {
-        VokOrm.dataSourceConfig.apply {
+        val cfg = HikariConfig().apply {
             minimumIdle = 0
             maximumPoolSize = 30
             // stringtype=unspecified : see https://github.com/mvysny/vok-orm/issues/12 for more details.
@@ -110,7 +113,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql(databasePort: Int) {
             username = "postgres"
             password = "mysecretpassword"
         }
-        VokOrm.init()
+        JdbiOrm.setDataSource(HikariDataSource(cfg))
         db {
             ddl("""create table if not exists Test (
                 id bigserial primary key,
@@ -130,7 +133,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql(databasePort: Int) {
         }
     }
 
-    afterGroup { VokOrm.destroy() }
+    afterGroup { JdbiOrm.destroy() }
     afterGroup { Docker.stopPostgresql() }
 
     fun clearDb() {
@@ -147,14 +150,14 @@ fun DynaNodeGroup.usingDockerizedMysql(databasePort: Int) {
     check(Docker.isPresent) { "Docker not available" }
     beforeGroup { Docker.startMysql(port = databasePort) }
     beforeGroup {
-        VokOrm.dataSourceConfig.apply {
+        val cfg = HikariConfig().apply {
             minimumIdle = 0
             maximumPoolSize = 30
             jdbcUrl = "jdbc:mysql://localhost:$databasePort/db"
             username = "testuser"
             password = "mysqlpassword"
         }
-        VokOrm.init()
+        JdbiOrm.setDataSource(HikariDataSource(cfg))
         db {
             ddl("""create table if not exists Test (
                 id bigint primary key auto_increment,
@@ -173,7 +176,7 @@ fun DynaNodeGroup.usingDockerizedMysql(databasePort: Int) {
         }
     }
 
-    afterGroup { VokOrm.destroy() }
+    afterGroup { JdbiOrm.destroy() }
     afterGroup { Docker.stopMysql() }
 
     fun clearDb() {
@@ -189,15 +192,15 @@ fun DynaNodeGroup.usingDockerizedMysql(databasePort: Int) {
 
 fun DynaNodeGroup.usingH2Database() {
     beforeGroup {
-        VokOrm.dataSourceConfig.apply {
+        val cfg = HikariConfig().apply {
             jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
             username = "sa"
             password = ""
         }
-        VokOrm.init()
+        JdbiOrm.setDataSource(HikariDataSource(cfg))
     }
 
-    afterGroup { VokOrm.destroy() }
+    afterGroup { JdbiOrm.destroy() }
 
     beforeEach {
         db {
@@ -224,21 +227,21 @@ fun DynaNodeGroup.usingH2Database() {
 }
 
 fun PersistenceContext.ddl(@Language("sql") sql: String) {
-    handle.createQuery(sql).executeUpdate()
+    handle.createUpdate(sql).execute()
 }
 
 private fun DynaNodeGroup.usingDockerizedMariaDB(databasePort: Int) {
     check(Docker.isPresent) { "Docker not available" }
     beforeGroup { Docker.startMariaDB(port = databasePort) }
     beforeGroup {
-        VokOrm.dataSourceConfig.apply {
+        val cfg = HikariConfig().apply {
             minimumIdle = 0
             maximumPoolSize = 30
             jdbcUrl = "jdbc:mariadb://localhost:$databasePort/db"
             username = "testuser"
             password = "mysqlpassword"
         }
-        VokOrm.init()
+        JdbiOrm.setDataSource(HikariDataSource(cfg))
         db {
             ddl(
                 """create table if not exists Test (
@@ -259,7 +262,7 @@ private fun DynaNodeGroup.usingDockerizedMariaDB(databasePort: Int) {
         }
     }
 
-    afterGroup { VokOrm.destroy() }
+    afterGroup { JdbiOrm.destroy() }
     afterGroup { Docker.stopMariaDB() }
 
     fun clearDb() {
