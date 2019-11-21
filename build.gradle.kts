@@ -13,7 +13,7 @@ if (localProperties.exists()) {
 }
 
 plugins {
-    kotlin("jvm") version "1.3.50"
+    kotlin("jvm") version "1.3.60"
     id("com.jfrog.bintray") version "1.8.3"
     `maven-publish`
     id("org.jetbrains.dokka") version "0.9.17"
@@ -37,12 +37,12 @@ dependencies {
     compile("com.github.mvysny.vokdataloader:vok-dataloader:0.5")
 
     // logging
-    compile("org.slf4j:slf4j-api:1.7.25")
+    compile("org.slf4j:slf4j-api:1.7.28")
 
     // db
     compile("org.sql2o:sql2o:$sql2oVersion")
     compile("org.sql2o.extensions:sql2o-postgres:$sql2oVersion")
-    compile("com.zaxxer:HikariCP:3.3.1")
+    compile("com.zaxxer:HikariCP:3.4.1")
 
     // validation support
     compile("javax.validation:validation-api:2.0.0.Final")  // to have JSR303 validations in the entities
@@ -53,8 +53,8 @@ dependencies {
     // tests
     testCompile("com.github.mvysny.dynatest:dynatest-engine:0.15")
     testCompile("com.google.code.gson:gson:2.8.5")
-    testCompile("org.slf4j:slf4j-simple:1.7.25")
-    testCompile("com.h2database:h2:1.4.198")
+    testCompile("org.slf4j:slf4j-simple:1.7.28")
+    testCompile("com.h2database:h2:1.4.200")
 
     testCompile("org.postgresql:postgresql:42.2.5")
     testCompile("org.zeroturnaround:zt-exec:1.10")
