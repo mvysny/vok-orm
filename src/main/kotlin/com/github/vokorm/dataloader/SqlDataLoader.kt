@@ -4,6 +4,8 @@ import com.github.mvysny.vokdataloader.DataLoader
 import com.github.mvysny.vokdataloader.Filter
 import com.github.mvysny.vokdataloader.SortClause
 import com.github.vokorm.*
+import com.gitlab.mvysny.jdbiorm.DaoOfAny
+import org.jdbi.v3.core.statement.Query
 
 /**
  * Allows the coder to write any SQL he wishes. This provider must be simple enough to not to get in the way by smart (complex) Kotlin language features.
@@ -50,31 +52,32 @@ import com.github.vokorm.*
  * @param T the type of the holder class.
  * @author mavi
  */
-class SqlDataLoader<T: Any>(val clazz: Class<T>, val sql: String, val params: Map<String, Any?> = mapOf()) : DataLoader<T> {
+class SqlDataLoader<T: Any>(val dao: DaoOfAny<T>, val sql: String, val params: Map<String, Any?> = mapOf()) : DataLoader<T> {
+    val clazz: Class<T> get() = dao.entityClass
+    constructor(clazz: Class<T>, sql: String, params: Map<String, Any?> = mapOf()) : this(DaoOfAny<T>(clazz), sql, params)
     override fun toString() = "SqlDataLoader($clazz:$sql($params))"
 
     override fun getCount(filter: Filter<T>?): Long = db {
-        val sql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
+        val sql: ParametrizedSql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
         val q: Query = handle.createQuery(computeSQL(true, sql))
-        params.entries.forEach { (name, value) -> q.addParameter(name, value) }
+        params.entries.forEach { (name, value) -> q.bind(name, value) }
         q.fillInParamsFromFilters(sql)
-        val count: Long = q.executeScalar(Long::class.java) ?: 0
+        val count: Long = q.mapTo(Long::class.java).one() ?: 0
         count
     }
 
     override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: LongRange): List<T> = db {
-        val sql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
-        val q = handle.createQuery(computeSQL(false, sql, sortBy, range))
-        params.entries.forEach { (name, value) -> q.addParameter(name, value) }
+        val sql: ParametrizedSql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
+        val q: Query = handle.createQuery(computeSQL(false, sql, sortBy, range))
+        params.entries.forEach { (name, value) -> q.bind(name, value) }
         q.fillInParamsFromFilters(sql)
-        q.columnMappings = clazz.entityMeta.getSql2oColumnMappings()
-        q.executeAndFetch(clazz)
+        q.map(dao.getRowMapper()).list()
     }
 
-    private fun Query.fillInParamsFromFilters(filter: ParametrizedSql): org.sql2o.Query {
+    private fun Query.fillInParamsFromFilters(filter: ParametrizedSql): Query {
         filter.sql92Parameters.entries.forEach { (name, value) ->
             require(!this@SqlDataLoader.params.containsKey(name)) { "Filters tries to set the parameter $name to $value but that parameter is already forced by SqlDataLoader to ${params[name]}: filter=$sql dp=${this@SqlDataLoader}" }
-            addParameter(name, value)
+            bind(name, value)
         }
         return this
     }
