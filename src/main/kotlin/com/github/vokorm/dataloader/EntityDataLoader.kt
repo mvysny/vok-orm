@@ -6,7 +6,6 @@ import com.gitlab.mvysny.jdbiorm.Dao
 import com.gitlab.mvysny.jdbiorm.Entity
 import com.gitlab.mvysny.jdbiorm.EntityMeta
 import com.gitlab.mvysny.jdbiorm.PropertyMeta
-import org.jdbi.v3.core.statement.Query
 
 /**
  * Provides instances of entities of given [clazz] from a database. Does not support joins on any of the like; supports filtering
@@ -23,17 +22,8 @@ class EntityDataLoader<T : Entity<*>>(val dao: Dao<T, *>) : DataLoader<T> {
     val clazz: Class<T> get() = dao.entityClass
     override fun toString() = "EntityDataLoader($clazz)"
 
-    override fun getCount(filter: Filter<T>?): Long = db {
-        val sql: ParametrizedSql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
-        var where: String = sql.sql92
-        if (!where.isBlank()) where = "where $where"
-        val count: Long = handle.createQuery("select count(*) from <TABLE> <WHERE>")
-                .define("TABLE", dao.meta.databaseTableName)
-                .define("WHERE", where)
-                .fillInParamsFromFilters(sql)
-                .mapTo(Long::class.java).one()
-        count
-    }
+    override fun getCount(filter: Filter<T>?): Long =
+            if (filter == null) dao.count() else dao.count(filter)
 
     override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: LongRange): List<T> {
         require(range.start >= 0) { "range.start: ${range.start} must be 0 or more" }
@@ -50,15 +40,10 @@ class EntityDataLoader<T : Entity<*>>(val dao: Dao<T, *>) : DataLoader<T> {
         }
         return db {
             handle.createQuery(sql)
-                .fillInParamsFromFilters(sqlw)
+                .bind(sqlw)
                 .map(dao.getRowMapper())
                 .list()
         }
-    }
-
-    private fun Query.fillInParamsFromFilters(filter: ParametrizedSql): Query {
-        filter.sql92Parameters.entries.forEach { (name, value) -> bind(name, value) }
-        return this
     }
 }
 

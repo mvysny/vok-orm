@@ -2,7 +2,6 @@ package com.github.vokorm
 
 import com.github.mvysny.vokdataloader.*
 import com.github.vokorm.dataloader.toNativeColumnName
-import org.jdbi.v3.core.statement.Query
 import org.jdbi.v3.core.statement.SqlStatement
 import java.lang.IllegalArgumentException
 

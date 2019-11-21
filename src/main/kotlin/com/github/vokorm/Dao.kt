@@ -152,11 +152,11 @@ inline fun <reified T: Any> DaoOfAny<T>.count(noinline block: SqlWhereBuilder<T>
  */
 fun <T: Any> DaoOfAny<T>.count(filter: Filter<T>): Long = db {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
-    val query: Query = handle.createQuery("select count(*) from <TABLE> where <WHERE>")
+    handle.createQuery("select count(*) from <TABLE> where <WHERE>")
             .define("TABLE", meta.databaseTableName)
             .define("WHERE", sql.sql92)
-    sql.sql92Parameters.entries.forEach { (name, value) -> query.bind(name, value) }
-    query.mapTo(Long::class.java).one()
+            .bind(sql)
+            .mapTo(Long::class.java).one()
 }
 
 /**
