@@ -6,7 +6,9 @@ import com.gitlab.mvysny.jdbiorm.Dao
 import com.gitlab.mvysny.jdbiorm.DaoOfAny
 import com.gitlab.mvysny.jdbiorm.Entity
 import org.jdbi.v3.core.Handle
+import org.jdbi.v3.core.result.ResultIterator
 import org.jdbi.v3.core.statement.Query
+import java.sql.ResultSet
 
 /**
  * Finds all instances of given entity. Fails if there is no table in the database with the name of [EntityMeta.databaseTableName]. The list is eager
@@ -106,22 +108,22 @@ fun <T: Any> Handle.existsBy(clazz: Class<T>, filter: Filter<T>): Boolean =
  * ```
  * @return a pretty-printed outcome of given select
  */
-fun Query.dump(): String = executeAndFetchTableLazy().use { table: LazyTable ->
-    fun Row.dump(): String = (0 until table.columns().size).joinToString { "${getObject(it)}" }
-    buildString {
+fun Query.dump(): String {
+    fun ResultSet.dumpCurrentRow(): String = (0 until metaData.columnCount).joinToString { "${getObject(it)}" }
 
-        // bug in sql2o: we need to ask for rows().iterator() otherwise columns() will be null :-(
-        val rows: Iterator<Row> = table.rows().iterator()
+    val rows: ResultIterator<String> = map { rs, ctx -> rs.dumpCurrentRow() }.iterator()
+    val metadata = rows.context.statement.metaData
+    return buildString {
 
         // draw the header and the separator
-        val header: String = table.columns().joinToString { it.name }
+        val header: String = (0 until metadata.columnCount).joinToString { metadata.getColumnName(it) }
         appendln(header)
         repeat(header.length) { append("-") }
         appendln()
 
         // draw the table body
         var rowCount = 0
-        rows.forEach { row -> rowCount++; appendln(row.dump()) }
+        rows.forEach { row -> rowCount++; appendln(row) }
 
         // the bottom separator
         repeat(header.length) { append("-") }
