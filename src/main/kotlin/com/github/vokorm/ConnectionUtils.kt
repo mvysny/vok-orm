@@ -6,6 +6,7 @@ import com.gitlab.mvysny.jdbiorm.Dao
 import com.gitlab.mvysny.jdbiorm.DaoOfAny
 import com.gitlab.mvysny.jdbiorm.Entity
 import org.jdbi.v3.core.Handle
+import org.jdbi.v3.core.statement.Query
 
 /**
  * Finds all instances of given entity. Fails if there is no table in the database with the name of [EntityMeta.databaseTableName]. The list is eager
@@ -64,73 +65,36 @@ fun <T: Any> Handle.findSpecificBy(clazz: Class<T>, filter: Filter<T>): T? =
  * Returns the one entity with given [clazz] matching given [filter].
  * @throws IllegalArgumentException if there is none entity matching, or if there are two or more matching entities.
  */
-fun <T: Any> Connection.getBy(clazz: Class<T>, filter: Filter<T>): T =
-    findSpecificBy(clazz, filter) ?: throw IllegalArgumentException("no ${clazz.simpleName} satisfying ${filter.toParametrizedSql(clazz)}")
-
-/**
- * Returns a list of entities with given [clazz] matching given [filter].
- * @param limit limit the number of returned entities. Must be 0 or greater.
- * @return a list, may be empty.
- */
-fun <T: Any> Connection.findBy(clazz: Class<T>, limit: Int, filter: Filter<T>): List<T> {
-    require (limit >= 0) { "$limit is less than 0" }
-    val sql = filter.toParametrizedSql(clazz)
-    val query = createQuery("select * from ${clazz.entityMeta.databaseTableName} where ${sql.sql92} limit $limit")
-    sql.sql92Parameters.entries.forEach { (name, value) -> query.addParameter(name, value) }
-    query.columnMappings = clazz.entityMeta.getSql2oColumnMappings()
-    return query.executeAndFetch(clazz)
-}
+@Deprecated("use DaoOfAny.getOneBy()")
+fun <T: Any> Handle.getBy(clazz: Class<T>, filter: Filter<T>): T = DaoOfAny<T>(clazz).getOneBy(filter)
 
 /**
  * Deletes all entities with given [clazz] matching given criteria [block].
  */
-fun <T: Any> Connection.deleteBy(clazz: Class<T>, block: SqlWhereBuilder<T>.()-> Filter<T>) {
-    deleteBy(clazz, block(SqlWhereBuilder(clazz)))
-}
+@Deprecated("use DaoOfAny")
+fun <T: Any> Handle.deleteBy(clazz: Class<T>, block: SqlWhereBuilder<T>.()-> Filter<T>) =
+        DaoOfAny<T>(clazz).deleteBy(block)
 
 /**
  * Deletes all entities with given [clazz] matching given criteria [filter].
  */
-fun <T: Any> Connection.deleteBy(clazz: Class<T>, filter: Filter<T>) {
-    val sql = filter.toParametrizedSql(clazz)
-    val query = createQuery("delete from ${clazz.entityMeta.databaseTableName} where ${sql.sql92}")
-    sql.sql92Parameters.entries.forEach { (name, value) -> query.addParameter(name, value) }
-    query.executeUpdate()
-}
-
-/**
- * Deletes the entity [clazz] with given [id].
- */
-fun <T: Any> Connection.deleteById(clazz: Class<T>, id: Any) {
-    createQuery("delete from ${clazz.entityMeta.databaseTableName} where ${clazz.entityMeta.idProperty.dbColumnName}=:id")
-        .addParameter("id", id)
-        .executeUpdate()
-}
+@Deprecated("use DaoOfAny")
+fun <T: Any> Handle.deleteBy(clazz: Class<T>, filter: Filter<T>) =
+        DaoOfAny(clazz).deleteBy(filter)
 
 /**
  * Checks whether there exists any instance of [clazz].
  */
-fun Connection.existsAny(clazz: Class<*>): Boolean = createQuery("select count(1) from ${clazz.entityMeta.databaseTableName}")
-        .executeScalar(Long::class.java) > 0
+@Deprecated("use DaoOfAny")
+fun Handle.existsAny(clazz: Class<*>): Boolean =
+        DaoOfAny(clazz).existsAny()
 
 /**
  * Checks whether there exists any instance of [clazz] matching given criteria [filter].
  */
-fun <T: Any> Connection.existsBy(clazz: Class<T>, filter: Filter<T>): Boolean {
-    val sql = filter.toParametrizedSql(clazz)
-    val query = createQuery("select count(1) from ${clazz.entityMeta.databaseTableName} where ${sql.sql92}")
-    sql.sql92Parameters.entries.forEach { (name, value) -> query.addParameter(name, value) }
-    return query.executeScalar(Long::class.java) > 0
-}
-
-/**
- * Checks whether there exists any instance of [clazz] with given id.
- */
-fun <T: Any> Connection.existsById(clazz: Class<T>, id: Any): Boolean {
-    val query = createQuery("select count(1) from ${clazz.entityMeta.databaseTableName} where ${clazz.entityMeta.idProperty.dbColumnName}=:id")
-            .addParameter("id", id)
-    return query.executeScalar(Long::class.java) > 0
-}
+@Deprecated("use DaoOfAny")
+fun <T: Any> Handle.existsBy(clazz: Class<T>, filter: Filter<T>): Boolean =
+        DaoOfAny(clazz).existsBy(filter)
 
 /**
  * Dumps the result of the query and returns it as a string formatted as follows:
