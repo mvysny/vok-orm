@@ -112,7 +112,7 @@ fun <T: Any> Handle.existsBy(clazz: Class<T>, filter: Filter<T>): Boolean =
 fun Query.dump(): String {
     fun ResultSet.dumpCurrentRow(): String = (0 until metaData.columnCount).joinToString { "${getObject(it + 1)}" }
 
-    val rows: ResultIterator<String> = map { rs, ctx -> rs.dumpCurrentRow() }.iterator()
+    val rows: ResultIterator<String> = map { rs, _ -> rs.dumpCurrentRow() }.iterator()
     val metadata: ResultSetMetaData = rows.context.statement.metaData
     return buildString {
 

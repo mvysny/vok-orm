@@ -45,7 +45,7 @@ fun <T: Any> DaoOfAny<T>.getOneBy(filter: Filter<T>): T {
  */
 @Deprecated("use getOneBy()")
 fun <T: Any> DaoOfAny<T>.getBy(block: SqlWhereBuilder<T>.()-> Filter<T>): T =
-        getBy(block(SqlWhereBuilder(entityClass)))
+        getOneBy(block(SqlWhereBuilder(entityClass)))
 
 /**
  * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.
@@ -74,7 +74,7 @@ fun <T: Any> DaoOfAny<T>.findSpecificBy(filter: Filter<T>): T? =
  */
 @Deprecated("use findOneBy()")
 fun <T: Any> DaoOfAny<T>.findSpecificBy(block: SqlWhereBuilder<T>.()-> Filter<T>): T? =
-        findSpecificBy(block(SqlWhereBuilder(entityClass)))
+        findOneBy(block(SqlWhereBuilder(entityClass)))
 
 /**
  * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.
