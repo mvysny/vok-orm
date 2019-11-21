@@ -5,22 +5,8 @@ import com.github.mvysny.vokdataloader.SqlWhereBuilder
 import com.github.mvysny.vokdataloader.length
 import com.gitlab.mvysny.jdbiorm.DaoOfAny
 import com.gitlab.mvysny.jdbiorm.EntityMeta
-import org.jdbi.v3.core.mapper.RowMapper
 
-internal val DaoOfAny<*>.meta: EntityMeta get() = EntityMeta(entityClass)
-
-internal val <T> DaoOfAny<T>.entityClass: Class<T> get() {
-    // todo remove when v-bumped to jdbi-orm 0.4
-    val f = DaoOfAny::class.java.getDeclaredField("entityClass")
-    f.isAccessible = true
-    return f.get(this) as Class<T>
-}
-internal fun <T> DaoOfAny<T>.getRowMapper(): RowMapper<T> {
-    // todo remove when v-bumped to jdbi-orm 0.4
-    val f = DaoOfAny::class.java.getDeclaredMethod("getRowMapper")
-    f.isAccessible = true
-    return f.invoke(this) as RowMapper<T>
-}
+internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta(entityClass)
 
 /**
  * Retrieves single entity matching given [filter]. Fails if there is no such entity, or if there are two or more entities matching the criteria.

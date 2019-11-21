@@ -16,7 +16,7 @@ import java.util.*
  */
 @Table("Test")
 data class Person(
-        private var id: Long? = null,
+        override var id: Long? = null,
         @field:Length(min = 1)
     var name: String = "",
         var age: Int = -1,
@@ -30,13 +30,7 @@ data class Person(
     var isAlive25: Boolean? = null,
         var maritalStatus: MaritalStatus? = null
 
-) : Entity<Long> {
-
-    override fun setId(id: Long?) {
-        this.id = id
-    }
-
-    override fun getId(): Long? = id
+) : KEntity<Long> {
 
     override fun save(validate: Boolean) {
         if (id == null) {
@@ -69,26 +63,20 @@ enum class MaritalStatus {
  */
 data class EntityWithAliasedId(
         @field:ColumnName("myid")
-        private var id: Long? = null,
+        override var id: Long? = null,
         var name: String = ""
-) : Entity<Long> {
-    override fun setId(id: Long?) { this.id = id }
-    override fun getId(): Long? = id
-
+) : KEntity<Long> {
     companion object : Dao<EntityWithAliasedId, Long>(EntityWithAliasedId::class.java)
 }
 
 /**
  * A table demoing natural person with government-issued ID (birth number, social security number, etc).
  */
-data class NaturalPerson(private var id: String? = null, var name: String = "", var bytes: ByteArray = byteArrayOf()) : Entity<String> {
-    override fun setId(id: String?) { this.id = id }
-    override fun getId(): String? = id
+data class NaturalPerson(override var id: String? = null, var name: String = "", var bytes: ByteArray = byteArrayOf()) : KEntity<String> {
     companion object : Dao<NaturalPerson, String>(NaturalPerson::class.java)
 }
 
-interface UuidEntity : Entity<UUID> {
-    @JvmDefault
+interface UuidEntity : KEntity<UUID> {
     override fun create(validate: Boolean) {
         id = UUID.randomUUID()
         super.create(validate)
@@ -97,13 +85,8 @@ interface UuidEntity : Entity<UUID> {
 
 /**
  * Demoes app-generated UUID ids. Note how [create] is overridden to auto-generate the ID, so that [save] works properly.
- *
- * Warning: do NOT add any additional fields in here, since that would make java place synthetic `setId(Object) before
- * `setId(UUID)` and we wouldn't test the metadata hook that fixes this issue.
  */
-data class LogRecord(private var id: UUID? = null, var text: String = "") : UuidEntity {
-    override fun setId(id: UUID?) { this.id = id }
-    override fun getId(): UUID? = id
+data class LogRecord(override var id: UUID? = null, var text: String = "") : UuidEntity {
     companion object : Dao<LogRecord, UUID>(LogRecord::class.java)
 }
 
@@ -111,11 +94,9 @@ data class LogRecord(private var id: UUID? = null, var text: String = "") : Uuid
  * Tests all sorts of type mapping:
  * @property enumTest tests Java Enum mapping to native database enum mapping: https://github.com/mvysny/vok-orm/issues/12
  */
-data class TypeMappingEntity(private var id: Long? = null,
+data class TypeMappingEntity(override var id: Long? = null,
                              var enumTest: MaritalStatus? = null
-                             ) : Entity<Long> {
-    override fun setId(id: Long?) { this.id = id }
-    override fun getId(): Long? = id
+                             ) : KEntity<Long> {
     companion object : Dao<TypeMappingEntity, Long>(TypeMappingEntity::class.java)
 }
 

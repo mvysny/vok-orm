@@ -6,6 +6,7 @@ import com.gitlab.mvysny.jdbiorm.Dao
 import com.gitlab.mvysny.jdbiorm.Entity
 import com.gitlab.mvysny.jdbiorm.EntityMeta
 import com.gitlab.mvysny.jdbiorm.PropertyMeta
+import com.gitlab.mvysny.jdbiorm.spi.AbstractEntity
 
 /**
  * Provides instances of entities of given class from a database. Does not support joins on any of the like; supports filtering
@@ -20,7 +21,7 @@ import com.gitlab.mvysny.jdbiorm.PropertyMeta
  * @property dao DAO to use when loading instances of [T]
  * @param T the entity type
  */
-class EntityDataLoader<T : Entity<*>>(val dao: Dao<T, *>) : DataLoader<T> {
+class EntityDataLoader<T : AbstractEntity<*>>(val dao: Dao<T, *>) : DataLoader<T> {
     val clazz: Class<T> get() = dao.entityClass
     override fun toString() = "EntityDataLoader($clazz)"
 
@@ -43,7 +44,7 @@ class EntityDataLoader<T : Entity<*>>(val dao: Dao<T, *>) : DataLoader<T> {
     }
 }
 
-fun <T: Entity<ID>, ID> EntityDataLoader(clazz: Class<T>): EntityDataLoader<T> =
+fun <T: AbstractEntity<ID>, ID> EntityDataLoader(clazz: Class<T>): EntityDataLoader<T> =
         EntityDataLoader(Dao<T, ID>(clazz))
 
 val LongRange.length: Long get() = if (isEmpty()) 0 else endInclusive - start + 1
@@ -65,5 +66,5 @@ internal fun SortClause.getNativeColumnName(clazz: Class<*>): NativePropertyName
  *
  * Example of use: `grid.setDataLoader(Person.dataLoader)`.
  */
-val <T: Entity<*>> Dao<T, *>.dataLoader: DataLoader<T>
+val <T: AbstractEntity<*>> Dao<T, *>.dataLoader: DataLoader<T>
     get() = EntityDataLoader(this)

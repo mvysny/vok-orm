@@ -13,11 +13,11 @@ class ValidationTest : DynaTest({
         expectThrows(ValidationException::class) {
             Person(name = "", age = 20).validate()
         }
-        expect(false) { Person(name = "", age = 20).isValid() }
+        expect(false) { Person(name = "", age = 20).isValid }
     }
     test("Validation on non-empty name succeeds") {
         Person(name = "Valid Name", age = 20).validate()
-        expect(true) { Person(name = "Valid Name", age = 20).isValid() }
+        expect(true) { Person(name = "Valid Name", age = 20).isValid }
     }
     test("save() fails when the bean is invalid") {
         expectThrows(ValidationException::class, "name: length must be between 1 and 2147483647") {
