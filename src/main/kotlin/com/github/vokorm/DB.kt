@@ -13,7 +13,7 @@ import java.sql.Connection
  * or [Handle.createUpdate] on the connection.
  * @property jdbcConnection the old-school, underlying JDBC connection.
  */
-class PersistenceContext(val handle: Handle) : Closeable {
+class PersistenceContext(val handle: Handle) {
     /**
      * The underlying JDBC connection.
      */
@@ -21,10 +21,6 @@ class PersistenceContext(val handle: Handle) : Closeable {
 
     @Deprecated("Use handle", ReplaceWith("handle"))
     val con: Handle get() = handle
-
-    override fun close() {
-        handle.close()
-    }
 }
 
 /**
