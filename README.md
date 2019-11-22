@@ -236,7 +236,7 @@ the primary key in the `KEntity<x>` implementation clause).
 You can of course add your own custom finder methods into the Category companion object. For example:
 
 ```kotlin
-data class Category(override var id: Long? = null, var name: String = "") : Entity<Long> {
+data class Category(override var id: Long? = null, var name: String = "") : KEntity<Long> {
     companion object : Dao<Category> {
         fun findByName(name: String): Category? = findOneBy { Category::name eq name }
         fun getByName(name: String): Category = getOneBy { Category::name eq name }
@@ -245,7 +245,7 @@ data class Category(override var id: Long? = null, var name: String = "") : Enti
 }
 ```  
 
-> **Note**: If you don't want to use the Entity interface for some reason
+> **Note**: If you don't want to use the KEntity interface for some reason
 (for example when the table has no primary key), you can still include
 useful finder methods by making the companion object to implement the `DaoOfAny`
 interface. The finder methods such as `findById()` will accept
@@ -297,7 +297,7 @@ we will get a foreign constraint violation. It's quite easy: just override the `
 `Category` class as follows:
 
 ```kotlin
-data class Category(/*...*/) : Entity<Long> {
+data class Category(/*...*/) : KEntity<Long> {
     // ...
     override fun delete() {
         db {
@@ -374,7 +374,7 @@ override fun create(validate: Boolean) {
 Even better, you can inherit from the `Entity` interface as follows:
 
 ```kotlin
-interface UuidEntity : Entity<UUID> {
+interface UuidEntity : KEntity<UUID> {
     override fun create(validate: Boolean) {
         id = UUID.randomUUID()
         super.create(validate)
@@ -395,7 +395,7 @@ We can take advantage of JDBI simply matching all SELECT column names into bean 
 Let's thus create a `ReviewWithCategory` class:
 
 ```kotlin
-class ReviewWithCategory {
+class ReviewWithCategory : Serializable {
     @Nested
     var review: Review = Review()
     @ColumnName("name")
@@ -453,8 +453,6 @@ data class Beverage(@ColumnName("beverageName") var name: String = "", @ColumnNa
 We just have to make sure that all of the `Beverage`'s fields are pre-initialized, so that the `Beverage` class has a zero-arg constructor.
 If not, JDBI will throw an exception in runtime, stating that the `Beverage` class has no zero-arg constructor.
 
-TODO TODO update doc
-
 ## Validations
 
 Often the database entities are connected to UI forms which need to provide sensible
@@ -467,7 +465,7 @@ layer for your entities.
 `vok-orm` uses [JSR303 Java Standard for Validation](https://en.wikipedia.org/wiki/Bean_Validation); you can
 quickly skim over [JSR303 tutorial](https://dzone.com/articles/bean-validation-made-simple) to see how to start
 using the validation.
-In a nutshell, you annotate your Entity's fields with validation annotations; the fields are
+In a nutshell, you annotate your KEntity's fields with validation annotations; the fields are
 then checked for valid values with the JSR303 Validator (invoked when
 `entity.validate()`/`entity.save()`/`entity.create()` is called). The validation is
 also mentioned in [Vaadin-on-Kotlin Forms](http://www.vaadinonkotlin.eu/forms.html) documentation.
@@ -484,7 +482,7 @@ data class Person(
         @field:NotNull
         @field:Min(15)
         @field:Max(100)
-        var age: Int? = null) : Entity<Long>
+        var age: Int? = null) : KEntity<Long>
 val p = Person(name = "John", age = 10)
 p.validate() // throws an exception since age must be at least 15
 ```
@@ -500,7 +498,7 @@ JPA) and add this to your `build.gradle`:
 
 ```groovy
 dependencies {
-  compile("org.hibernate.validator:hibernate-validator:6.0.13.Final")
+  compile("org.hibernate.validator:hibernate-validator:6.0.17.Final")
   // EL is required: http://hibernate.org/validator/documentation/getting-started/
   compile("org.glassfish:javax.el:3.0.1-b08")
 }
@@ -511,48 +509,66 @@ has validations enabled and all necessary jars included.
 
 ## Data Loaders
 
-Very often the UI frameworks provide some kind of tabular component which allows for viewing database tables, or even outcomes of any SELECT
-command (possibly joined). An example of such tabular component is the Vaadin Grid; you can see the [live demo](https://vok-crud.herokuapp.com/crud)
+Very often the UI frameworks provide some kind of tabular component which allows
+for viewing database tables, or even outcomes of any SELECT
+command (possibly joined). An example of such tabular component is the Vaadin Grid;
+you can see the [live demo](https://vok-crud.herokuapp.com/crud)
 of the Grid for yourself.
 
-Typically such tables provide sorting and filtering for the user; since they fetch data lazily as the user scrolls the table, the table must be
+Typically such tables provide sorting and filtering for the user;
+since they fetch data lazily as the user scrolls the table, the table must be
 able to fetch data in pages.
 
-vok-orm provide the Data Loaders which offer all of the above-mentioned functionality: sorting, filtering and lazy-loading. You can check out
-the API here: [DataLoader.kt](src/main/kotlin/com/github/vokorm/dataloader/DataLoader.kt). You then need to write a thin wrapper which wraps
-the `DataLoader` and adapts it to the API as required by the particular tabular component from a particular framework. However, since all
+vok-orm provide the Data Loaders which offer all of the above-mentioned functionality:
+sorting, filtering and lazy-loading. You can check out
+the project and the API at [Data Loader](https://gitlab.com/mvysny/vok-dataloader).
+You then need to write a thin wrapper which wraps
+the `DataLoader` and adapts it to the API as required by the particular tabular
+component from a particular framework. However, since all
 of the functionality is provided, the wrapper is typically thin and easy to write.
 
-vok-orm provides two concrete implementations of data loaders out-of-the-box: the `EntityDataLoader` and the `SqlDataLoader`.
+> The Vaadin-on-Kotlin project provides data loader wrappers for Vaadin 8 and Vaadin 10+ Grid
+(wraps DataLoader as DataProvider)
+
+`vok-orm` provides two concrete implementations of data loaders out-of-the-box: the `EntityDataLoader` and the `SqlDataLoader`.
 
 ### EntityDataLoader
 
 The [EntityDataLoader](src/main/kotlin/com/github/vokorm/dataloader/EntityDataLoader.kt) is able to provide instances of any class which implements the `Entity` interface. Simply create the `EntityDataLoader`
 instance for your entity class and you're good to go.
 
-The `EntityDataLoader` honors the `@As` annotation when mapping class instances from the outcome of the `SELECT *` clause. If you don't use SQL aliases
-but you stick to use `@As`, then you can use the `Filter` class hierarchy to filter out the results, and you can use `SortClause` to sort
-the results. Just keep in mind to pass in the database column name into the `Filter` and `SortClause`, and not the bean property name.
+The `EntityDataLoader` honors the `@ColumnName` annotation when mapping class
+instances from the outcome of the `SELECT *` clause. If you don't use SQL aliases
+but you stick to use `@ColumnName`, then you can use the `Filter` class hierarchy
+to filter out the results, and you can use `SortClause` to sort
+the results. Just keep in mind to pass in the database column name into the
+`Filter` and `SortClause`, and not the bean property name.
 
-Note that the `EntityDataLoader` will construct the entire SQL SELECT command by itself - you cannot change the way it's constructed. This way
-it is very simple to use the `EntityDataLoader`. If you need a full power of the SQL SELECT command, use the `SqlDataLoader`, or
+Note that the `EntityDataLoader` will construct the entire SQL SELECT command
+by itself - you cannot change the way it's constructed. This way
+it is very simple to use the `EntityDataLoader`. If you need a full power of
+the SQL SELECT command, use the `SqlDataLoader`, or
 create a database view.
 
 ### SqlDataLoader
 
-The [SqlDataLoader](src/main/kotlin/com/github/vokorm/dataloader/SqlDataLoader.kt) is able to map the outcome of any SELECT command supplied by you,
+The [SqlDataLoader](src/main/kotlin/com/github/vokorm/dataloader/SqlDataLoader.kt)
+is able to map the outcome of any SELECT command supplied by you,
 onto a bean. You can use `SqlDataLoader` to map the outcome of joins, stored procedure calls, anything. For example:
 
 ```kotlin
-val provider = SqlDataLoader(CustomerAddress::class.java, """select c.name as customerName, a.street || ' ' || a.city as address
+val provider = SqlDataLoader(DaoOfAny(CustomerAddress::class.java), """select c.name as customerName, a.street || ' ' || a.city as address
    from Customer c inner join Address a on c.address_id=a.id where 1=1 {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}""")
 val filter: Filter<CustomerAddress> = buildFilter<CustomerAddress> { "c.age<:age"("age" to 48) }
 val result: List<CustomerAddress> = provider.fetch(filter, sortBy = listOf("name".asc), range = 0L..20L)
 ```
 
-The `SqlDataLoader` honors the `@As` annotation when mapping class instances from the outcome of the `SELECT *` clause. If you don't use SQL aliases
-but you stick to use `@As`, then you can use the `Filter` class hierarchy to filter out the results, and you can use `SortClause` to sort
-the results. Just keep in mind to pass in the database column name into the `Filter` and `SortClause`, and not the bean property name.
+The `SqlDataLoader` honors the `@ColumnName` annotation when mapping class instances
+from the outcome of the `SELECT *` clause. If you don't use SQL aliases
+but you stick to use `@ColumnName`, then you can use the `Filter` class
+hierarchy to filter out the results, and you can use `SortClause` to sort
+the results. Just keep in mind to pass in the database column name into the
+`Filter` and `SortClause`, and not the bean property name.
 
 ## Aliases
 
@@ -564,21 +580,22 @@ select c.CUSTOMER_NAME as customerName from Customer c ...;
 
 The problem with this approach is twofold:
 
-* Databases can't sort nor filter based on aliased column; please see [Issue 5](https://github.com/mvysny/vok-orm/issues/5) for more details.
+* Databases can't sort nor filter based on aliased column;
+  please see [Issue 5](https://github.com/mvysny/vok-orm/issues/5) for more details.
   Using such queries with `SqlDataLoader` and trying to pass in filter such as `buildFilter<CustomerAddress> { "customerName ILIKE cn"("cn" to "Foo%") }` will cause
-  the select command to fail in the database.
+  the select command to fail with `SqlException`.
 * INSERTs/UPDATEs issued by your entity `Dao` will fail since they will use the bean field names instead of actual column name
   and will emit `INSERT INTO Customer (customerName) values ($1)` instead of `INSERT INTO Customer (CUSTOMER_NAME) values ($1)` 
 
-Therefore, instead of database-based aliases it's better to use the `@As` annotation on your beans, both natural entities
+Therefore, instead of database-based aliases it's better to use the `@ColumnName` annotation on your beans, both natural entities
 such as `Customer` and projection-only entities such as `CustomerAddress`:
 
 ```kotlin
-data class Customer(@As("CUSTOMER_NAME") var name: String? = null) : Entity<Long>
-data class CustomerAddress(@As("CUSTOMER_NAME") var customerName: String? = null)
+data class Customer(@ColumnName("CUSTOMER_NAME") var name: String? = null) : KEntity<Long>
+data class CustomerAddress(@ColumnName("CUSTOMER_NAME") var customerName: String? = null)
 ```
 
-The `@As` annotation is honored both by `Dao`s and by all data loaders.
+The `@ColumnName` annotation is honored both by `Dao`s and by all data loaders.
 
 ## A main() method Example
 
@@ -586,6 +603,7 @@ Using the vok-orm library from a JavaSE main method;
 see the [vok-orm-playground](https://gitlab.com/mvysny/vok-orm-playground) for a very simple example project
 using `vok-orm`.
 
+TODO UPDATE
 
 ```kotlin
 data class Person(
@@ -594,7 +612,7 @@ data class Person(
     var age: Int,
     var dateOfBirth: LocalDate? = null,
     var recordCreatedAt: Instant? = null
-) : Entity<Long> {
+) : KEntity<Long> {
     override fun save() {
         if (id == null) {
             if (modified == null) modified = Instant.now()
@@ -659,7 +677,7 @@ one creates the table, while other creates the indices.
 You don't need to use Flyway plugin. Just add the following Gradle dependency to your project:
 
 ```gradle
-compile "org.flywaydb:flyway-core:5.2.0"
+compile "org.flywaydb:flyway-core:6.0.7"
 ```
 
 Flyway expects the migration scripts named in a certain format, to know the order in which to execute them.
@@ -676,10 +694,10 @@ The next one will be `V02__CreateIndexCategoryName.sql`:
 create UNIQUE INDEX idx_category_name ON CATEGORY(name);
 ```
 
-In order to run the migrations, just run the following after `VokOrm.init()`:
+In order to run the migrations, just run the following after `JdbiOrm.setDataSource()`:
 ```kotlin
 val flyway = Flyway()
-flyway.dataSource = VokOrm.dataSource
+flyway.dataSource = JdbiOrm.getDataSource()
 flyway.migrate()
 ```
 
@@ -689,17 +707,14 @@ By default VoK-ORM connects to the JDBC database directly and uses its own insta
 Hikari-CP to pool JDBC connections. That of course doesn't work with containers such as Spring or
 JavaEE which manage JDBC resources themselves.
 
-It is possible to use VoK-ORM with Spring or JavaEE. First, you have to implement the
-[DatabaseAccessor](src/main/kotlin/com/github/vokorm/DatabaseAccessor.kt) interface.
-The interface is really simple: it's just a single method `runInTransaction()` which runs a block
-in a transaction, committing on success, rolling back on failure. You typically implement this
-interface simply by invoking a bean's method annotated with `@Transactional`, running the block inside
-of that method. That way the container will handle the transactions.
+It is very easy to use VoK-ORM with Spring or JavaEE. All you need is to obtain
+an instance of `DataSource` when your server boots up, then simply set it to
+JdbiOrm via `JdbiOrm.setDataSource()`. VoK-ORM will then simply poll Spring or JavaEE
+DataSource for connections; Spring/JavaEE will then make sure the connections are pooled properly.
 
-Then, you just need to set the producer for your implementation into the
-`VokOrm.databaseAccessorProvider` field and call `VokOrm.init()` and `VokOrm.destroy()` appropriately.
-Or, if the accessor doesn't even need to be closed, you can simply set the `VokOrm.databaseAccessor` field
-directly. Then you don't have to call `VokOrm.init()` nor `VokOrm.destroy()`.
+You don't even need to call `JdbiOrm.destroy()` on Spring/JavaEE app shutdown:
+all `JdbiOrm.destroy()` does is that it closes the `DataSource`, however Spring/JavaEE
+will do that for us.
 
 # `vok-orm` design principles
 
@@ -726,7 +741,7 @@ of design principles. The advantage of `vok-orm` is that it doesn't require any 
 Please read [Back to Base - make SQL great again](http://mavi.logdown.com/posts/5771422)
 for the complete explanation of ideas behind this framework.
 
-This framework uses [Sql2o](https://www.sql2o.org/) to map data from the JDBC `ResultSet` to POJOs; in addition it provides a very simple
+This framework uses [JDBI](http://jdbi.org/) to map data from the JDBC `ResultSet` to POJOs; in addition it provides a very simple
 mechanism to store/update the data back to the database.
 
 ## Why not JPA
