@@ -17,6 +17,9 @@ global `db {}` function.
 No dependency injection framework is required - the library works in all
 sorts of environments.
 
+> vok-orm uses the [jdbi-orm](https://gitlab.com/mvysny/jdbi-orm) and [JDBI](http://jdbi.org/) under the belt,
+and introduces first-class Kotlin support on top of those frameworks.
+
 ## Usage
 
 Just add the following lines to your Gradle script, to include this library in your project:
@@ -66,9 +69,10 @@ We will therefore not hide the DDL behind some type-safe generator API.
 
 Such entity can be mapped to a data class as follows:
 ```kotlin
-data class Category(override var id: Long? = null, var name: String = "") : Entity<Long>
+data class Category(override var id: Long? = null, var name: String = "") : KEntity<Long>
 ```
-(the `id` is nullable since its value is initially `null` until the category is actually created and the id is assigned by the database).
+(the `id` is nullable since its value is initially `null` until the category is
+actually created and the id is assigned by the database).
 
 The `Category` class is just a simple data class: there are no hidden private fields added by
 runtime enhancements, no hidden lazy loading - everything is pre-fetched upfront. Because of that,
@@ -77,21 +81,31 @@ without the fear of failing with
 `DetachedException` when accessing properties. Since `Entity` is `Serializable`, you can
 also store the entity into a session. 
 
-> The Category class (or any entity class for that matter) must have all fields pre-initialized, so that Kotlin creates a zero-arg constructor.
-Zero-arg constructor is mandated by Sql2o, in order for Sql2o to be able to construct
+> The Category class (or any entity class for that matter) must have all fields
+pre-initialized, so that Kotlin creates a zero-arg constructor.
+Zero-arg constructor is mandated by JDBI, in order for JDBI to be able to construct
 instances of entity class for every row returned.
 
-By implementing the `Entity<Long>` interface, we are telling vok-orm that the primary key is of type `Long`; this will be important later on when using Dao.
-The [Entity](src/main/kotlin/com/github/vokorm/Mapping.kt) interface brings in three useful methods:
+By implementing the `KEntity<Long>` interface, we are telling vok-orm that the primary key is of type `Long`;
+this will be important later on when using Dao.
+The [KEntity](src/main/kotlin/com/github/vokorm/KEntity.kt) interface brings in three useful methods:
 
-* `save()` which either creates a new row by generating the INSERT statement (if the ID is null), or updates the row by generating the UPDATE statement (if the ID is not null)
-* `create()` for special cases when the ID is pre-known (social security number) and `save()` wouldn't work. More info in the 'Pre-known IDs' chapter.
+* `save()` which either creates a new row by generating the INSERT statement
+  (if the ID is null), or updates the row by generating the UPDATE statement (if the ID is not null)
+* `create()` for special cases when the ID is pre-known (social security number)
+  and `save()` wouldn't work. More info in the 'Pre-known IDs' chapter.
 * `delete()` which deletes the row identified by the `id` primary key from the database.
-* `validate()` validates the bean. By default all `javax.validation` annotations are validated; you can override this method to provide further bean-level validations.
+* `validate()` validates the bean. By default all `javax.validation` annotations
+  are validated; you can override this method to provide further bean-level validations.
   Please read the 'Validation' chapter below, for further details.
 
-The INSERT/UPDATE statement is automatically constructed by the `save()` method, simply by enumerating all non-transient and non-ignored properties of
-the bean using reflection and fetching their values. See the [Entity](src/main/kotlin/com/github/vokorm/Mapping.kt) sources for more details.
+> There are two interfaces you can use: Entity and KEntity. Both work the same way, however
+Entity is tailored towards Java developers and is not as pleasant to use with Kotlin as KEntity is.
+
+The INSERT/UPDATE statement is automatically constructed by the `save()` method,
+simply by enumerating all non-transient and non-ignored properties of
+the bean using reflection and fetching their values. See the [KEntity](src/main/kotlin/com/github/vokorm/KEntity.kt)
+sources for more details.
 You can annotate the `Category` class with the `@Table(dbname = "Categories")` annotation, to specify a different table name.
 
 The category can now be created easily:
@@ -104,23 +118,35 @@ But how do we specify the target database where to store the category in?
 
 ### Connecting to a database
 
-As a bare minimum, you need to specify the JDBC URL
-to the `VokOrm.dataSourceConfig` first. It's a [Hikari-CP](https://brettwooldridge.github.io/HikariCP/) configuration file which contains lots of other options as well.
+As a bare minimum, you need to specify the JDBC URL and a couple of config parameters as follows:
+```kotlin
+JdbiOrm.setDataSource(HikariDataSource(HikariConfig()))
+```
+
+to the `JdbiOrm.setDataSource()` first. It's a [Hikari-CP](https://brettwooldridge.github.io/HikariCP/)
+configuration file which contains lots of other options as well.
 It comes pre-initialized with sensible default settings.
 
-> Hikari-CP is a JDBC connection pool which manages a pool of JDBC connections since they are expensive to create. Typically all projects
-use some sort of JDBC connection pooling, and `vok-orm` uses Hikari-CP.
+> Hikari-CP is a JDBC connection pool which manages a pool of JDBC connections
+since they are "expensive" to create - it takes some time to establish the TCP-IP connection for example.
+Typically all projects use some sort of JDBC connection pooling; we'll use Hikari-CP in this
+tutorial however you can use whichever pool you wish, or no pool at all. You can also use DataSource
+offered by Spring or JavaEE.
 
-For example, to use an in-memory H2 database, just add H2 onto the classpath as a Gradle dependency: `compile 'com.h2database:h2:1.4.196'`. Then,
+For example, to use an in-memory H2 database, just add H2 onto the classpath as
+a Gradle dependency: `compile 'com.h2database:h2:1.4.196'`. Then,
 configure vok-orm as follows:
 
 ```kotlin
-VokOrm.dataSourceConfig.apply {
+val cfg = HikariConfig().apply {
     jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
+    username = "sa"
+    password = ""
 }
+JdbiOrm.setDataSource(HikariDataSource(cfg))
 ```
 
-After you have configured the JDBC URL, just call `VokOrm.init()` which will initialize
+After you have configured the JDBC URL, just call `JdbiOrm.setDataSource(HikariDataSource(cfg))` which will initialize
 Hikari-CP's connection pool. After the connection pool is initialized, you can simply call
 the `db{}` function to run the
 block in a database transaction. The `db{}` function will acquire new connection from the
@@ -128,9 +154,9 @@ connection pool; then it will start a transaction and it will provide you with m
 
 ```kotlin
 db {
-    con.createQuery("delete from Category where id = :id")
-        .addParameter("id", id)
-        .executeUpdate()
+    handle.createUpdate("delete from Category where id = :id")
+        .bind("id", id)
+        .execute()
 }
 ```
 
@@ -140,7 +166,7 @@ an appropriate INSERT/UPDATE statement.
 
 The function will automatically roll back the transaction on any exception thrown out from the block (both checked and unchecked).
 
-After you're done, call `VokOrm.destroy()` to close the pool.
+After you're done, call `JdbiOrm.destroy()` to close the pool.
 
 > You can call methods of this library from anywhere. You don't need to be running inside of the JavaEE or Spring container or
 any container at all - you can actually use this library from a plain JavaSE main method.
@@ -149,17 +175,19 @@ Full example of a `main()` method that does all of the above:
 
 ```kotlin
 fun main(args: Array<String>) {
-    VokOrm.dataSourceConfig.apply {
+    val cfg = HikariConfig().apply {
         jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
+        username = "sa"
+        password = ""
     }
-    VokOrm.init()
+    JdbiOrm.setDataSource(HikariDataSource(cfg))
     db {
         con.createQuery("create TABLE CATEGORY (id bigint auto_increment PRIMARY KEY, name varchar(200) NOT NULL );").executeUpdate()
     }
     db {
         (0..100).forEach { Category(name = "cat $it").save() }
     }
-    VokOrm.destroy()
+    JdbiOrm.destroy()
 }
 ```
 
@@ -175,15 +203,15 @@ it's definitely better to use [Flyway](https://flywaydb.org/) as described below
 The so-called finder (or Dao) methods actually resemble factory methods since they also produce instances of Categories. The best place for such
 methods is on the `Category` class itself. We can write all of the necessary finders ourselves, by using the `db{}`
 method as stated above; however vok-orm already provides a set of handy methods for you. All you need
-to do is for the companion object to implement the `Dao` interface:
+to do is for the companion object to extend the `Dao` class:
 
 ```kotlin
-data class Category(override var id: Long? = null, var name: String = "") : Entity<Long> {
-    companion object : Dao<Category>
+data class Category(override var id: Long? = null, var name: String = "") : KEntity<Long> {
+    companion object : Dao<Category, Long>(Category::class.java)
 }
 ```
 
-Since Category's companion object implements the `Dao` interface, Category will now be outfitted
+Since Category's companion object extends the `Dao` class, Category will now be outfitted
 with several useful finder methods (static extension methods
 that are attached to the [Dao](src/main/kotlin/com/github/vokorm/Dao.kt) interface itself):
 
@@ -198,27 +226,29 @@ that are attached to the [Dao](src/main/kotlin/com/github/vokorm/Dao.kt) interfa
 * `Category.deleteBy { (Category::name eq "Beer") or (Category::name eq "Cider") }` will delete all categories
   matching given criteria. This is an example of a statically-typed matching criteria which
   is converted into the WHERE clause.
-* `Category.getBy { "name = :name"("name" to "Beer") }` will fetch exactly one matching category, failing if there is no such category or there are more than one.
-* `Category.findSpecificBy { "name = :name"("name" to "Beer") }` will fetch one matching category, failing if there are more than one. Returns `null` if there is none.
+* `Category.getOneBy { "name = :name"("name" to "Beer") }` will fetch exactly one matching category, failing if there is no such category or there are more than one.
+* `Category.findOneBy { "name = :name"("name" to "Beer") }` will fetch one matching category, failing if there are more than one. Returns `null` if there is none.
 * `Category.count { "name = :name"("name" to "Beer") }` will return the number of rows in the Category table matching given query.
 
 In the spirit of type safety, the finder methods will only accept `Long` (or whatever is the type of
-the primary key in the `Entity<x>` implementation clause). 
+the primary key in the `KEntity<x>` implementation clause). 
 
 You can of course add your own custom finder methods into the Category companion object. For example:
 
 ```kotlin
 data class Category(override var id: Long? = null, var name: String = "") : Entity<Long> {
     companion object : Dao<Category> {
-        fun findByName(name: String): Category? = findSpecificBy { Category::name eq name }
-        fun getByName(name: String): Category = getBy { Category::name eq name }
+        fun findByName(name: String): Category? = findOneBy { Category::name eq name }
+        fun getByName(name: String): Category = getOneBy { Category::name eq name }
         fun existsWithName(name: String): Boolean = count { Category::name eq name } > 0
     }
 }
 ```  
 
-> **Note**: If you don't want to use the Entity interface for some reason (for example when the table has no primary key), you can still include
-useful finder methods by making the companion object to implement the `DaoOfAny` interface. The finder methods such as `findById()` will accept
+> **Note**: If you don't want to use the Entity interface for some reason
+(for example when the table has no primary key), you can still include
+useful finder methods by making the companion object to implement the `DaoOfAny`
+interface. The finder methods such as `findById()` will accept
 `Any` as a primary key.
 
 ### Adding Reviews
@@ -250,14 +280,14 @@ The mapping class is as follows:
  * @property category the beverage category [Category.id]
  * @property count times tasted, 1..99
  */
-open class Review(override var id: Long? = null,
+data class Review(override var id: Long? = null,
                   var score: Int = 1,
                   var beverageName: String = "",
                   var date: LocalDate = LocalDate.now(),
                   var category: Long? = null,
-                  var count: Int = 1) : Entity<Long> {
+                  var count: Int = 1) : KEntity<Long> {
 
-    companion object : Dao<Review>
+    companion object : Dao<Review, Long>(Review::class.java)
 }
 ```
 
@@ -267,13 +297,13 @@ we will get a foreign constraint violation. It's quite easy: just override the `
 `Category` class as follows:
 
 ```kotlin
-data class Category(...) : Entity<Long> {
-    ...
+data class Category(/*...*/) : Entity<Long> {
+    // ...
     override fun delete() {
         db {
             if (id != null) {
-                con.createQuery("update Review set category = NULL where category=:catId")
-                        .addParameter("catId", id!!)
+                handle.createQuery("update Review set category = NULL where category=:catId")
+                        .bind("catId", id!!)
                         .executeUpdate()
             }
             super.delete()
@@ -282,21 +312,21 @@ data class Category(...) : Entity<Long> {
 }
 ```
 
-> **Note:** for all slightly more complex queries it's a good practice to simply use the Sql2o API - we will simply pass in the SQL command as a String to Sql2o.
+> **Note:** for all slightly more complex queries it's a good practice to simply use the JDBI API - we will simply pass in the SQL command as a String to JDBI.
 
-As you can see, you can use the Sql2o connection yourself, to execute any kind of SELECT/UPDATE/INSERT/DELETE statements as you like.
+As you can see, you can use the JDBI connection yourself, to execute any kind of SELECT/UPDATE/INSERT/DELETE statements as you like.
 For example you can define static finder or computation method into the `Review` companion object:
 
 ```kotlin
-    companion object : Dao<Review> {
+    companion object : Dao<Review, Long>(Review::class.java) {
         /**
          * Computes the total sum of [count] for all reviews belonging to given [categoryId].
          * @return the total sum, 0 or greater.
          */
         fun getTotalCountForReviewsInCategory(categoryId: Long): Long = db {
-            con.createQuery("select sum(r.count) from Review r where r.category = :catId")
-                    .addParameter("catId", categoryId)
-                    .executeScalar(Long::class.java) ?: 0L
+            handle.createQuery("select sum(r.count) from Review r where r.category = :catId")
+                    .bind("catId", categoryId)
+                    .mapTo(Long::class.java).one() ?: 0L
         }
     }
 ```
@@ -315,6 +345,7 @@ Note how freely and simply we can add useful business logic methods to entities.
   Those are things of the past.
 
 ### Auto-generated IDs vs pre-provided IDs
+
 There are generally three cases for entity ID generation:
 
 * IDs generated by the database when the `INSERT` statement is executed
@@ -356,63 +387,73 @@ And simply make all of your entities implement the `UuidEntity` interface.
 ### Joins
 
 When we display a list of reviews (say, in a Vaadin Grid), we want to display an actual category name instead of the numeric category ID.
-We can take advantage of Sql2o simply matching all SELECT column names into bean fields; all we have to do is to:
+We can take advantage of JDBI simply matching all SELECT column names into bean fields; all we have to do is to:
 
-* extend the `Review` class and add the `categoryName` field which will carry the category name information;
+* create a new class which contains both the `Review` field and add the `categoryName` field which will carry the category name information;
 * write a SELECT that will return all of the `Review` fields, and, additionally, the `categoryName` field
 
 Let's thus create a `ReviewWithCategory` class:
 
 ```kotlin
-open class ReviewWithCategory : Review() {
-    @As("name")
+class ReviewWithCategory {
+    @Nested
+    var review: Review = Review()
+    @ColumnName("name")
     var categoryName: String? = null
 }
 ```
 
-> Note the `@As` annotation which tells vok-orm that the field is named differently in the database. Often the database naming schema
+> Note the `@ColumnName` annotation which tells vok-orm that the field is named differently in the database. Often the database naming schema
 is different from Kotlin's naming schema, for example `NUMBER_OF_PETS` would be represented by the `numberOfPets` in the Kotlin class.
 You can use database aliases, for example `SELECT NUMBER_OF_PETS AS numberOfPets`. However note that you can't then add a `WHERE` clause on
 the `numberOfPets` alias - that's not supported by SQL databases. See [Issue #5](https://github.com/mvysny/vok-orm/issues/5) for more details.
 Currently we don't use WHERE in our examples so you're free to use aliases, but aliases do not work with Data Loaders and therefore it's a good
-practice to use `@As` instead of SQL aliases.
+practice to use `@ColumnName` instead of SQL aliases.
 
-> *Warning:* `@As` does not automatically apply to Sql2o Queries - you need to call
-`setColumnMappings(clazz.entityMeta.getSql2oColumnMappings())` on your Query in order
-for the mapping to work. See [Issue 9](https://github.com/mvysny/vok-orm/issues/9) for more details.
-
-Now we can add a new finder function into `Review`'s companion object:
+Now we can add a new finder function into `ReviewWithCategory`'s companion object:
 
 ```kotlin
-companion object : Dao<Review> {
-    ...
+companion object : DaoOfAny<ReviewWithCategory>(ReviewWithCategory::class.java) {
+    //...
     fun findReviews(): List<ReviewWithCategory> = db {
-        con.createQuery("""select r.*, c.name
+        handle.createQuery("""select r.*, c.name
             FROM Review r left join Category c on r.category = c.id
             ORDER BY r.name""")
-                .executeAndFetch(ReviewWithCategory::class.java)
+                .map(getRowMapper())
+                .list()
     }
 }
 ```
 
-We can take Sql2o's mapping capabilities to full use: we can craft any SELECT we want,
+It also makes sense to add this function to `Review`'s companion object:
+```kotlin
+companion object : Dao<Review>(Review::class.java) {
+    //...
+    fun findReviews() = ReviewWithCategory.findReviews()
+}
+```
+
+We can take JDBI's mapping capabilities to full use: we can craft any SELECT we want,
 and then we can create a holder class that will not be an entity itself, but will merely hold the result of that SELECT.
 The only thing that matters is that the class will have properties named exactly as the columns in the SELECT statement (or properly aliased
-using the `@As` annotation):
+using the `@ColumnName` annotation):
 
 ```kotlin
-data class Beverage(@As("beverageName") var name: String = "", @As("name") var category: String? = null) : Serializable {
+data class Beverage(@ColumnName("beverageName") var name: String = "", @ColumnName("name") var category: String? = null) : Serializable {
     companion object {
         fun findAll(): List<Beverage> = db {
-            con.createQuery("select r.beverageName, c.name from Review r left join Category c on r.category = c.id")
-                .executeAndFetch(Beverage::class.java)
+            handle.createQuery("select r.beverageName, c.name from Review r left join Category c on r.category = c.id")
+                .map(FieldMapper.of(Beverage::class.java))
+                .list()
         }
     }
 }
 ```
 
 We just have to make sure that all of the `Beverage`'s fields are pre-initialized, so that the `Beverage` class has a zero-arg constructor.
-If not, Sql2o will throw an exception in runtime, stating that the `Beverage` class has no zero-arg constructor.
+If not, JDBI will throw an exception in runtime, stating that the `Beverage` class has no zero-arg constructor.
+
+TODO TODO update doc
 
 ## Validations
 
