@@ -603,33 +603,29 @@ Using the vok-orm library from a JavaSE main method;
 see the [vok-orm-playground](https://gitlab.com/mvysny/vok-orm-playground) for a very simple example project
 using `vok-orm`.
 
-TODO UPDATE
-
 ```kotlin
 data class Person(
     override var id: Long? = null,
-    var name: String,
-    var age: Int,
+    var name: String = "",
+    var age: Int = 0,
     var dateOfBirth: LocalDate? = null,
     var recordCreatedAt: Instant? = null
 ) : KEntity<Long> {
-    override fun save() {
+    override fun save(validate: Boolean) {
         if (id == null) {
-            if (modified == null) modified = Instant.now()
+            recordCreatedAt = Instant.now()
         }
-        super.save()
+        super.save(validate)
     }
-    
-    companion object : Dao<Person>
+
+    companion object : Dao<Person, Long>(Person::class.java)
 }
 
 fun main(args: Array<String>) {
-    VokOrm.dataSourceConfig.apply {
-        minimumIdle = 0
-        maximumPoolSize = 30
+    val cfg = HikariConfig().apply {
         jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
     }
-    VokOrm.init()
+    JdbiOrm.setDataSource(HikariDataSource(cfg))
     db {
         con.createQuery(
             """create table if not exists Test (
@@ -660,7 +656,7 @@ fun main(args: Array<String>) {
     // mass-saves 11 persons in a single transaction.
     db { (0..10).forEach { Person(name = "person $it", age = it).save() } }
     
-    VokOrm.destroy()
+    JdbiOrm.destroy()
 }
 ```
 
