@@ -41,7 +41,7 @@ dependencies {
     compile("org.slf4j:slf4j-api:$slf4jVersion")
 
     // validation support
-    testCompile("org.hibernate.validator:hibernate-validator:6.0.17.Final")
+    testCompile("org.hibernate.validator:hibernate-validator:6.1.0.Final")
     // EL is required: http://hibernate.org/validator/documentation/getting-started/
     testCompile("org.glassfish:javax.el:3.0.1-b08")
 
