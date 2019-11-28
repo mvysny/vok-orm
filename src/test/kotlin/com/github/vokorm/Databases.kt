@@ -7,6 +7,9 @@ import com.zaxxer.hikari.HikariDataSource
 import org.hibernate.validator.constraints.Length
 import org.intellij.lang.annotations.Language
 import org.jdbi.v3.core.mapper.reflect.ColumnName
+import org.testcontainers.containers.MariaDBContainer
+import org.testcontainers.containers.MySQLContainer
+import org.testcontainers.containers.PostgreSQLContainer
 import java.time.Instant
 import java.time.LocalDate
 import java.util.*
@@ -100,17 +103,21 @@ data class TypeMappingEntity(override var id: Long? = null,
     companion object : Dao<TypeMappingEntity, Long>(TypeMappingEntity::class.java)
 }
 
-private fun DynaNodeGroup.usingDockerizedPosgresql(databasePort: Int) {
+private fun DynaNodeGroup.usingDockerizedPosgresql() {
     check(Docker.isPresent) { "Docker not available" }
-    beforeGroup { Docker.startPostgresql(port = databasePort) }
+    lateinit var container: PostgreSQLContainer<Nothing>
+    beforeGroup {
+        container = PostgreSQLContainer<Nothing>("postgres:10.3")
+        container.start()
+    }
     beforeGroup {
         val cfg = HikariConfig().apply {
             minimumIdle = 0
             maximumPoolSize = 30
             // stringtype=unspecified : see https://github.com/mvysny/vok-orm/issues/12 for more details.
-            jdbcUrl = "jdbc:postgresql://localhost:$databasePort/postgres?stringtype=unspecified"
-            username = "postgres"
-            password = "mysecretpassword"
+            jdbcUrl = container.jdbcUrl.removeSuffix("loggerLevel=OFF") + "stringtype=unspecified"
+            username = "test"
+            password = "test"
         }
         JdbiOrm.setDataSource(HikariDataSource(cfg))
         db {
@@ -133,7 +140,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql(databasePort: Int) {
     }
 
     afterGroup { JdbiOrm.destroy() }
-    afterGroup { Docker.stopPostgresql() }
+    afterGroup { container.stop() }
 
     fun clearDb() {
         Person.deleteAll()
@@ -145,16 +152,20 @@ private fun DynaNodeGroup.usingDockerizedPosgresql(databasePort: Int) {
     afterEach { clearDb() }
 }
 
-fun DynaNodeGroup.usingDockerizedMysql(databasePort: Int) {
+fun DynaNodeGroup.usingDockerizedMysql() {
     check(Docker.isPresent) { "Docker not available" }
-    beforeGroup { Docker.startMysql(port = databasePort) }
+    lateinit var container: MySQLContainer<Nothing>
+    beforeGroup {
+        container = MySQLContainer<Nothing>("mysql:5.7.21")
+        container.start()
+    }
     beforeGroup {
         val cfg = HikariConfig().apply {
             minimumIdle = 0
             maximumPoolSize = 30
-            jdbcUrl = "jdbc:mysql://localhost:$databasePort/db"
-            username = "testuser"
-            password = "mysqlpassword"
+            jdbcUrl = container.jdbcUrl
+            username = "test"
+            password = "test"
         }
         JdbiOrm.setDataSource(HikariDataSource(cfg))
         db {
@@ -176,7 +187,7 @@ fun DynaNodeGroup.usingDockerizedMysql(databasePort: Int) {
     }
 
     afterGroup { JdbiOrm.destroy() }
-    afterGroup { Docker.stopMysql() }
+    afterGroup { container.stop() }
 
     fun clearDb() {
         Person.deleteAll()
@@ -229,16 +240,20 @@ fun PersistenceContext.ddl(@Language("sql") sql: String) {
     handle.createUpdate(sql).execute()
 }
 
-private fun DynaNodeGroup.usingDockerizedMariaDB(databasePort: Int) {
+private fun DynaNodeGroup.usingDockerizedMariaDB() {
     check(Docker.isPresent) { "Docker not available" }
-    beforeGroup { Docker.startMariaDB(port = databasePort) }
+    lateinit var container: MariaDBContainer<Nothing>
+    beforeGroup {
+        container = MariaDBContainer("mariadb:10.1.31")
+        container.start()
+    }
     beforeGroup {
         val cfg = HikariConfig().apply {
             minimumIdle = 0
             maximumPoolSize = 30
-            jdbcUrl = "jdbc:mariadb://localhost:$databasePort/db"
-            username = "testuser"
-            password = "mysqlpassword"
+            jdbcUrl = container.jdbcUrl
+            username = "test"
+            password = "test"
         }
         JdbiOrm.setDataSource(HikariDataSource(cfg))
         db {
@@ -262,7 +277,7 @@ private fun DynaNodeGroup.usingDockerizedMariaDB(databasePort: Int) {
     }
 
     afterGroup { JdbiOrm.destroy() }
-    afterGroup { Docker.stopMariaDB() }
+    afterGroup { container.stop() }
 
     fun clearDb() {
         Person.deleteAll()
@@ -282,17 +297,17 @@ fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.()->Unit) {
 
     if (Docker.isPresent) {
         group("PostgreSQL 10.3") {
-            usingDockerizedPosgresql(12345)
+            usingDockerizedPosgresql()
             block()
         }
 
         group("MySQL 5.7.21") {
-            usingDockerizedMysql(12346)
+            usingDockerizedMysql()
             block()
         }
 
         group("MariaDB 10.1.31") {
-            usingDockerizedMariaDB(12347)
+            usingDockerizedMariaDB()
             block()
         }
     }

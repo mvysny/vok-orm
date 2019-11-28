@@ -57,6 +57,11 @@ dependencies {
     testCompile("mysql:mysql-connector-java:5.1.48")
     testCompile("org.mariadb.jdbc:mariadb-java-client:2.4.0")
 
+    testCompile("org.testcontainers:testcontainers:1.12.3")
+    testCompile("org.testcontainers:postgresql:1.12.3")
+    testCompile("org.testcontainers:mysql:1.12.3")
+    testCompile("org.testcontainers:mariadb:1.12.3")
+
     // IDEA language injections
     testCompile("com.intellij:annotations:12.0")
 }
