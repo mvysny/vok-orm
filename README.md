@@ -573,11 +573,14 @@ the results. Just keep in mind to pass in the database column name into the
 ### Full-Text Filters
 
 In order for the [FullTextFilter] to work, you must create a proper full-text index
-in your database for the column being matched. Alternatively you can create a delegate
+in your database for the column being matched. Please see the documentation for
+individual databases below.
+
+To customize the SQL scripts being generated, you can create a delegate
 `FilterToSqlConverter` which is able to handle `FullTextFilter`s and passes through
 all other filters to the default `VokOrm.filterToSqlConverter`.
 
-The `FullTextFilter` cleans up the user input, removes any non-alphabetic and non-digit
+The `FullTextFilter` class cleans up the user input, removes any non-alphabetic and non-digit
 characters and turns user input into a set of words. The words will never contain
 characters such as `+` `/` `*` which are often used by the full text engine.
 Therefore, it's easy to join the words and produce a full-text query.
@@ -636,7 +639,7 @@ however the performance will be horrible. I recommend to create the index, e.g.
 See [PostgreSQL Full-Text search](https://www.postgresql.org/docs/9.5/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX)
 for more info.
 
-#### MySQL
+#### MySQL/MariaDB
 
 You'll need to create a [FULLTEXT index](https://dev.mysql.com/doc/refman/8.0/en/fulltext-search.html)
 for the column, otherwise MySQL will match nothing.
