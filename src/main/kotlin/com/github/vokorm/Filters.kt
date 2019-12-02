@@ -2,6 +2,7 @@ package com.github.vokorm
 
 import com.github.mvysny.vokdataloader.*
 import com.github.vokorm.dataloader.toNativeColumnName
+import com.gitlab.mvysny.jdbiorm.EntityMeta
 import org.jdbi.v3.core.statement.SqlStatement
 
 /**
@@ -74,12 +75,13 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
             is NativeSqlFilter -> ParametrizedSql(filter.where, filter.params)
             is SubstringFilter -> ParametrizedSql("$databaseColumnName LIKE :$parameterName", mapOf(parameterName to filter.value))
             is ISubstringFilter -> ParametrizedSql("$databaseColumnName ILIKE :$parameterName", mapOf(parameterName to filter.value))
-            is FullTextFilter -> convertFullTextFilter(filter, databaseColumnName, parameterName)
+            is FullTextFilter -> convertFullTextFilter(filter, databaseColumnName, parameterName, clazz)
             else -> throw IllegalArgumentException("Unsupported: cannot convert filter $filter to SQL92. Please provide a custom VokOrm.filterToSqlConverter which supports this filter type")
         }
     }
 
-    fun convertFullTextFilter(filter: FullTextFilter<*>, databaseColumnName: String, parameterName: String): ParametrizedSql {
+    fun convertFullTextFilter(filter: FullTextFilter<*>, databaseColumnName: String,
+                              parameterName: String, clazz: Class<*>): ParametrizedSql {
         if (filter.words.isEmpty()) {
             return MATCH_ALL
         }
@@ -95,6 +97,13 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
             // see https://www.postgresql.org/docs/9.5/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES for more documentation
             ParametrizedSql("to_tsvector('english', $databaseColumnName) @@ to_tsquery('english', :$parameterName)",
                     mapOf(parameterName to filter.words.joinToString(" & ") { "$it:*" }))
+        } else if (databaseVariant == DatabaseVariant.H2) {
+            val meta: EntityMeta<*> = EntityMeta(clazz)
+            val idColumn: String = meta.idProperty[0].dbColumnName
+            val query: String = filter.words.joinToString(" ")
+            // Need to CAST(FT.KEYS[1] AS BIGINT) otherwise IN won't match anything
+            ParametrizedSql("$idColumn IN (SELECT CAST(FT.KEYS[1] AS BIGINT) AS ID FROM FT_SEARCH_DATA(:$parameterName, 0, 0) FT WHERE FT.`TABLE`='${meta.databaseTableName.toUpperCase()}')",
+                    mapOf(parameterName to query))
         } else {
             throw IllegalArgumentException("Unsupported FullText search for variant $databaseVariant. Either set proper variant to VokOrm.databaseVariant, or provide custom VokOrm.filterToSqlConverter which supports proper full-text search syntax: $filter")
         }

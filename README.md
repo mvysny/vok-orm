@@ -589,7 +589,30 @@ conversion will fail.
 
 #### H2
 
-Full-Text searches are unsupported on H2 at the moment.
+Full-Text searches are supported, with limitations. Whe following WHERE clauses are produced by default:
+
+```sql
+$idColumn IN (SELECT CAST(FT.KEYS[1] AS BIGINT) AS ID FROM FT_SEARCH_DATA(:$parameterName, 0, 0) FT WHERE FT.`TABLE`='${meta.databaseTableName.toUpperCase()}')
+```
+
+You need to call the following to init the engine and create the index:
+
+```sql
+CREATE ALIAS IF NOT EXISTS FT_INIT FOR "org.h2.fulltext.FullText.init";
+CALL FT_INIT();
+CALL FT_CREATE_INDEX('PUBLIC', 'TEST', 'NAME');  -- Adds index on the 'NAME' column of the 'TEST' table.
+```
+
+Make sure to use upper-case table+column names otherwise H2 will complain that the column/table doesn't exist.
+
+Limitations:
+
+* Only tables with non-composite `BIGINT` primary keys are supported. You can
+  lift this limitation by implementing your own `FilterToSqlConverter` and constructing
+  your own query.
+
+See [H2 Full-Text search](https://www.h2database.com/html/tutorial.html#fulltext) for
+more info.
 
 #### PostgreSQL
 
