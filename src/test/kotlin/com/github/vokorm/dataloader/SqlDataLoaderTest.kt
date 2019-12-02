@@ -3,6 +3,7 @@ package com.github.vokorm.dataloader
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectList
 import com.github.mvysny.dynatest.expectThrows
+import com.github.mvysny.dynatest.serializeToBytes
 import com.github.mvysny.vokdataloader.SortClause
 import com.github.mvysny.vokdataloader.buildFilter
 import com.github.vokorm.*
@@ -15,6 +16,12 @@ data class SelectResult(val id: Long? = null, val name: String? = null)
 data class SelectResult2(@field:ColumnName("name") var personName: String = "")
 
 class SqlDataLoaderTest : DynaTest({
+
+    test("serializable") {
+        val dp = SqlDataLoader(SelectResult::class.java,
+                """select p.id as id, p.name as name from ${Person.meta.databaseTableName} p where 1=1 {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}""")
+        dp.serializeToBytes()
+    }
 
     withAllDatabases {
         val nameAsc: List<SortClause> = listOf("name".asc)

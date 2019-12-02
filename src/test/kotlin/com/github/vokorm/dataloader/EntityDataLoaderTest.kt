@@ -2,6 +2,7 @@ package com.github.vokorm.dataloader
 
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectList
+import com.github.mvysny.dynatest.serializeToBytes
 import com.github.mvysny.vokdataloader.DataLoader
 import com.github.mvysny.vokdataloader.SortClause
 import com.github.mvysny.vokdataloader.buildFilter
@@ -13,6 +14,10 @@ val String.desc get() = SortClause(this, false)
 val String.asc get() = SortClause(this, true)
 
 class EntityDataProviderTest : DynaTest({
+
+    test("serializable") {
+        Person.dataLoader.serializeToBytes()
+    }
 
     withAllDatabases {
         test("noEntitiesTest") {
