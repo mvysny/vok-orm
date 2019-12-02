@@ -6,14 +6,8 @@ import org.jdbi.v3.core.statement.SqlStatement
 import java.lang.IllegalArgumentException
 
 /**
- * Attempts to convert this filter into a SQL 92 WHERE-clause representation (omitting the `WHERE` keyword). There are two types of filters:
- * * Filters which do not match column to a value, for example [AndFilter] which produces something like `(filter1 and filter2)`
- * * Filters which do match column to a value, for example [LikeFilter] which produces things like `name LIKE :name`. All [BeanFilter]s are expected
- * to match a [NativePropertyName] database column to a value; that value is automatically prefilled into the JDBC query string.
+ * Contains a native SQL-92 query or just a query part (e.g. only the part after WHERE), possibly referencing named parameters.
  *
- * Examples of returned values:
- * * `name = :name`
- * * `(age >= :age AND name ILIKE :name)`
  * @property sql92 for example `name = :name`, references [NativePropertyName] database column names.
  * All named parameters must be present in the [sql92Parameters] map.
  * @property sql92Parameters maps [NativePropertyName] to its value.
@@ -22,6 +16,16 @@ data class ParametrizedSql(val sql92: String, var sql92Parameters: Map<NativePro
     override fun toString(): String = "$sql92:$sql92Parameters"
 }
 
+/**
+ * Attempts to convert this filter into a SQL 92 WHERE-clause representation (omitting the `WHERE` keyword). There are two types of filters:
+ * * Filters which do not match column to a value, for example [AndFilter] which produces something like `(filter1 and filter2)`
+ * * Filters which do match column to a value, for example [LikeFilter] which produces things like `name LIKE :name`. All [BeanFilter]s are expected
+ * to match a [NativePropertyName] database column to a value; that value is automatically prefilled into the JDBC query string.
+ *
+ * Examples of returned values:
+ * * `name = :name`
+ * * `(age >= :age AND name ILIKE :name)`
+ */
 fun Filter<*>.toParametrizedSql(clazz: Class<*>): ParametrizedSql {
     val databaseColumnName: String = if (this is BeanFilter) propertyName.toNativeColumnName(clazz) else ""
     val parameterName = "p${System.identityHashCode(this).toString(36)}"
@@ -47,6 +51,9 @@ fun Filter<*>.toParametrizedSql(clazz: Class<*>): ParametrizedSql {
             ParametrizedSql(sql92, map)
         }
         is NativeSqlFilter -> ParametrizedSql(where, params)
+        is SubstringFilter -> ParametrizedSql("$databaseColumnName LIKE :$parameterName", mapOf(parameterName to value))
+        is ISubstringFilter -> ParametrizedSql("$databaseColumnName ILIKE :$parameterName", mapOf(parameterName to value))
+        is FullTextFilter ->
         else -> throw IllegalArgumentException("Unsupported: cannot convert filter $this to SQL92")
     }
 }

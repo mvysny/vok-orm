@@ -570,6 +570,30 @@ hierarchy to filter out the results, and you can use `SortClause` to sort
 the results. Just keep in mind to pass in the database column name into the
 `Filter` and `SortClause`, and not the bean property name.
 
+### Full-Text Filters
+
+In order for the [FullTextFilter] to work, you must create a proper full-text index
+in your database for the column being matched.
+
+#### PostgreSQL
+
+Todo.
+
+#### MySQL
+
+You'll need to create a [FULLTEXT index](https://dev.mysql.com/doc/refman/8.0/en/fulltext-search.html)
+for the column, otherwise MySQL will match nothing.
+
+MySQL has a number of quirks to look after:
+
+* Sometimes MySQL will use another index instead of a full-text index: [MySQL sporadic MATCH AGAINST behaviour with unique index](https://stackoverflow.com/questions/45281641/mysql-sporadic-match-against-behaviour-with-unique-index)
+  Either delete the offending index, or use [NativeFilter] and `IGNORE INDEX ()`
+
+Why the filter is using BOOLEAN mode instead of NATURAL LANGUAGE mode:
+
+* Random treating of words as stopwords because they're present in more than 50% of the rows: [MySQL Natural Language](https://dev.mysql.com/doc/refman/5.5/en/fulltext-natural-language.html).
+* No way to match word beginnings.
+
 ## Aliases
 
 Often database columns follow different naming convention than bean fields, e.g. database `CUSTOMER_NAME` should be mapped to the
