@@ -3,7 +3,6 @@ package com.github.vokorm
 import com.github.mvysny.vokdataloader.*
 import com.github.vokorm.dataloader.toNativeColumnName
 import org.jdbi.v3.core.statement.SqlStatement
-import java.lang.IllegalArgumentException
 
 /**
  * Contains a native SQL-92 query or just a query part (e.g. only the part after WHERE), possibly referencing named parameters.
@@ -26,6 +25,9 @@ interface FilterToSqlConverter {
      * Examples of returned values:
      * * `name = :name`
      * * `(age >= :age AND name ILIKE :name)`
+     * @param filter the filter to convert
+     * @param clazz the entity type for which the filter has been produced.
+     * @return a converted filter or null if the filter is blank (e.g. full-text filter with just a space as input).
      */
     fun convert(filter: Filter<*>, clazz: Class<*>): ParametrizedSql
 }
@@ -47,7 +49,7 @@ fun Filter<*>.toParametrizedSql(clazz: Class<*>): ParametrizedSql = VokOrm.filte
 class DefaultFilterToSqlConverter : FilterToSqlConverter {
     override fun convert(filter: Filter<*>, clazz: Class<*>): ParametrizedSql {
         val databaseColumnName: String = if (filter is BeanFilter) filter.propertyName.toNativeColumnName(clazz) else ""
-        val parameterName = "p${System.identityHashCode(this).toString(36)}"
+        val parameterName = "p${System.identityHashCode(filter).toString(36)}"
         return when (filter) {
             is EqFilter -> ParametrizedSql("$databaseColumnName = :$parameterName", mapOf(parameterName to filter.value))
             is OpFilter -> ParametrizedSql("$databaseColumnName ${filter.operator.sql92Operator} :$parameterName", mapOf(parameterName to filter.value))
@@ -58,22 +60,73 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
             is AndFilter -> {
                 val c: List<ParametrizedSql> = filter.children.map { it.toParametrizedSql(clazz) }
                 val sql92: String = c.joinToString(" and ", "(", ")") { it.sql92 }
-                val map: MutableMap<String, Any?> = mutableMapOf<String, Any?>()
+                val map: MutableMap<String, Any?> = mutableMapOf()
                 c.forEach { map.putAll(it.sql92Parameters) }
                 ParametrizedSql(sql92, map)
             }
             is OrFilter -> {
                 val c: List<ParametrizedSql> = filter.children.map { it.toParametrizedSql(clazz) }
                 val sql92: String = c.joinToString(" or ", "(", ")") { it.sql92 }
-                val map: MutableMap<String, Any?> = mutableMapOf<String, Any?>()
+                val map: MutableMap<String, Any?> = mutableMapOf()
                 c.forEach { map.putAll(it.sql92Parameters) }
                 ParametrizedSql(sql92, map)
             }
             is NativeSqlFilter -> ParametrizedSql(filter.where, filter.params)
             is SubstringFilter -> ParametrizedSql("$databaseColumnName LIKE :$parameterName", mapOf(parameterName to filter.value))
             is ISubstringFilter -> ParametrizedSql("$databaseColumnName ILIKE :$parameterName", mapOf(parameterName to filter.value))
-            else -> throw IllegalArgumentException("Unsupported: cannot convert filter $this to SQL92")
+            is FullTextFilter -> convertFullTextFilter(filter, databaseColumnName, parameterName)
+            else -> throw IllegalArgumentException("Unsupported: cannot convert filter $filter to SQL92. Please provide a custom VokOrm.filterToSqlConverter which supports this filter type")
         }
+    }
+
+    fun convertFullTextFilter(filter: FullTextFilter<*>, databaseColumnName: String, parameterName: String): ParametrizedSql {
+        if (filter.words.isEmpty()) {
+            return MATCH_ALL
+        }
+        val databaseVariant: DatabaseVariant = VokOrm.databaseVariant
+        return if (databaseVariant == DatabaseVariant.MySQLMariaDB) {
+            val booleanQuery = toMySQLFulltextBooleanQuery(filter.words)
+            if (booleanQuery.isBlank()) {
+                return MATCH_ALL
+            }
+            ParametrizedSql("MATCH($databaseColumnName) AGAINST (:$parameterName IN BOOLEAN MODE)",
+                    mapOf(parameterName to booleanQuery))
+        } else if (databaseVariant == DatabaseVariant.PostgreSQL) {
+            // see https://www.postgresql.org/docs/9.5/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES for more documentation
+            ParametrizedSql("to_tsvector($databaseColumnName) @@ to_tsquery('english', :$parameterName)",
+                    mapOf(parameterName to filter.words.joinToString(" & ") { "$it:*" }))
+        } else {
+            throw IllegalArgumentException("Unsupported FullText search for variant $databaseVariant. Either set proper variant to VokOrm.databaseVariant, or provide custom VokOrm.filterToSqlConverter which supports proper full-text search syntax: $filter")
+        }
+    }
+
+    companion object {
+        /**
+         * Converts an user input into a MySQL BOOLEAN FULLTEXT search string, by
+         * sanitizing input and appending with * to perform starts-with matching.
+         *
+         * In your SQL just use `WHERE ... AND MATCH(search_id) AGAINST (:searchId IN BOOLEAN MODE)`.
+         * @param words
+         * @return full-text query string, not null. If blank, there is nothing to search for,
+         * and the SQL MATCH ... AGAINST clause must be omitted.
+         */
+        fun toMySQLFulltextBooleanQuery(words: Collection<String>): String {
+            val sb = StringBuilder()
+            for (word in words) {
+                if (word.isNotBlank() && mysqlAppearsInIndex(word)) {
+                    sb.append(" +").append(word).append('*')
+                }
+            }
+            return sb.toString().trim()
+        }
+
+        fun mysqlAppearsInIndex(word: String): Boolean {
+            // By default, words less than 3 characters in length or greater than 84 characters in length do not appear in an InnoDB full-text search index.
+            // https://dev.mysql.com/doc/refman/8.0/en/fulltext-stopwords.html
+            return word.trim().length in 3..84
+        }
+
+        private val MATCH_ALL = ParametrizedSql("1=1", mapOf())
     }
 }
 
@@ -83,4 +136,10 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
 fun <T: SqlStatement<*>> T.bind(sql: ParametrizedSql): T {
     sql.sql92Parameters.entries.forEach { (name: NativePropertyName, value: Any?) -> bind(name, value) }
     return this
+}
+
+enum class DatabaseVariant {
+    Unknown,
+    MySQLMariaDB,
+    PostgreSQL
 }

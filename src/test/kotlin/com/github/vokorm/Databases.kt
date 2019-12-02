@@ -21,7 +21,7 @@ import java.util.*
 data class Person(
         override var id: Long? = null,
         @field:Length(min = 1)
-    var name: String = "",
+        var name: String = "",
         var age: Int = -1,
         @Ignore var ignored: String? = null,
         @Transient var ignored2: Any? = null,
@@ -131,12 +131,14 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
                 alive boolean,
                 maritalStatus varchar(200)
                  )""")
+            ddl("""CREATE INDEX pgweb_idx ON Test USING GIN (to_tsvector('english', name));""")
             ddl("""create table if not exists EntityWithAliasedId(myid bigserial primary key, name varchar(400) not null)""")
             ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null, bytes bytea not null)""")
             ddl("""create table if not exists LogRecord(id UUID primary key, text varchar(400) not null)""")
             ddl("""CREATE TYPE marital_status AS ENUM ('Single', 'Married', 'Widowed', 'Divorced')""")
             ddl("""CREATE TABLE IF NOT EXISTS TypeMappingEntity(id bigserial primary key, enumTest marital_status)""")
         }
+        VokOrm.databaseVariant = DatabaseVariant.PostgreSQL
     }
 
     afterGroup { JdbiOrm.destroy() }
@@ -177,13 +179,15 @@ fun DynaNodeGroup.usingDockerizedMysql() {
                 created timestamp(3) NULL,
                 modified timestamp(3) NULL,
                 alive boolean,
-                maritalStatus varchar(200)
+                maritalStatus varchar(200),
+                FULLTEXT index (name)
                  )""")
             ddl("""create table if not exists EntityWithAliasedId(myid bigint primary key auto_increment, name varchar(400) not null)""")
             ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null, bytes binary(16) not null)""")
             ddl("""create table if not exists LogRecord(id binary(16) primary key, text varchar(400) not null)""")
             ddl("""create table TypeMappingEntity(id bigint primary key auto_increment, enumTest ENUM('Single', 'Married', 'Divorced', 'Widowed'))""")
         }
+        VokOrm.databaseVariant = DatabaseVariant.MySQLMariaDB
     }
 
     afterGroup { JdbiOrm.destroy() }
@@ -230,6 +234,7 @@ fun DynaNodeGroup.usingH2Database() {
             ddl("""create table LogRecord(id UUID primary key, text varchar(400) not null)""")
             ddl("""create table TypeMappingEntity(id bigint primary key auto_increment, enumTest ENUM('Single', 'Married', 'Divorced', 'Widowed'))""")
         }
+        VokOrm.databaseVariant = DatabaseVariant.Unknown
     }
     afterEach {
         db { ddl("DROP ALL OBJECTS") }
@@ -266,7 +271,8 @@ private fun DynaNodeGroup.usingDockerizedMariaDB() {
                 created timestamp(3) NULL,
                 modified timestamp(3) NULL,
                 alive boolean,
-                maritalStatus varchar(200)
+                maritalStatus varchar(200),
+                FULLTEXT index (name)
                  )"""
             )
             ddl("""create table if not exists EntityWithAliasedId(myid bigint primary key auto_increment, name varchar(400) not null)""")
@@ -274,6 +280,7 @@ private fun DynaNodeGroup.usingDockerizedMariaDB() {
             ddl("""create table if not exists LogRecord(id binary(16) primary key, text varchar(400) not null)""")
             ddl("""create table TypeMappingEntity(id bigint primary key auto_increment, enumTest ENUM('Single', 'Married', 'Divorced', 'Widowed'))""")
         }
+        VokOrm.databaseVariant = DatabaseVariant.MySQLMariaDB
     }
 
     afterGroup { JdbiOrm.destroy() }
