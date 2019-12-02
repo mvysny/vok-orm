@@ -93,7 +93,7 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
                     mapOf(parameterName to booleanQuery))
         } else if (databaseVariant == DatabaseVariant.PostgreSQL) {
             // see https://www.postgresql.org/docs/9.5/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES for more documentation
-            ParametrizedSql("to_tsvector($databaseColumnName) @@ to_tsquery('english', :$parameterName)",
+            ParametrizedSql("to_tsvector('english', $databaseColumnName) @@ to_tsquery('english', :$parameterName)",
                     mapOf(parameterName to filter.words.joinToString(" & ") { "$it:*" }))
         } else {
             throw IllegalArgumentException("Unsupported FullText search for variant $databaseVariant. Either set proper variant to VokOrm.databaseVariant, or provide custom VokOrm.filterToSqlConverter which supports proper full-text search syntax: $filter")
@@ -141,5 +141,6 @@ fun <T: SqlStatement<*>> T.bind(sql: ParametrizedSql): T {
 enum class DatabaseVariant {
     Unknown,
     MySQLMariaDB,
-    PostgreSQL
+    PostgreSQL,
+    H2
 }

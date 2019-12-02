@@ -573,16 +573,43 @@ the results. Just keep in mind to pass in the database column name into the
 ### Full-Text Filters
 
 In order for the [FullTextFilter] to work, you must create a proper full-text index
-in your database for the column being matched.
+in your database for the column being matched. Alternatively you can create a delegate
+`FilterToSqlConverter` which is able to handle `FullTextFilter`s and passes through
+all other filters to the default `VokOrm.filterToSqlConverter`.
+
+The `FullTextFilter` cleans up the user input, removes any non-alphabetic and non-digit
+characters and turns user input into a set of words. The words will never contain
+characters such as `+` `/` `*` which are often used by the full text engine.
+Therefore, it's easy to join the words and produce a full-text query.
+
+In order for the Filter converter to know which syntax to produce, you must set
+your database variant in `VokOrm.databaseVariant`. The default one is 'Unknown'
+and since there is no full-text matching in SQL92, by default all `FullTextFilter`
+conversion will fail.
+
+#### H2
+
+Full-Text searches are unsupported on H2 at the moment.
 
 #### PostgreSQL
 
-Todo.
+The following WHERE clauses are produced by default:
+`to_tsvector('english', $databaseColumnName) @@ to_tsquery('english', 'fat:* cat:*')`.
+
+A full-text index is not necessary in order for PostgreSQL to properly match records,
+however the performance will be horrible. I recommend to create the index, e.g.
+`CREATE INDEX pgweb_idx ON Test USING GIN (to_tsvector('english', name))`.
+
+See [PostgreSQL Full-Text search](https://www.postgresql.org/docs/9.5/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX)
+for more info.
 
 #### MySQL
 
 You'll need to create a [FULLTEXT index](https://dev.mysql.com/doc/refman/8.0/en/fulltext-search.html)
 for the column, otherwise MySQL will match nothing.
+
+By default the following WHERE clauses are produced: e.g. when searching for "fat cat",
+this is emitted: `MATCH($databaseColumnName) AGAINST ("+fat* +cat*" IN BOOLEAN MODE)`.
 
 MySQL has a number of quirks to look after:
 
