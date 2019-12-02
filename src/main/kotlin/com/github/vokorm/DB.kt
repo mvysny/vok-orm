@@ -2,7 +2,6 @@ package com.github.vokorm
 
 import com.gitlab.mvysny.jdbiorm.JdbiOrm.jdbi
 import org.jdbi.v3.core.Handle
-import java.io.Closeable
 import java.sql.Connection
 
 /**

@@ -16,6 +16,20 @@ data class ParametrizedSql(val sql92: String, var sql92Parameters: Map<NativePro
     override fun toString(): String = "$sql92:$sql92Parameters"
 }
 
+interface FilterToSqlConverter {
+    /**
+     * Attempts to convert this filter into a SQL 92 WHERE-clause representation (omitting the `WHERE` keyword). There are two types of filters:
+     * * Filters which do not match column to a value, for example [AndFilter] which produces something like `(filter1 and filter2)`
+     * * Filters which do match column to a value, for example [LikeFilter] which produces things like `name LIKE :name`. All [BeanFilter]s are expected
+     * to match a [NativePropertyName] database column to a value; that value is automatically prefilled into the JDBC query string.
+     *
+     * Examples of returned values:
+     * * `name = :name`
+     * * `(age >= :age AND name ILIKE :name)`
+     */
+    fun convert(filter: Filter<*>, clazz: Class<*>): ParametrizedSql
+}
+
 /**
  * Attempts to convert this filter into a SQL 92 WHERE-clause representation (omitting the `WHERE` keyword). There are two types of filters:
  * * Filters which do not match column to a value, for example [AndFilter] which produces something like `(filter1 and filter2)`
@@ -25,36 +39,41 @@ data class ParametrizedSql(val sql92: String, var sql92Parameters: Map<NativePro
  * Examples of returned values:
  * * `name = :name`
  * * `(age >= :age AND name ILIKE :name)`
+ *
+ * To override the behavior of this function, set a different converter to [VokOrm.filterToSqlConverter].
  */
-fun Filter<*>.toParametrizedSql(clazz: Class<*>): ParametrizedSql {
-    val databaseColumnName: String = if (this is BeanFilter) propertyName.toNativeColumnName(clazz) else ""
-    val parameterName = "p${System.identityHashCode(this).toString(36)}"
-    return when (this) {
-        is EqFilter -> ParametrizedSql( "$databaseColumnName = :$parameterName", mapOf(parameterName to value))
-        is OpFilter -> ParametrizedSql("$databaseColumnName ${operator.sql92Operator} :$parameterName", mapOf(parameterName to value))
-        is IsNullFilter -> ParametrizedSql("$databaseColumnName is null", mapOf())
-        is IsNotNullFilter -> ParametrizedSql("$databaseColumnName is not null", mapOf())
-        is LikeFilter -> ParametrizedSql("$databaseColumnName LIKE :$parameterName", mapOf(parameterName to value))
-        is ILikeFilter -> ParametrizedSql("$databaseColumnName ILIKE :$parameterName", mapOf(parameterName to value))
-        is AndFilter -> {
-            val c = children.map { it.toParametrizedSql(clazz) }
-            val sql92 = c.joinToString(" and ", "(", ")") { it.sql92 }
-            val map = mutableMapOf<String, Any?>()
-            c.forEach { map.putAll(it.sql92Parameters) }
-            ParametrizedSql(sql92, map)
+fun Filter<*>.toParametrizedSql(clazz: Class<*>): ParametrizedSql = VokOrm.filterToSqlConverter.convert(this, clazz)
+
+class DefaultFilterToSqlConverter : FilterToSqlConverter {
+    override fun convert(filter: Filter<*>, clazz: Class<*>): ParametrizedSql {
+        val databaseColumnName: String = if (filter is BeanFilter) filter.propertyName.toNativeColumnName(clazz) else ""
+        val parameterName = "p${System.identityHashCode(this).toString(36)}"
+        return when (filter) {
+            is EqFilter -> ParametrizedSql("$databaseColumnName = :$parameterName", mapOf(parameterName to filter.value))
+            is OpFilter -> ParametrizedSql("$databaseColumnName ${filter.operator.sql92Operator} :$parameterName", mapOf(parameterName to filter.value))
+            is IsNullFilter -> ParametrizedSql("$databaseColumnName is null", mapOf())
+            is IsNotNullFilter -> ParametrizedSql("$databaseColumnName is not null", mapOf())
+            is LikeFilter -> ParametrizedSql("$databaseColumnName LIKE :$parameterName", mapOf(parameterName to filter.value))
+            is ILikeFilter -> ParametrizedSql("$databaseColumnName ILIKE :$parameterName", mapOf(parameterName to filter.value))
+            is AndFilter -> {
+                val c: List<ParametrizedSql> = filter.children.map { it.toParametrizedSql(clazz) }
+                val sql92: String = c.joinToString(" and ", "(", ")") { it.sql92 }
+                val map: MutableMap<String, Any?> = mutableMapOf<String, Any?>()
+                c.forEach { map.putAll(it.sql92Parameters) }
+                ParametrizedSql(sql92, map)
+            }
+            is OrFilter -> {
+                val c: List<ParametrizedSql> = filter.children.map { it.toParametrizedSql(clazz) }
+                val sql92: String = c.joinToString(" or ", "(", ")") { it.sql92 }
+                val map: MutableMap<String, Any?> = mutableMapOf<String, Any?>()
+                c.forEach { map.putAll(it.sql92Parameters) }
+                ParametrizedSql(sql92, map)
+            }
+            is NativeSqlFilter -> ParametrizedSql(filter.where, filter.params)
+            is SubstringFilter -> ParametrizedSql("$databaseColumnName LIKE :$parameterName", mapOf(parameterName to filter.value))
+            is ISubstringFilter -> ParametrizedSql("$databaseColumnName ILIKE :$parameterName", mapOf(parameterName to filter.value))
+            else -> throw IllegalArgumentException("Unsupported: cannot convert filter $this to SQL92")
         }
-        is OrFilter -> {
-            val c = children.map { it.toParametrizedSql(clazz) }
-            val sql92 = c.joinToString(" or ", "(", ")") { it.sql92 }
-            val map = mutableMapOf<String, Any?>()
-            c.forEach { map.putAll(it.sql92Parameters) }
-            ParametrizedSql(sql92, map)
-        }
-        is NativeSqlFilter -> ParametrizedSql(where, params)
-        is SubstringFilter -> ParametrizedSql("$databaseColumnName LIKE :$parameterName", mapOf(parameterName to value))
-        is ISubstringFilter -> ParametrizedSql("$databaseColumnName ILIKE :$parameterName", mapOf(parameterName to value))
-        is FullTextFilter ->
-        else -> throw IllegalArgumentException("Unsupported: cannot convert filter $this to SQL92")
     }
 }
 
