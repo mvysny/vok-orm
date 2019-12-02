@@ -589,21 +589,31 @@ conversion will fail.
 
 #### H2
 
-Full-Text searches are supported, with limitations. Whe following WHERE clauses are produced by default:
+Full-Text searches are supported. vok-orm uses FullTextLucene implementation since
+the native H2 implementation can't do partial matches (e.g. filter `car` won't match `carousel`).
+
+The following WHERE clauses are produced by default:
 
 ```sql
-$idColumn IN (SELECT CAST(FT.KEYS[1] AS BIGINT) AS ID FROM FT_SEARCH_DATA(:$parameterName, 0, 0) FT WHERE FT.`TABLE`='${meta.databaseTableName.toUpperCase()}')
+$idColumn IN (SELECT CAST(FT.KEYS[1] AS BIGINT) AS ID FROM FTL_SEARCH_DATA(:$parameterName, 0, 0) FT WHERE FT.`TABLE`='${meta.databaseTableName.toUpperCase()}')
 ```
 
 You need to call the following to init the engine and create the index:
 
 ```sql
-CREATE ALIAS IF NOT EXISTS FT_INIT FOR "org.h2.fulltext.FullText.init";
-CALL FT_INIT();
-CALL FT_CREATE_INDEX('PUBLIC', 'TEST', 'NAME');  -- Adds index on the 'NAME' column of the 'TEST' table.
+CREATE ALIAS IF NOT EXISTS FTL_INIT FOR "org.h2.fulltext.FullTextLucene.init";
+CALL FTL_INIT();
+CALL FTL_CREATE_INDEX('PUBLIC', 'TEST', 'NAME');  -- Adds index on the 'NAME' column of the 'TEST' table.
 ```
 
 Make sure to use upper-case table+column names otherwise H2 will complain that the column/table doesn't exist.
+
+You will need to add Lucene on the classpath:
+
+```gradle
+    compile("org.apache.lucene:lucene-analyzers-common:5.5.5")
+    compile("org.apache.lucene:lucene-queryparser:5.5.5")
+```
 
 Limitations:
 

@@ -45,9 +45,14 @@ class FiltersTest : DynaTest({
                 moby.create()
                 expectList() { Person.findAllBy(filter = FullTextFilter<Person>("name", "foo")) }
                 expectList(moby) { Person.findAllBy(filter = FullTextFilter<Person>("name", "Moby")) }
-                expectList(moby) { Person.findAllBy(filter = FullTextFilter<Person>("name", "Mob")) }
                 expectList() { Person.findAllBy(filter = FullTextFilter<Person>("name", "Jerry")) }
                 expectList() { Person.findAllBy(filter = FullTextFilter<Person>("name", "Jerry Moby")) }
+            }
+
+            test("partial match") {
+                val moby = Person(name = "Moby")
+                moby.create()
+                expectList(moby) { Person.findAllBy(filter = FullTextFilter<Person>("name", "Mob")) }
             }
         }
     }

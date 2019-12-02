@@ -100,9 +100,9 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
         } else if (databaseVariant == DatabaseVariant.H2) {
             val meta: EntityMeta<*> = EntityMeta(clazz)
             val idColumn: String = meta.idProperty[0].dbColumnName
-            val query: String = filter.words.joinToString(" ")
+            val query: String = filter.words.joinToString(" AND ") { "$it*" }
             // Need to CAST(FT.KEYS[1] AS BIGINT) otherwise IN won't match anything
-            ParametrizedSql("$idColumn IN (SELECT CAST(FT.KEYS[1] AS BIGINT) AS ID FROM FT_SEARCH_DATA(:$parameterName, 0, 0) FT WHERE FT.`TABLE`='${meta.databaseTableName.toUpperCase()}')",
+            ParametrizedSql("$idColumn IN (SELECT CAST(FT.KEYS[1] AS BIGINT) AS ID FROM FTL_SEARCH_DATA(:$parameterName, 0, 0) FT WHERE FT.`TABLE`='${meta.databaseTableName.toUpperCase()}')",
                     mapOf(parameterName to query))
         } else {
             throw IllegalArgumentException("Unsupported FullText search for variant $databaseVariant. Either set proper variant to VokOrm.databaseVariant, or provide custom VokOrm.filterToSqlConverter which supports proper full-text search syntax: $filter")

@@ -219,7 +219,7 @@ fun DynaNodeGroup.usingH2Database() {
     beforeEach {
         db {
             ddl("DROP ALL OBJECTS")
-            ddl("""CREATE ALIAS IF NOT EXISTS FT_INIT FOR "org.h2.fulltext.FullText.init"; CALL FT_INIT();""")
+            ddl("""CREATE ALIAS IF NOT EXISTS FTL_INIT FOR "org.h2.fulltext.FullTextLucene.init";CALL FTL_INIT();""")
             ddl("""create table Test (
                 id bigint primary key auto_increment,
                 name varchar not null,
@@ -234,7 +234,7 @@ fun DynaNodeGroup.usingH2Database() {
             ddl("""create table NaturalPerson(id varchar(10) primary key, name varchar(400) not null, bytes binary(16) not null)""")
             ddl("""create table LogRecord(id UUID primary key, text varchar(400) not null)""")
             ddl("""create table TypeMappingEntity(id bigint primary key auto_increment, enumTest ENUM('Single', 'Married', 'Divorced', 'Widowed'))""")
-            ddl("""CALL FT_CREATE_INDEX('PUBLIC', 'TEST', 'NAME');""")
+            ddl("""CALL FTL_CREATE_INDEX('PUBLIC', 'TEST', 'NAME');""")
         }
         VokOrm.databaseVariant = DatabaseVariant.H2
     }

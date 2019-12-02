@@ -52,6 +52,9 @@ dependencies {
     testCompile("com.h2database:h2:1.4.200")
     testCompile("com.zaxxer:HikariCP:3.4.1")
 
+    testCompile("org.apache.lucene:lucene-analyzers-common:5.5.5") // for H2 Full-Text search
+    testCompile("org.apache.lucene:lucene-queryparser:5.5.5") // for H2 Full-Text search
+
     testCompile("org.postgresql:postgresql:42.2.5")
     testCompile("org.zeroturnaround:zt-exec:1.10")
     testCompile("mysql:mysql-connector-java:5.1.48")
