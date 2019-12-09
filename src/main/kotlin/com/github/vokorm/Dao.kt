@@ -74,7 +74,7 @@ fun <T: Any> DaoOfAny<T>.findSpecificBy(filter: Filter<T>): T? =
  */
 @Deprecated("use findOneBy()")
 fun <T: Any> DaoOfAny<T>.findSpecificBy(block: SqlWhereBuilder<T>.()-> Filter<T>): T? =
-        findOneBy(block(SqlWhereBuilder(entityClass)))
+        findOneBy(block)
 
 /**
  * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.
@@ -88,6 +88,17 @@ fun <T: Any> DaoOfAny<T>.findOneBy(filter: Filter<T>): T? {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
     return findOneBy(sql.sql92) { query -> query.bind(sql) }
 }
+
+/**
+ * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.
+ * Fails if there are two or more entities matching the criteria.
+ *
+ * This function returns `null` if there is no such entity. Use [getOneBy] if you wish an exception to be thrown in case that
+ * the entity does not exist.
+ * @throws IllegalArgumentException if there are two or more matching entities.
+ */
+fun <T: Any> DaoOfAny<T>.findOneBy(block: SqlWhereBuilder<T>.()-> Filter<T>): T? =
+        findOneBy(block(SqlWhereBuilder(entityClass)))
 
 /**
  * Counts all rows in given table which matches given [block] clause.
