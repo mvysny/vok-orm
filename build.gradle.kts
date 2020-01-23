@@ -4,7 +4,7 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
-val slf4jVersion = "1.7.28"
+val slf4jVersion = "1.7.30"
 
 val local = Properties()
 val localProperties: java.io.File = rootProject.file("local.properties")
@@ -50,7 +50,7 @@ dependencies {
     testCompile("com.google.code.gson:gson:2.8.5")
     testCompile("org.slf4j:slf4j-simple:$slf4jVersion")
     testCompile("com.h2database:h2:1.4.200")
-    testCompile("com.zaxxer:HikariCP:3.4.1")
+    testCompile("com.zaxxer:HikariCP:3.4.2")
 
     testCompile("org.apache.lucene:lucene-analyzers-common:5.5.5") // for H2 Full-Text search
     testCompile("org.apache.lucene:lucene-queryparser:5.5.5") // for H2 Full-Text search
