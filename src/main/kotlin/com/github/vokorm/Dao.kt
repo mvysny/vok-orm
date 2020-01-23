@@ -11,7 +11,7 @@ internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta(entityClass)
 /**
  * Retrieves single entity matching given [filter]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
  *
- * This function fails if there is no such entity or there are 2 or more. Use [findSpecificBy] if you wish to return `null` in case that
+ * This function fails if there is no such entity or there are 2 or more. Use [findOneBy] if you wish to return `null` in case that
  * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
@@ -21,7 +21,7 @@ fun <T: Any> DaoOfAny<T>.getBy(filter: Filter<T>): T = getOneBy(filter)
 /**
  * Retrieves single entity matching given [filter]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
  *
- * This function fails if there is no such entity or there are 2 or more. Use [findSpecificBy] if you wish to return `null` in case that
+ * This function fails if there is no such entity or there are 2 or more. Use [findOneBy] if you wish to return `null` in case that
  * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
@@ -29,6 +29,22 @@ fun <T: Any> DaoOfAny<T>.getOneBy(filter: Filter<T>): T {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
     return getOneBy(sql.sql92) { query -> query.bind(sql) }
 }
+
+/**
+ * Retrieves single entity matching given criteria [block]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
+ *
+ * Example:
+ * ```
+ * Person.getOneBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
+ * Person.getOneBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
+ * ```
+ *
+ * This function fails if there is no such entity or there are 2 or more. Use [findOneBy] if you wish to return `null` in case that
+ * the entity does not exist.
+ * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
+ */
+fun <T: Any> DaoOfAny<T>.getOneBy(block: SqlWhereBuilder<T>.()-> Filter<T>): T =
+        getOneBy(block(SqlWhereBuilder(entityClass)))
 
 /**
  * Retrieves single entity matching given criteria [block]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
@@ -45,13 +61,13 @@ fun <T: Any> DaoOfAny<T>.getOneBy(filter: Filter<T>): T {
  */
 @Deprecated("use getOneBy()")
 fun <T: Any> DaoOfAny<T>.getBy(block: SqlWhereBuilder<T>.()-> Filter<T>): T =
-        getOneBy(block(SqlWhereBuilder(entityClass)))
+        getOneBy(block)
 
 /**
  * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.
  * Fails if there are two or more entities matching the criteria.
  *
- * This function returns `null` if there is no such entity. Use [getBy] if you wish an exception to be thrown in case that
+ * This function returns `null` if there is no such entity. Use [getOneBy] if you wish an exception to be thrown in case that
  * the entity does not exist.
  * @throws IllegalArgumentException if there are two or more matching entities.
  */
@@ -152,7 +168,8 @@ fun <T: Any> DaoOfAny<T>.deleteBy(filter: Filter<T>) {
  * db { con.createQuery("select * from Foo where name = :name").addParameter("name", name).executeAndFetch(Person::class.java) }
  * ```
  */
-fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE), block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
+fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE),
+                                   block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
     findAllBy(range, block(SqlWhereBuilder<T>(entityClass)))
 
 /**
@@ -165,7 +182,8 @@ fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE),
  * db { con.createQuery("select * from Foo where name = :name").addParameter("name", name).executeAndFetch(Person::class.java) }
  * ```
  */
-fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE), filter: Filter<T>): List<T> {
+fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE),
+                                   filter: Filter<T>): List<T> {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
     val offset: Long? = if (range == IntRange(0, Int.MAX_VALUE)) null else range.start.toLong()
     val limit: Long? = if (range == IntRange(0, Int.MAX_VALUE)) null else range.length.toLong()
