@@ -46,7 +46,7 @@ dependencies {
     testCompile("org.glassfish:javax.el:3.0.1-b08")
 
     // tests
-    testCompile("com.github.mvysny.dynatest:dynatest-engine:0.15")
+    testCompile("com.github.mvysny.dynatest:dynatest-engine:0.16")
     testCompile("com.google.code.gson:gson:2.8.5")
     testCompile("org.slf4j:slf4j-simple:$slf4jVersion")
     testCompile("com.h2database:h2:1.4.200")
