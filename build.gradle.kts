@@ -13,7 +13,7 @@ if (localProperties.exists()) {
 }
 
 plugins {
-    kotlin("jvm") version "1.3.61"
+    kotlin("jvm") version "1.3.71"
     id("com.jfrog.bintray") version "1.8.3"
     `maven-publish`
     id("org.jetbrains.dokka") version "0.9.17"
@@ -41,7 +41,7 @@ dependencies {
     compile("org.slf4j:slf4j-api:$slf4jVersion")
 
     // validation support
-    testCompile("org.hibernate.validator:hibernate-validator:6.1.0.Final")
+    testCompile("org.hibernate.validator:hibernate-validator:6.1.2.Final")
     // EL is required: http://hibernate.org/validator/documentation/getting-started/
     testCompile("org.glassfish:javax.el:3.0.1-b08")
 
