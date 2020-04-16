@@ -572,7 +572,7 @@ the results. Just keep in mind to pass in the database column name into the
 
 ### Full-Text Filters
 
-In order for the [FullTextFilter] to work, you must create a proper full-text index
+In order for the `FullTextFilter` filter to work, you must create a proper full-text index
 in your database for the column being matched. Please see the documentation for
 individual databases below.
 
