@@ -141,5 +141,6 @@ tasks.withType<Test> {
     testLogging {
         // to see the exceptions of failed tests in Travis-CI console.
         exceptionFormat = TestExceptionFormat.FULL
+        showStandardStreams = true
     }
 }
