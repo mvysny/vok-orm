@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
 val slf4jVersion = "1.7.30"
+val testcontainersVersion = "1.14.0"
 
 val local = Properties()
 val localProperties: java.io.File = rootProject.file("local.properties")
@@ -33,40 +34,39 @@ tasks.withType<KotlinCompile> {
 }
 
 dependencies {
-    compile(kotlin("stdlib-jdk8"))
-    compile("com.github.mvysny.vokdataloader:vok-dataloader:0.6")
-    compile("com.gitlab.mvysny.jdbiorm:jdbi-orm:0.5")
+    api(kotlin("stdlib-jdk8"))
+    api("com.github.mvysny.vokdataloader:vok-dataloader:0.6")
+    api("com.gitlab.mvysny.jdbiorm:jdbi-orm:0.5")
 
     // logging
-    compile("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("org.slf4j:slf4j-api:$slf4jVersion")
 
     // validation support
-    testCompile("org.hibernate.validator:hibernate-validator:6.1.2.Final")
+    testImplementation("org.hibernate.validator:hibernate-validator:6.1.2.Final")
     // EL is required: http://hibernate.org/validator/documentation/getting-started/
-    testCompile("org.glassfish:javax.el:3.0.1-b08")
+    testImplementation("org.glassfish:javax.el:3.0.1-b08")
 
     // tests
-    testCompile("com.github.mvysny.dynatest:dynatest-engine:0.16")
-    testCompile("com.google.code.gson:gson:2.8.5")
-    testCompile("org.slf4j:slf4j-simple:$slf4jVersion")
-    testCompile("com.h2database:h2:1.4.200")
-    testCompile("com.zaxxer:HikariCP:3.4.2")
+    testImplementation("com.github.mvysny.dynatest:dynatest-engine:0.16")
+    testImplementation("com.google.code.gson:gson:2.8.5")
+    testImplementation("org.slf4j:slf4j-simple:$slf4jVersion")
+    testImplementation("com.h2database:h2:1.4.200")
+    testImplementation("com.zaxxer:HikariCP:3.4.2")
 
-    testCompile("org.apache.lucene:lucene-analyzers-common:5.5.5") // for H2 Full-Text search
-    testCompile("org.apache.lucene:lucene-queryparser:5.5.5") // for H2 Full-Text search
+    testImplementation("org.apache.lucene:lucene-analyzers-common:5.5.5") // for H2 Full-Text search
+    testImplementation("org.apache.lucene:lucene-queryparser:5.5.5") // for H2 Full-Text search
 
-    testCompile("org.postgresql:postgresql:42.2.5")
-    testCompile("org.zeroturnaround:zt-exec:1.10")
-    testCompile("mysql:mysql-connector-java:5.1.48")
-    testCompile("org.mariadb.jdbc:mariadb-java-client:2.4.0")
+    testImplementation("org.postgresql:postgresql:42.2.5")
+    testImplementation("mysql:mysql-connector-java:5.1.48")
+    testImplementation("org.mariadb.jdbc:mariadb-java-client:2.4.0")
 
-    testCompile("org.testcontainers:testcontainers:1.12.3")
-    testCompile("org.testcontainers:postgresql:1.12.3")
-    testCompile("org.testcontainers:mysql:1.12.3")
-    testCompile("org.testcontainers:mariadb:1.12.3")
+    testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
+    testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
+    testImplementation("org.testcontainers:mysql:$testcontainersVersion")
+    testImplementation("org.testcontainers:mariadb:$testcontainersVersion")
 
     // IDEA language injections
-    testCompile("com.intellij:annotations:12.0")
+    testImplementation("com.intellij:annotations:12.0")
 }
 
 val sourceJar = task("sourceJar", Jar::class) {
