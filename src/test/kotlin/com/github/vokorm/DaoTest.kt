@@ -29,31 +29,31 @@ class DaoTest : DynaTest({
                     Person.getById(25L)
                 }
             }
-            group("getBy() tests") {
+            group("getOneBy() tests") {
                 test("succeeds if there is exactly one matching entity") {
                     val p = Person(name = "Albedo", age = 130)
                     p.save()
                     p.modified = p.modified!!.withZeroNanos
-                    expect(p) { Person.getBy { Person::name eq "Albedo" } }
+                    expect(p) { Person.getOneBy { Person::name eq "Albedo" } }
                 }
 
                 test("fails if there is no such entity") {
                     expectThrows(IllegalStateException::class, message = "no row matching Person: 'name = ") {
-                        Person.getBy { Person::name eq "Albedo" }
+                        Person.getOneBy { Person::name eq "Albedo" }
                     }
                 }
 
                 test("fails if there are two matching entities") {
                     repeat(2) { Person(name = "Albedo", age = 130).save() }
                     expectThrows(IllegalStateException::class, message = "too many rows matching Person: 'name = ") {
-                        Person.getBy { Person::name eq "Albedo" }
+                        Person.getOneBy { Person::name eq "Albedo" }
                     }
                 }
 
                 test("fails if there are ten matching entities") {
                     repeat(10) { Person(name = "Albedo", age = 130).save() }
                     expectThrows(IllegalStateException::class, message = "too many rows matching Person: 'name = ") {
-                        Person.getBy { Person::name eq "Albedo" }
+                        Person.getOneBy { Person::name eq "Albedo" }
                     }
                 }
             }
@@ -94,36 +94,40 @@ class DaoTest : DynaTest({
                 Person.deleteBy { Person::name eq "Rubedo" }  // fancy type-safe criteria
                 expect(listOf("Nigredo")) { Person.findAll().map { it.name } }
             }
-            group("findSpecificBy() tests") {
+            group("findOneBy() tests") {
                 test("succeeds if there is exactly one matching entity") {
                     val p = Person(name = "Albedo", age = 130)
                     p.save()
                     p.modified = p.modified!!.withZeroNanos
-                    expect(p) { Person.findSpecificBy { Person::name eq "Albedo" } }
+                    expect(p) { Person.findOneBy { Person::name eq "Albedo" } }
                 }
 
                 test("returns null if there is no such entity") {
-                    expect(null) { Person.findSpecificBy { Person::name eq "Albedo" } }
+                    expect(null) { Person.findOneBy { Person::name eq "Albedo" } }
                 }
 
                 test("fails if there are two matching entities") {
                     repeat(2) { Person(name = "Albedo", age = 130).save() }
-                    expectThrows(IllegalStateException::class, "too many rows matching Person: 'name = ") { Person.findSpecificBy { Person::name eq "Albedo" } }
+                    expectThrows(IllegalStateException::class, "too many rows matching Person: 'name = ") {
+                        Person.findOneBy { Person::name eq "Albedo" }
+                    }
                 }
 
                 test("fails if there are ten matching entities") {
                     repeat(10) { Person(name = "Albedo", age = 130).save() }
-                    expectThrows(IllegalStateException::class, "too many rows matching Person: 'name = ") { Person.findSpecificBy { Person::name eq "Albedo" } }
+                    expectThrows(IllegalStateException::class, "too many rows matching Person: 'name = ") {
+                        Person.findOneBy { Person::name eq "Albedo" }
+                    }
                 }
 
                 test("test filter by date") {
                     val p = Person(name = "Albedo", age = 130, dateOfBirth = LocalDate.of(1980, 2, 2))
                     p.save()
                     p.modified = p.modified!!.withZeroNanos
-                    expect(p) { Person.findSpecificBy { Person::dateOfBirth eq LocalDate.of(1980, 2, 2) } }
+                    expect(p) { Person.findOneBy { Person::dateOfBirth eq LocalDate.of(1980, 2, 2) } }
                     // here I don't care about whether it selects something or not, I'm only testing the database compatibility
-                    Person.findSpecificBy { "dateOfBirth = :a"("a" to Instant.now()) }
-                    Person.findSpecificBy { "dateOfBirth = :a"("a" to Date()) }
+                    Person.findOneBy { "dateOfBirth = :a"("a" to Instant.now()) }
+                    Person.findOneBy { "dateOfBirth = :a"("a" to Date()) }
                 }
             }
             group("exists") {
@@ -153,7 +157,7 @@ class DaoTest : DynaTest({
                 val p = Person(name = "Albedo", age = 130, dateOfBirth = LocalDate.of(1980, 2, 2), isAlive25 = true)
                 p.save()
                 p.modified = p.modified!!.withZeroNanos
-                expect(p) { db { handle.findSpecificBy(Person::class.java, EqFilter("alive", true)) } }
+                expect(p) { db { Person.findOneBy(EqFilter("alive", true)) } }
             }
         }
 
@@ -170,11 +174,11 @@ class DaoTest : DynaTest({
                 p.save()
                 expect(p) { EntityWithAliasedId.getById(p.id!!) }
             }
-            group("getBy() tests") {
+            group("getOneBy() tests") {
                 test("succeeds if there is exactly one matching entity") {
                     val p = EntityWithAliasedId(name = "Albedo")
                     p.save()
-                    expect(p) { EntityWithAliasedId.getBy { EntityWithAliasedId::name eq "Albedo" } }
+                    expect(p) { EntityWithAliasedId.getOneBy { EntityWithAliasedId::name eq "Albedo" } }
                 }
             }
             group("count") {
@@ -211,11 +215,11 @@ class DaoTest : DynaTest({
                 EntityWithAliasedId.deleteBy { "name = :name"("name" to "Albedo") }  // raw sql where
                 expect(listOf("Nigredo", "Rubedo")) { EntityWithAliasedId.findAll().map { it.name } }
             }
-            group("findSpecificBy() tests") {
+            group("findOneBy() tests") {
                 test("succeeds if there is exactly one matching entity") {
                     val p = EntityWithAliasedId(name = "Albedo")
                     p.save()
-                    expect(p) { EntityWithAliasedId.findSpecificBy { EntityWithAliasedId::name eq "Albedo" } }
+                    expect(p) { EntityWithAliasedId.findOneBy { EntityWithAliasedId::name eq "Albedo" } }
                 }
             }
             group("exists") {

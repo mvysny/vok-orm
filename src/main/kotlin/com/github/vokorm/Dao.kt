@@ -16,16 +16,6 @@ internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta(entityClass)
  * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
-@Deprecated("use getOneBy()")
-fun <T: Any> DaoOfAny<T>.getBy(filter: Filter<T>): T = getOneBy(filter)
-
-/**
- * Retrieves single entity matching given [filter]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
- *
- * This function fails if there is no such entity or there are 2 or more. Use [findOneBy] if you wish to return `null` in case that
- * the entity does not exist.
- * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
- */
 fun <T: Any> DaoOfAny<T>.getOneBy(filter: Filter<T>): T {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
     return getOneBy(sql.sql92) { query -> query.bind(sql) }
@@ -46,52 +36,6 @@ fun <T: Any> DaoOfAny<T>.getOneBy(filter: Filter<T>): T {
  */
 fun <T: Any> DaoOfAny<T>.getOneBy(block: FilterBuilder<T>.()-> Filter<T>): T =
         getOneBy(block(FilterBuilder(entityClass)))
-
-/**
- * Retrieves single entity matching given criteria [block]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
- *
- * Example:
- * ```
- * Person.getBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
- * Person.getBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
- * ```
- *
- * This function fails if there is no such entity or there are 2 or more. Use [findSpecificBy] if you wish to return `null` in case that
- * the entity does not exist.
- * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
- */
-@Deprecated("use getOneBy()")
-fun <T: Any> DaoOfAny<T>.getBy(block: FilterBuilder<T>.()-> Filter<T>): T =
-        getOneBy(block)
-
-/**
- * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.
- * Fails if there are two or more entities matching the criteria.
- *
- * This function returns `null` if there is no such entity. Use [getOneBy] if you wish an exception to be thrown in case that
- * the entity does not exist.
- * @throws IllegalArgumentException if there are two or more matching entities.
- */
-@Deprecated("use findOneBy()")
-fun <T: Any> DaoOfAny<T>.findSpecificBy(filter: Filter<T>): T? =
-        findOneBy(filter)
-
-/**
- * Retrieves specific entity matching given criteria [block]. Fails if there are two or more entities matching the criteria.
- *
- * Example:
- * ```
- * Person.findSingleBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
- * Person.findSingleBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
- * ```
- *
- * This function returns `null` if there is no such entity. Use [getOneBy] if you wish an exception to be thrown in case that
- * the entity does not exist.
- * @throws IllegalArgumentException if there are two or more matching entities.
- */
-@Deprecated("use findOneBy()")
-fun <T: Any> DaoOfAny<T>.findSpecificBy(block: FilterBuilder<T>.()-> Filter<T>): T? =
-        findOneBy(block)
 
 /**
  * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.
