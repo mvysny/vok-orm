@@ -1,10 +1,11 @@
 package com.github.vokorm
 
 import com.github.mvysny.vokdataloader.Filter
-import com.github.mvysny.vokdataloader.SqlWhereBuilder
+import com.github.mvysny.vokdataloader.FilterBuilder
 import com.github.mvysny.vokdataloader.length
 import com.gitlab.mvysny.jdbiorm.DaoOfAny
 import com.gitlab.mvysny.jdbiorm.EntityMeta
+import org.jdbi.v3.core.statement.Query
 
 internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta(entityClass)
 
@@ -43,8 +44,8 @@ fun <T: Any> DaoOfAny<T>.getOneBy(filter: Filter<T>): T {
  * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
-fun <T: Any> DaoOfAny<T>.getOneBy(block: SqlWhereBuilder<T>.()-> Filter<T>): T =
-        getOneBy(block(SqlWhereBuilder(entityClass)))
+fun <T: Any> DaoOfAny<T>.getOneBy(block: FilterBuilder<T>.()-> Filter<T>): T =
+        getOneBy(block(FilterBuilder(entityClass)))
 
 /**
  * Retrieves single entity matching given criteria [block]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
@@ -60,7 +61,7 @@ fun <T: Any> DaoOfAny<T>.getOneBy(block: SqlWhereBuilder<T>.()-> Filter<T>): T =
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
 @Deprecated("use getOneBy()")
-fun <T: Any> DaoOfAny<T>.getBy(block: SqlWhereBuilder<T>.()-> Filter<T>): T =
+fun <T: Any> DaoOfAny<T>.getBy(block: FilterBuilder<T>.()-> Filter<T>): T =
         getOneBy(block)
 
 /**
@@ -89,7 +90,7 @@ fun <T: Any> DaoOfAny<T>.findSpecificBy(filter: Filter<T>): T? =
  * @throws IllegalArgumentException if there are two or more matching entities.
  */
 @Deprecated("use findOneBy()")
-fun <T: Any> DaoOfAny<T>.findSpecificBy(block: SqlWhereBuilder<T>.()-> Filter<T>): T? =
+fun <T: Any> DaoOfAny<T>.findSpecificBy(block: FilterBuilder<T>.()-> Filter<T>): T? =
         findOneBy(block)
 
 /**
@@ -102,7 +103,7 @@ fun <T: Any> DaoOfAny<T>.findSpecificBy(block: SqlWhereBuilder<T>.()-> Filter<T>
  */
 fun <T: Any> DaoOfAny<T>.findOneBy(filter: Filter<T>): T? {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
-    return findOneBy(sql.sql92) { query -> query.bind(sql) }
+    return findOneBy(sql.sql92) { query: Query -> query.bind(sql) }
 }
 
 /**
@@ -113,21 +114,21 @@ fun <T: Any> DaoOfAny<T>.findOneBy(filter: Filter<T>): T? {
  * the entity does not exist.
  * @throws IllegalArgumentException if there are two or more matching entities.
  */
-fun <T: Any> DaoOfAny<T>.findOneBy(block: SqlWhereBuilder<T>.()-> Filter<T>): T? =
-        findOneBy(block(SqlWhereBuilder(entityClass)))
+fun <T: Any> DaoOfAny<T>.findOneBy(block: FilterBuilder<T>.()-> Filter<T>): T? =
+        findOneBy(block(FilterBuilder(entityClass)))
 
 /**
  * Counts all rows in given table which matches given [block] clause.
  */
-fun <T: Any> DaoOfAny<T>.count(block: SqlWhereBuilder<T>.()-> Filter<T>): Long =
-        count(SqlWhereBuilder<T>(entityClass).block())
+fun <T: Any> DaoOfAny<T>.count(block: FilterBuilder<T>.()-> Filter<T>): Long =
+        count(FilterBuilder<T>(entityClass).block())
 
 /**
  * Counts all rows in given table which matches given [filter].
  */
 fun <T: Any> DaoOfAny<T>.count(filter: Filter<T>): Long {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
-    return countBy(sql.sql92) { query -> query.bind(sql) }
+    return countBy(sql.sql92) { query: Query -> query.bind(sql) }
 }
 
 /**
@@ -144,8 +145,8 @@ fun <T: Any> DaoOfAny<T>.count(filter: Filter<T>): Long {
  * db { con.createQuery("delete from Foo where name = :name").addParameter("name", name).executeUpdate() }
  * ```
  */
-fun <T: Any> DaoOfAny<T>.deleteBy(block: SqlWhereBuilder<T>.()-> Filter<T>) {
-    deleteBy(SqlWhereBuilder<T>(entityClass).block())
+fun <T: Any> DaoOfAny<T>.deleteBy(block: FilterBuilder<T>.()-> Filter<T>) {
+    deleteBy(FilterBuilder<T>(entityClass).block())
 }
 
 fun <T: Any> DaoOfAny<T>.deleteBy(filter: Filter<T>) {
@@ -154,7 +155,7 @@ fun <T: Any> DaoOfAny<T>.deleteBy(filter: Filter<T>) {
 }
 
 /**
- * Allows you to find rows by given where clause, with the maximum of [limit] rows:
+ * Allows you to find rows by given where clause, with the maximum of [range] rows:
  *
  * ```
  * Person.findAllBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
@@ -169,11 +170,11 @@ fun <T: Any> DaoOfAny<T>.deleteBy(filter: Filter<T>) {
  * ```
  */
 fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE),
-                                   block: SqlWhereBuilder<T>.()-> Filter<T>): List<T> =
-    findAllBy(range, block(SqlWhereBuilder<T>(entityClass)))
+                                   block: FilterBuilder<T>.()-> Filter<T>): List<T> =
+    findAllBy(range, block(FilterBuilder<T>(entityClass)))
 
 /**
- * Allows you to find rows by given [filter], with the maximum of [limit] rows:
+ * Allows you to find rows by given [filter], with the maximum of [range] rows:
  *
  * If you want more complex stuff or even joins, fall back and just write
  * SQL:
@@ -204,8 +205,8 @@ fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE),
  * db { con.createQuery("select count(1) from Foo where name = :name").addParameter("name", name).executeScalar(Long::class.java) > 0 }
  * ```
  */
-fun <T: Any> DaoOfAny<T>.existsBy(block: SqlWhereBuilder<T>.()-> Filter<T>): Boolean =
-        existsBy(block(SqlWhereBuilder(entityClass)))
+fun <T: Any> DaoOfAny<T>.existsBy(block: FilterBuilder<T>.()-> Filter<T>): Boolean =
+        existsBy(block(FilterBuilder(entityClass)))
 
 /**
  * Checks whether there is any instance matching given [filter].

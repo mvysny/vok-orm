@@ -1,7 +1,7 @@
 package com.github.vokorm
 
 import com.github.mvysny.vokdataloader.Filter
-import com.github.mvysny.vokdataloader.SqlWhereBuilder
+import com.github.mvysny.vokdataloader.FilterBuilder
 import com.gitlab.mvysny.jdbiorm.Dao
 import com.gitlab.mvysny.jdbiorm.DaoOfAny
 import com.gitlab.mvysny.jdbiorm.Entity
@@ -12,7 +12,8 @@ import java.sql.ResultSet
 import java.sql.ResultSetMetaData
 
 /**
- * Finds all instances of given entity. Fails if there is no table in the database with the name of [EntityMeta.databaseTableName]. The list is eager
+ * Finds all instances of given entity. Fails if there is no table in the database
+ * with the name of [com.gitlab.mvysny.jdbiorm.EntityMeta.getDatabaseTableName]. The list is eager
  * and thus it's useful for smallish tables only.
  */
 @Deprecated("use DaoOfAny")
@@ -75,7 +76,7 @@ fun <T: Any> Handle.getBy(clazz: Class<T>, filter: Filter<T>): T = DaoOfAny<T>(c
  * Deletes all entities with given [clazz] matching given criteria [block].
  */
 @Deprecated("use DaoOfAny")
-fun <T: Any> Handle.deleteBy(clazz: Class<T>, block: SqlWhereBuilder<T>.()-> Filter<T>) =
+fun <T: Any> Handle.deleteBy(clazz: Class<T>, block: FilterBuilder<T>.()-> Filter<T>) =
         DaoOfAny<T>(clazz).deleteBy(block)
 
 /**
@@ -112,7 +113,7 @@ fun <T: Any> Handle.existsBy(clazz: Class<T>, filter: Filter<T>): Boolean =
 fun Query.dump(): String {
     fun ResultSet.dumpCurrentRow(): String = (0 until metaData.columnCount).joinToString { "${getObject(it + 1)}" }
 
-    val rows: ResultIterator<String> = map { rs, _ -> rs.dumpCurrentRow() }.iterator()
+    val rows: ResultIterator<String> = map { rs: ResultSet, _ -> rs.dumpCurrentRow() }.iterator()
     val metadata: ResultSetMetaData = rows.context.statement.metaData
     return buildString {
 
