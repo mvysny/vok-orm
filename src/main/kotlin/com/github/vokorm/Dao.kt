@@ -188,7 +188,7 @@ fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE),
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
     val offset: Long? = if (range == IntRange(0, Int.MAX_VALUE)) null else range.start.toLong()
     val limit: Long? = if (range == IntRange(0, Int.MAX_VALUE)) null else range.length.toLong()
-    return findAllBy(sql.sql92, offset, limit) { query -> query.bind(sql) }
+    return findAllBy(sql.sql92, offset, limit) { query: Query -> query.bind(sql) }
 }
 
 /**
