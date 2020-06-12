@@ -35,14 +35,14 @@ tasks.withType<KotlinCompile> {
 
 dependencies {
     api(kotlin("stdlib-jdk8"))
-    api("com.github.mvysny.vokdataloader:vok-dataloader:0.6")
+    api("com.github.mvysny.vokdataloader:vok-dataloader:0.7")
     api("com.gitlab.mvysny.jdbiorm:jdbi-orm:0.5")
 
     // logging
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
 
     // validation support
-    testImplementation("org.hibernate.validator:hibernate-validator:6.1.2.Final")
+    testImplementation("org.hibernate.validator:hibernate-validator:6.1.4.Final")
     // EL is required: http://hibernate.org/validator/documentation/getting-started/
     testImplementation("org.glassfish:javax.el:3.0.1-b08")
 
@@ -51,7 +51,7 @@ dependencies {
     testImplementation("com.google.code.gson:gson:2.8.5")
     testImplementation("org.slf4j:slf4j-simple:$slf4jVersion")
     testImplementation("com.h2database:h2:1.4.200")
-    testImplementation("com.zaxxer:HikariCP:3.4.2")
+    testImplementation("com.zaxxer:HikariCP:3.4.5")
 
     testImplementation("org.apache.lucene:lucene-analyzers-common:5.5.5") // for H2 Full-Text search
     testImplementation("org.apache.lucene:lucene-queryparser:5.5.5") // for H2 Full-Text search
