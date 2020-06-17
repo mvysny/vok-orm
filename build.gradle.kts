@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
 val slf4jVersion = "1.7.30"
-val testcontainersVersion = "1.14.0"
+val testcontainersVersion = "1.14.3"
 
 val local = Properties()
 val localProperties: java.io.File = rootProject.file("local.properties")
