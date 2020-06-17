@@ -28,7 +28,7 @@ class SqlDataLoaderTest : DynaTest({
         val nameDesc: List<SortClause> = listOf("name".desc)
 
         test("EmptyDataProvider") {
-            val dp = SqlDataLoader(SelectResult::class.java,
+            val dp: SqlDataLoader<SelectResult> = SqlDataLoader(SelectResult::class.java,
                 """select p.id as id, p.name as name from ${Person.meta.databaseTableName} p where 1=1 {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}""")
 
             expect(0) { dp.getCount() }

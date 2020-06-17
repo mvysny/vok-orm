@@ -18,10 +18,14 @@ data class ParametrizedSql(val sql92: String, var sql92Parameters: Map<NativePro
 
 interface FilterToSqlConverter {
     /**
-     * Attempts to convert this filter into a SQL 92 WHERE-clause representation (omitting the `WHERE` keyword). There are two types of filters:
-     * * Filters which do not match column to a value, for example [AndFilter] which produces something like `(filter1 and filter2)`
-     * * Filters which do match column to a value, for example [LikeFilter] which produces things like `name LIKE :name`. All [BeanFilter]s are expected
-     * to match a [NativePropertyName] database column to a value; that value is automatically prefilled into the JDBC query string.
+     * Attempts to convert this filter into a SQL 92 WHERE-clause representation
+     * (omitting the `WHERE` keyword). There are two types of filters:
+     * * Filters which do not match column to a value, for example [AndFilter]
+     *   which produces something like `(filter1 and filter2)`
+     * * Filters which do match column to a value, for example [StartsWithFilter]
+     *   which produces things like `name LIKE :name`. All [BeanFilter]s are expected
+     *   to match a [NativePropertyName] database column to a value; that value
+     *   is automatically prefilled into the JDBC query string.
      *
      * Examples of returned values:
      * * `name = :name`
@@ -56,8 +60,7 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
             is OpFilter -> ParametrizedSql("$databaseColumnName ${filter.operator.sql92Operator} :$parameterName", mapOf(parameterName to filter.value))
             is IsNullFilter -> ParametrizedSql("$databaseColumnName is null", mapOf())
             is IsNotNullFilter -> ParametrizedSql("$databaseColumnName is not null", mapOf())
-            is LikeFilter -> ParametrizedSql("$databaseColumnName LIKE :$parameterName", mapOf(parameterName to filter.value))
-            is ILikeFilter -> ParametrizedSql("$databaseColumnName ILIKE :$parameterName", mapOf(parameterName to filter.value))
+            is StartsWithFilter -> ParametrizedSql("$databaseColumnName ${if (filter.ignoreCase) "ILIKE" else "LIKE"} :$parameterName", mapOf(parameterName to "${filter.value}%"))
             is AndFilter -> {
                 val c: List<ParametrizedSql> = filter.children.map { it.toParametrizedSql(clazz) }
                 val sql92: String = c.joinToString(" and ", "(", ")") { it.sql92 }
@@ -73,8 +76,7 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
                 ParametrizedSql(sql92, map)
             }
             is NativeSqlFilter -> ParametrizedSql(filter.where, filter.params)
-            is SubstringFilter -> ParametrizedSql("$databaseColumnName LIKE :$parameterName", mapOf(parameterName to filter.value))
-            is ISubstringFilter -> ParametrizedSql("$databaseColumnName ILIKE :$parameterName", mapOf(parameterName to filter.value))
+            is SubstringFilter -> ParametrizedSql("$databaseColumnName ${if (filter.ignoreCase) "ILIKE" else "LIKE"} :$parameterName", mapOf(parameterName to "%${filter.value}%"))
             is FullTextFilter -> convertFullTextFilter(filter, databaseColumnName, parameterName, clazz)
             else -> throw IllegalArgumentException("Unsupported: cannot convert filter $filter to SQL92. Please provide a custom VokOrm.filterToSqlConverter which supports this filter type")
         }
@@ -87,7 +89,7 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
         }
         val databaseVariant: DatabaseVariant = VokOrm.databaseVariant
         return if (databaseVariant == DatabaseVariant.MySQLMariaDB) {
-            val booleanQuery = toMySQLFulltextBooleanQuery(filter.words)
+            val booleanQuery: String = toMySQLFulltextBooleanQuery(filter.words)
             if (booleanQuery.isBlank()) {
                 return MATCH_ALL
             }

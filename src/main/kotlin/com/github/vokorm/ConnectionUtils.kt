@@ -30,7 +30,7 @@ fun Query.dump(): String {
 
         // draw the table body
         var rowCount = 0
-        rows.forEach { row -> rowCount++; appendln(row) }
+        rows.forEach { row: String -> rowCount++; appendln(row) }
 
         // the bottom separator
         repeat(header.length) { append("-") }

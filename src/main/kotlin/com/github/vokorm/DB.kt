@@ -17,9 +17,6 @@ class PersistenceContext(val handle: Handle) {
      * The underlying JDBC connection.
      */
     val jdbcConnection: Connection get() = handle.connection
-
-    @Deprecated("Use handle", ReplaceWith("handle"))
-    val con: Handle get() = handle
 }
 
 /**

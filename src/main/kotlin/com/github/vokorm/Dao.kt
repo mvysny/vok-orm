@@ -18,7 +18,7 @@ internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta(entityClass)
  */
 fun <T: Any> DaoOfAny<T>.getOneBy(filter: Filter<T>): T {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
-    return getOneBy(sql.sql92) { query -> query.bind(sql) }
+    return getOneBy(sql.sql92) { query: Query -> query.bind(sql) }
 }
 
 /**
