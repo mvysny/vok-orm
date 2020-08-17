@@ -12,11 +12,11 @@ import org.jdbi.v3.core.statement.SqlStatement
  * All named parameters must be present in the [sql92Parameters] map.
  * @property sql92Parameters maps [NativePropertyName] to its value.
  */
-data class ParametrizedSql(val sql92: String, var sql92Parameters: Map<NativePropertyName, Any?>) {
+public data class ParametrizedSql(val sql92: String, var sql92Parameters: Map<NativePropertyName, Any?>) {
     override fun toString(): String = "$sql92:$sql92Parameters"
 }
 
-interface FilterToSqlConverter {
+public interface FilterToSqlConverter {
     /**
      * Attempts to convert this filter into a SQL 92 WHERE-clause representation
      * (omitting the `WHERE` keyword). There are two types of filters:
@@ -34,7 +34,7 @@ interface FilterToSqlConverter {
      * @param clazz the entity type for which the filter has been produced.
      * @return a converted filter or null if the filter is blank (e.g. full-text filter with just a space as input).
      */
-    fun convert(filter: Filter<*>, clazz: Class<*>): ParametrizedSql
+    public fun convert(filter: Filter<*>, clazz: Class<*>): ParametrizedSql
 }
 
 /**
@@ -49,9 +49,9 @@ interface FilterToSqlConverter {
  *
  * To override the behavior of this function, set a different converter to [VokOrm.filterToSqlConverter].
  */
-fun Filter<*>.toParametrizedSql(clazz: Class<*>): ParametrizedSql = VokOrm.filterToSqlConverter.convert(this, clazz)
+public fun Filter<*>.toParametrizedSql(clazz: Class<*>): ParametrizedSql = VokOrm.filterToSqlConverter.convert(this, clazz)
 
-class DefaultFilterToSqlConverter : FilterToSqlConverter {
+public class DefaultFilterToSqlConverter : FilterToSqlConverter {
     override fun convert(filter: Filter<*>, clazz: Class<*>): ParametrizedSql {
         val databaseColumnName: String = if (filter is BeanFilter) filter.propertyName.toNativeColumnName(clazz) else ""
         val parameterName = "p${System.identityHashCode(filter).toString(36)}"
@@ -82,7 +82,7 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
         }
     }
 
-    fun convertFullTextFilter(filter: FullTextFilter<*>, databaseColumnName: String,
+    public fun convertFullTextFilter(filter: FullTextFilter<*>, databaseColumnName: String,
                               parameterName: String, clazz: Class<*>): ParametrizedSql {
         if (filter.words.isEmpty()) {
             return MATCH_ALL
@@ -111,7 +111,7 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
         }
     }
 
-    companion object {
+    public companion object {
         /**
          * Converts an user input into a MySQL BOOLEAN FULLTEXT search string, by
          * sanitizing input and appending with * to perform starts-with matching.
@@ -121,7 +121,7 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
          * @return full-text query string, not null. If blank, there is nothing to search for,
          * and the SQL MATCH ... AGAINST clause must be omitted.
          */
-        fun toMySQLFulltextBooleanQuery(words: Collection<String>): String {
+        public fun toMySQLFulltextBooleanQuery(words: Collection<String>): String {
             val sb = StringBuilder()
             for (word in words) {
                 if (word.isNotBlank() && mysqlAppearsInIndex(word)) {
@@ -131,7 +131,11 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
             return sb.toString().trim()
         }
 
-        fun mysqlAppearsInIndex(word: String): Boolean {
+        /**
+         * Too short words do not appear in MySQL FULLTEXT index - we must not search for
+         * such words otherwise MySQL will return nothing!
+         */
+        public fun mysqlAppearsInIndex(word: String): Boolean {
             // By default, words less than 3 characters in length or greater than 84 characters in length do not appear in an InnoDB full-text search index.
             // https://dev.mysql.com/doc/refman/8.0/en/fulltext-stopwords.html
             return word.trim().length in 3..84
@@ -144,12 +148,12 @@ class DefaultFilterToSqlConverter : FilterToSqlConverter {
 /**
  * Binds all [ParametrizedSql.sql92Parameters] to the receiver Query.
  */
-fun <T: SqlStatement<*>> T.bind(sql: ParametrizedSql): T {
+public fun <T: SqlStatement<*>> T.bind(sql: ParametrizedSql): T {
     sql.sql92Parameters.entries.forEach { (name: NativePropertyName, value: Any?) -> bind(name, value) }
     return this
 }
 
-enum class DatabaseVariant {
+public enum class DatabaseVariant {
     Unknown,
     MySQLMariaDB,
     PostgreSQL,

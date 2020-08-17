@@ -5,10 +5,10 @@ package com.github.vokorm
  * [com.gitlab.mvysny.jdbiorm.JdbiOrm].
  * @author mavi
  */
-object VokOrm {
+public object VokOrm {
     @Volatile
-    var filterToSqlConverter: FilterToSqlConverter = DefaultFilterToSqlConverter()
+    public var filterToSqlConverter: FilterToSqlConverter = DefaultFilterToSqlConverter()
 
     @Volatile
-    var databaseVariant: DatabaseVariant = DatabaseVariant.Unknown
+    public var databaseVariant: DatabaseVariant = DatabaseVariant.Unknown
 }

@@ -16,7 +16,7 @@ internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta(entityClass)
  * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
-fun <T: Any> DaoOfAny<T>.getOneBy(filter: Filter<T>): T {
+public fun <T: Any> DaoOfAny<T>.getOneBy(filter: Filter<T>): T {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
     return getOneBy(sql.sql92) { query: Query -> query.bind(sql) }
 }
@@ -34,7 +34,7 @@ fun <T: Any> DaoOfAny<T>.getOneBy(filter: Filter<T>): T {
  * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
-fun <T: Any> DaoOfAny<T>.getOneBy(block: FilterBuilder<T>.()-> Filter<T>): T =
+public fun <T: Any> DaoOfAny<T>.getOneBy(block: FilterBuilder<T>.()-> Filter<T>): T =
         getOneBy(block(FilterBuilder(entityClass)))
 
 /**
@@ -45,7 +45,7 @@ fun <T: Any> DaoOfAny<T>.getOneBy(block: FilterBuilder<T>.()-> Filter<T>): T =
  * the entity does not exist.
  * @throws IllegalArgumentException if there are two or more matching entities.
  */
-fun <T: Any> DaoOfAny<T>.findOneBy(filter: Filter<T>): T? {
+public fun <T: Any> DaoOfAny<T>.findOneBy(filter: Filter<T>): T? {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
     return findOneBy(sql.sql92) { query: Query -> query.bind(sql) }
 }
@@ -58,19 +58,19 @@ fun <T: Any> DaoOfAny<T>.findOneBy(filter: Filter<T>): T? {
  * the entity does not exist.
  * @throws IllegalArgumentException if there are two or more matching entities.
  */
-fun <T: Any> DaoOfAny<T>.findOneBy(block: FilterBuilder<T>.()-> Filter<T>): T? =
+public fun <T: Any> DaoOfAny<T>.findOneBy(block: FilterBuilder<T>.()-> Filter<T>): T? =
         findOneBy(block(FilterBuilder(entityClass)))
 
 /**
  * Counts all rows in given table which matches given [block] clause.
  */
-fun <T: Any> DaoOfAny<T>.count(block: FilterBuilder<T>.()-> Filter<T>): Long =
+public fun <T: Any> DaoOfAny<T>.count(block: FilterBuilder<T>.()-> Filter<T>): Long =
         count(FilterBuilder<T>(entityClass).block())
 
 /**
  * Counts all rows in given table which matches given [filter].
  */
-fun <T: Any> DaoOfAny<T>.count(filter: Filter<T>): Long {
+public fun <T: Any> DaoOfAny<T>.count(filter: Filter<T>): Long {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
     return countBy(sql.sql92) { query: Query -> query.bind(sql) }
 }
@@ -89,11 +89,11 @@ fun <T: Any> DaoOfAny<T>.count(filter: Filter<T>): Long {
  * db { con.createQuery("delete from Foo where name = :name").addParameter("name", name).executeUpdate() }
  * ```
  */
-fun <T: Any> DaoOfAny<T>.deleteBy(block: FilterBuilder<T>.()-> Filter<T>) {
+public fun <T: Any> DaoOfAny<T>.deleteBy(block: FilterBuilder<T>.()-> Filter<T>) {
     deleteBy(FilterBuilder<T>(entityClass).block())
 }
 
-fun <T: Any> DaoOfAny<T>.deleteBy(filter: Filter<T>) {
+public fun <T: Any> DaoOfAny<T>.deleteBy(filter: Filter<T>) {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
     deleteBy(sql.sql92) { query -> query.bind(sql) }
 }
@@ -113,7 +113,7 @@ fun <T: Any> DaoOfAny<T>.deleteBy(filter: Filter<T>) {
  * db { con.createQuery("select * from Foo where name = :name").addParameter("name", name).executeAndFetch(Person::class.java) }
  * ```
  */
-fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE),
+public fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE),
                                    block: FilterBuilder<T>.()-> Filter<T>): List<T> =
     findAllBy(range, block(FilterBuilder<T>(entityClass)))
 
@@ -127,7 +127,7 @@ fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE),
  * db { con.createQuery("select * from Foo where name = :name").addParameter("name", name).executeAndFetch(Person::class.java) }
  * ```
  */
-fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE),
+public fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE),
                                    filter: Filter<T>): List<T> {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
     val offset: Long? = if (range == IntRange(0, Int.MAX_VALUE)) null else range.start.toLong()
@@ -149,7 +149,7 @@ fun <T: Any> DaoOfAny<T>.findAllBy(range: IntRange = IntRange(0, Int.MAX_VALUE),
  * db { con.createQuery("select count(1) from Foo where name = :name").addParameter("name", name).executeScalar(Long::class.java) > 0 }
  * ```
  */
-fun <T: Any> DaoOfAny<T>.existsBy(block: FilterBuilder<T>.()-> Filter<T>): Boolean =
+public fun <T: Any> DaoOfAny<T>.existsBy(block: FilterBuilder<T>.()-> Filter<T>): Boolean =
         existsBy(block(FilterBuilder(entityClass)))
 
 /**
@@ -161,7 +161,7 @@ fun <T: Any> DaoOfAny<T>.existsBy(block: FilterBuilder<T>.()-> Filter<T>): Boole
  * db { con.createQuery("select count(1) from Foo where name = :name").addParameter("name", name).executeScalar(Long::class.java) > 0 }
  * ```
  */
-fun <T: Any> DaoOfAny<T>.existsBy(filter: Filter<T>): Boolean {
+public fun <T: Any> DaoOfAny<T>.existsBy(filter: Filter<T>): Boolean {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass)
     return existsBy(sql.sql92) { query -> query.bind(sql) }
 }

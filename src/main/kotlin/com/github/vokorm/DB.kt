@@ -12,11 +12,11 @@ import java.sql.Connection
  * or [Handle.createUpdate] on the connection.
  * @property jdbcConnection the old-school, underlying JDBC connection.
  */
-class PersistenceContext(val handle: Handle) {
+public class PersistenceContext(public val handle: Handle) {
     /**
      * The underlying JDBC connection.
      */
-    val jdbcConnection: Connection get() = handle.connection
+    public val jdbcConnection: Connection get() = handle.connection
 }
 
 /**
@@ -26,6 +26,6 @@ class PersistenceContext(val handle: Handle) {
  * Example of use: `db { con.query() }`
  * @param block the block to run in the transaction. Builder-style provides helpful methods and values, e.g. [PersistenceContext.handle]
  */
-fun <R> db(block: PersistenceContext.()->R): R = jdbi().inTransaction<R, Exception> { handle ->
+public fun <R> db(block: PersistenceContext.()->R): R = jdbi().inTransaction<R, Exception> { handle ->
     PersistenceContext(handle).block()
 }

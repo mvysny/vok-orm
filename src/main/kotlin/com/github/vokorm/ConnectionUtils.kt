@@ -15,7 +15,7 @@ import java.sql.ResultSetMetaData
  * ```
  * @return a pretty-printed outcome of given select
  */
-fun Query.dump(): String {
+public fun Query.dump(): String {
     fun ResultSet.dumpCurrentRow(): String = (0 until metaData.columnCount).joinToString { "${getObject(it + 1)}" }
 
     val rows: ResultIterator<String> = map { rs: ResultSet, _ -> rs.dumpCurrentRow() }.iterator()

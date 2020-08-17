@@ -144,3 +144,7 @@ tasks.withType<Test> {
         showStandardStreams = true
     }
 }
+
+kotlin {
+    explicitApi()
+}

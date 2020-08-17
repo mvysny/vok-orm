@@ -52,10 +52,10 @@ import org.jdbi.v3.core.statement.Query
  * @param T the type of the holder class.
  * @author mavi
  */
-class SqlDataLoader<T: Any>(val dao: DaoOfAny<T>, val sql: String, val params: Map<String, Any?> = mapOf()) : DataLoader<T> {
-    val clazz: Class<T> get() = dao.entityClass
-    constructor(clazz: Class<T>, sql: String, params: Map<String, Any?> = mapOf()) : this(DaoOfAny<T>(clazz), sql, params)
-    override fun toString() = "SqlDataLoader($clazz:$sql($params))"
+public class SqlDataLoader<T: Any>(public val dao: DaoOfAny<T>, public val sql: String, public val params: Map<String, Any?> = mapOf()) : DataLoader<T> {
+    public val clazz: Class<T> get() = dao.entityClass
+    public constructor(clazz: Class<T>, sql: String, params: Map<String, Any?> = mapOf()) : this(DaoOfAny<T>(clazz), sql, params)
+    override fun toString(): String = "SqlDataLoader($clazz:$sql($params))"
 
     override fun getCount(filter: Filter<T>?): Long = db {
         val sql: ParametrizedSql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())

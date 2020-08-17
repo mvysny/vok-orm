@@ -21,9 +21,9 @@ import com.gitlab.mvysny.jdbiorm.spi.AbstractEntity
  * @property dao DAO to use when loading instances of [T]
  * @param T the entity type
  */
-class EntityDataLoader<T : AbstractEntity<*>>(val dao: Dao<T, *>) : DataLoader<T> {
-    val clazz: Class<T> get() = dao.entityClass
-    override fun toString() = "EntityDataLoader($clazz)"
+public class EntityDataLoader<T : AbstractEntity<*>>(public val dao: Dao<T, *>) : DataLoader<T> {
+    public val clazz: Class<T> get() = dao.entityClass
+    override fun toString(): String = "EntityDataLoader($clazz)"
 
     override fun getCount(filter: Filter<T>?): Long =
             if (filter == null) dao.count() else dao.count(filter)
@@ -44,10 +44,10 @@ class EntityDataLoader<T : AbstractEntity<*>>(val dao: Dao<T, *>) : DataLoader<T
     }
 }
 
-fun <T: AbstractEntity<ID>, ID> EntityDataLoader(clazz: Class<T>): EntityDataLoader<T> =
+public fun <T: AbstractEntity<ID>, ID> EntityDataLoader(clazz: Class<T>): EntityDataLoader<T> =
         EntityDataLoader(Dao<T, ID>(clazz))
 
-val LongRange.length: Long get() = if (isEmpty()) 0 else endInclusive - start + 1
+public val LongRange.length: Long get() = if (isEmpty()) 0 else endInclusive - start + 1
 
 /**
  * Converts the data loader property name to underlying database column name. However, if there is no such
@@ -66,5 +66,5 @@ internal fun SortClause.getNativeColumnName(clazz: Class<*>): NativePropertyName
  *
  * Example of use: `grid.setDataLoader(Person.dataLoader)`.
  */
-val <T: AbstractEntity<*>> Dao<T, *>.dataLoader: DataLoader<T>
+public val <T: AbstractEntity<*>> Dao<T, *>.dataLoader: DataLoader<T>
     get() = EntityDataLoader(this)
