@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/mvysny/vok-orm.svg?branch=master)](https://travis-ci.org/mvysny/vok-orm)
 [![Join the chat at https://gitter.im/vaadin/vaadin-on-kotlin](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/vaadin/vaadin-on-kotlin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![GitHub tag](https://img.shields.io/github/tag/mvysny/vok-orm.svg)](https://github.com/mvysny/vok-orm/tags)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.mvysny.vokorm/vok-orm/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.mvysny.vokorm/vok-orm)
