@@ -24,16 +24,16 @@ public fun Query.dump(): String {
 
         // draw the header and the separator
         val header: String = (0 until metadata.columnCount).joinToString { metadata.getColumnName(it + 1) }
-        appendln(header)
+        appendLine(header)
         repeat(header.length) { append("-") }
-        appendln()
+        appendLine()
 
         // draw the table body
         var rowCount = 0
-        rows.forEach { row: String -> rowCount++; appendln(row) }
+        rows.forEach { row: String -> rowCount++; appendLine(row) }
 
         // the bottom separator
         repeat(header.length) { append("-") }
-        appendln("$rowCount row(s)")
+        appendLine("$rowCount row(s)")
     }
 }
