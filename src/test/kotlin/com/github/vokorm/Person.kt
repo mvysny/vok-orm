@@ -30,14 +30,12 @@ data class Person(
 
 ) : KEntity<Long> {
 
-    override fun create(validate: Boolean) {
-        created = java.sql.Timestamp(System.currentTimeMillis())
-        modified = Instant.ofEpochMilli(1238123123L)
-        super.create(validate)
-    }
-
     override fun save(validate: Boolean) {
-        modified = Instant.ofEpochMilli(1238123123L)
+        if (id == null) {
+            if (created == null) created = java.sql.Timestamp(System.currentTimeMillis())
+            // otherwise we can't test 'search by `modified`'
+            if (modified == null) modified = Instant.ofEpochMilli(1238123123L)
+        }
         super.save(validate)
     }
 

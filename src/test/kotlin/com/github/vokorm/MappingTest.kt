@@ -25,8 +25,7 @@ class MappingTest : DynaTest({
             p.save()
             expect(true) { p.id != null }
             p.ignored2 = null
-            p.modified = p.modified!!.withZeroNanos
-            expectList(p) { Person.findAll() }
+            expectList(p.withZeroNanos()) { Person.findAll().map { it.withZeroNanos() } }
         }
         group("Person") {
             group("save") {
@@ -48,8 +47,7 @@ class MappingTest : DynaTest({
                             handle.createQuery("select maritalStatus from Test").map(FieldMapper.of(Foo::class.java)).list().map { it.maritalStatus }
                         }
                     }
-                    p.modified = p.modified!!.withZeroNanos
-                    expect(p) { db { Person.findAll()[0] } }
+                    expect(p.withZeroNanos()) { db { Person.findAll()[0].withZeroNanos() } }
                 }
                 test("SaveLocalDate") {
                     val p = Person(name = "Zaphod", age = 42, dateOfBirth = LocalDate.of(1990, 1, 14))
