@@ -34,7 +34,7 @@ class DBTest : DynaTest({
                     }
                 }
             }
-            expect(listOf(person)) { db { Person.findAll() } }
+            expect(listOf(person.withZeroNanos())) { db { Person.findAll().map { it.withZeroNanos() } } }
         }
         test("exceptionRollsBackInNestedDbBlocks") {
             expectThrows(IOException::class) {

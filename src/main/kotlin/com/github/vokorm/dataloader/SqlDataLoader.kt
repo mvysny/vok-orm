@@ -6,6 +6,7 @@ import com.github.mvysny.vokdataloader.SortClause
 import com.github.vokorm.*
 import com.gitlab.mvysny.jdbiorm.DaoOfAny
 import com.gitlab.mvysny.jdbiorm.JdbiOrm
+import com.gitlab.mvysny.jdbiorm.quirks.DatabaseVariant
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.statement.Query
 
@@ -46,7 +47,20 @@ import org.jdbi.v3.core.statement.Query
  *
  * The database column name is mapped 1:1 to the Java Bean Property Name. If you however use `UPPER_UNDERSCORE` naming scheme
  * in your database, you can map it to `camelCase` using the [org.jdbi.v3.core.mapper.reflect.ColumnName] annotation.
-
+ *
+ * ## Database-specific notes
+ *
+ * ### Microsoft SQL
+ *
+ * MSSQL doesn't really like the `order by 1=1` hence you should replace that by `order by (select 1)`.
+ *
+ * MSSQL can't execute `SELECT count(*) FROM (... order by)` unless TOP is used: see [sql-error-in-subquery](https://stackoverflow.com/questions/985921/sql-error-with-order-by-in-subquery/2437298)
+ * for more details. Therefore make sure to use `TOP 2147483647` in your queries, as follows:
+ * `select TOP 2147483647 p.id, p.name from Test p where...`.
+ *
+ * MSSQL however can't paginate when the `TOP` clause is present. That's why [sqlPostProcessor] will remove the `TOP` clause
+ * on non-count queries on MSSQL by default.
+ *
  * @param dao loads instances of [T]
  * @param sql the select which can map into the holder class (that is, it selects columns whose names match the holder class fields). It should contain
  * `{{WHERE}}`, `{{ORDER}}` and `{{PAGING}}` strings which will be replaced by a simple substring replacement.
@@ -54,9 +68,28 @@ import org.jdbi.v3.core.statement.Query
  * @param T the type of the holder class.
  * @author mavi
  */
-public class SqlDataLoader<T: Any>(public val dao: DaoOfAny<T>, public val sql: String, public val params: Map<String, Any?> = mapOf()) : DataLoader<T> {
+public class SqlDataLoader<T: Any>(
+        public val dao: DaoOfAny<T>,
+        public val sql: String,
+        public val params: Map<String, Any?> = mapOf()
+) : DataLoader<T> {
+
     public val clazz: Class<T> get() = dao.entityClass
+
+    /**
+     * Post-processes the SQL before it's being run. By default simply returns the `sql` itself unmodified;
+     * however on MSSQL removes the `TOP 2147483647` clause on non-count queries.
+     */
+    public var sqlPostProcessor: (sql: String, isCountQuery: Boolean) -> String = { sql, isCountQuery ->
+        if (JdbiOrm.databaseVariant == DatabaseVariant.MSSQL && !isCountQuery) {
+            sql.replace("TOP 2147483647", "", true)
+        } else {
+            sql
+        }
+    }
+
     public constructor(clazz: Class<T>, sql: String, params: Map<String, Any?> = mapOf()) : this(DaoOfAny<T>(clazz), sql, params)
+
     override fun toString(): String = "SqlDataLoader($clazz:$sql($params))"
 
     override fun getCount(filter: Filter<T>?): Long = db {
@@ -104,6 +137,7 @@ public class SqlDataLoader<T: Any>(public val dao: DaoOfAny<T>, public val sql: 
         }
 
         var s: String = sql.replace("{{WHERE}}", where).replace("{{ORDER}}", orderBy).replace("{{PAGING}}", paging)
+        s = sqlPostProcessor(s, isCountQuery)
 
         // the count was obtained by a dirty trick - the ResultSet was simply scrolled to the last line and the row number is obtained.
         // however, PostgreSQL doesn't seem to like this: https://github.com/mvysny/vaadin-on-kotlin/issues/19

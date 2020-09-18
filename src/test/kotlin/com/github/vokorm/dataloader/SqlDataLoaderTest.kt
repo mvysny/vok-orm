@@ -8,6 +8,7 @@ import com.github.mvysny.vokdataloader.SortClause
 import com.github.mvysny.vokdataloader.buildFilter
 import com.github.vokorm.*
 import com.gitlab.mvysny.jdbiorm.Table
+import com.gitlab.mvysny.jdbiorm.quirks.DatabaseVariant
 import org.jdbi.v3.core.mapper.reflect.ColumnName
 import kotlin.test.expect
 
@@ -23,13 +24,15 @@ class SqlDataLoaderTest : DynaTest({
         dp.serializeToBytes()
     }
 
-    withAllDatabases {
+    withAllDatabases { info ->
         val nameAsc: List<SortClause> = listOf("name".asc)
         val nameDesc: List<SortClause> = listOf("name".desc)
+        val top: String = if (info.variant == DatabaseVariant.MSSQL) "TOP 2147483647" else ""
+        val orderBy: String = if (info.variant == DatabaseVariant.MSSQL) "(select 1)" else "1=1"
 
         test("EmptyDataProvider") {
             val dp: SqlDataLoader<SelectResult> = SqlDataLoader(SelectResult::class.java,
-                """select p.id as id, p.name as name from ${Person.meta.databaseTableName} p where 1=1 {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}""")
+                """select $top p.id as id, p.name as name from ${Person.meta.databaseTableName} p where 1=1 {{WHERE}} order by $orderBy{{ORDER}} {{PAGING}}""")
 
             expect(0) { dp.getCount() }
             expectList() { dp.fetch() }
@@ -52,7 +55,7 @@ class SqlDataLoaderTest : DynaTest({
         test("overwriting parameters is forbidden") {
             expectThrows(IllegalArgumentException::class) {
                 val dp = SqlDataLoader(SelectResult::class.java,
-                    """select p.id as id, p.name as name from ${Person.meta.databaseTableName} p where age > :age {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}""",
+                    """select $top p.id as id, p.name as name from ${Person.meta.databaseTableName} p where age > :age {{WHERE}} order by $orderBy{{ORDER}} {{PAGING}}""",
                     mapOf("age" to 25))
                 val f = buildFilter<SelectResult> { "age<:age"("age" to 48) }
                 // this must fail because the filter also introduces parameter "age" which is already introduced in the SqlDataLoader
@@ -63,7 +66,7 @@ class SqlDataLoaderTest : DynaTest({
         test("parametrized DP") {
             db { (0..50).forEach { Person(name = "name $it", age = it).save() } }
             val dp = SqlDataLoader(SelectResult::class.java,
-                """select p.id as id, p.name as name from ${Person.meta.databaseTableName} p where age > :age {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}""",
+                """select $top p.id as id, p.name as name from ${Person.meta.databaseTableName} p where age > :age {{WHERE}} order by $orderBy{{ORDER}} {{PAGING}}""",
                 mapOf("age" to 25))
             val f = buildFilter<SelectResult> { "age<:age_f"("age_f" to 48) }
             expect(25) { dp.getCount() }
@@ -90,7 +93,7 @@ class SqlDataLoaderTest : DynaTest({
             db { (0..49).forEach { Person(name = "name $it", age = it).save() } }
             val loader = SqlDataLoader(
                 SelectResult2::class.java,
-                "select p.name from Test p where 1=1 {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}"
+                "select $top p.name from Test p where 1=1 {{WHERE}} order by $orderBy{{ORDER}} {{PAGING}}"
             )
             expect(50) { loader.getCount(null) }
             expect(1) { loader.getCount(buildFilter { SelectResult2::personName eq "name 20" })}

@@ -270,11 +270,11 @@ private fun DynaNodeGroup.usingDockerizedMSSQL() {
                 maritalStatus varchar(200)
                  )"""
             )
-            ddl("CREATE UNIQUE INDEX ui_ukDoc ON Test(name);")
             // unfortunately the default Docker image doesn't support the FULLTEXT index:
             // https://stackoverflow.com/questions/60489784/installing-mssql-server-express-using-docker-with-full-text-search-support
             // just skip the tests for now
 /*
+            ddl("CREATE UNIQUE INDEX ui_ukDoc ON Test(name);")
             ddl("""CREATE FULLTEXT INDEX ON Test
 (  
     Test                         --Full-text index column name   
