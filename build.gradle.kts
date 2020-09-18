@@ -17,7 +17,7 @@ plugins {
     kotlin("jvm") version "1.4.10"
     id("com.jfrog.bintray") version "1.8.3"
     `maven-publish`
-    id("org.jetbrains.dokka") version "0.9.17"
+    id("org.jetbrains.dokka") version "1.4.0-rc"
 }
 
 defaultTasks("clean", "build")
@@ -26,7 +26,7 @@ group = "com.github.mvysny.vokorm"
 version = "1.4-SNAPSHOT"
 
 repositories {
-    mavenCentral()
+    jcenter() // dokka is not in mavenCentral()
 }
 
 tasks.withType<KotlinCompile> {
@@ -78,12 +78,8 @@ val sourceJar = task("sourceJar", Jar::class) {
 }
 
 val javadocJar = task("javadocJar", Jar::class) {
-    val javadoc = tasks["dokka"] as DokkaTask
-    javadoc.outputFormat = "javadoc"
-    javadoc.outputDirectory = "$buildDir/javadoc"
-    dependsOn(javadoc)
+    from(tasks["dokkaJavadoc"])
     archiveClassifier.set("javadoc")
-    from(javadoc.outputDirectory)
 }
 
 publishing {
