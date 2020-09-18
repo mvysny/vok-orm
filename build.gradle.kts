@@ -23,7 +23,7 @@ plugins {
 defaultTasks("clean", "build")
 
 group = "com.github.mvysny.vokorm"
-version = "1.4-SNAPSHOT"
+version = "1.4"
 
 repositories {
     jcenter() // dokka is not in mavenCentral()
