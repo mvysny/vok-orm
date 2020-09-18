@@ -1,8 +1,8 @@
 package com.github.vokorm
 
 import com.github.mvysny.vokdataloader.*
-import com.github.vokorm.dataloader.toNativeColumnName
 import com.gitlab.mvysny.jdbiorm.EntityMeta
+import com.gitlab.mvysny.jdbiorm.quirks.DatabaseVariant
 import org.jdbi.v3.core.statement.SqlStatement
 
 /**
@@ -34,7 +34,7 @@ public interface FilterToSqlConverter {
      * @param clazz the entity type for which the filter has been produced.
      * @return a converted filter or null if the filter is blank (e.g. full-text filter with just a space as input).
      */
-    public fun convert(filter: Filter<*>, clazz: Class<*>): ParametrizedSql
+    public fun convert(filter: Filter<*>, clazz: Class<*>, variant: DatabaseVariant): ParametrizedSql
 }
 
 /**
@@ -49,10 +49,11 @@ public interface FilterToSqlConverter {
  *
  * To override the behavior of this function, set a different converter to [VokOrm.filterToSqlConverter].
  */
-public fun Filter<*>.toParametrizedSql(clazz: Class<*>): ParametrizedSql = VokOrm.filterToSqlConverter.convert(this, clazz)
+public fun Filter<*>.toParametrizedSql(clazz: Class<*>, variant: DatabaseVariant): ParametrizedSql =
+        VokOrm.filterToSqlConverter.convert(this, clazz, variant)
 
 public class DefaultFilterToSqlConverter : FilterToSqlConverter {
-    override fun convert(filter: Filter<*>, clazz: Class<*>): ParametrizedSql {
+    override fun convert(filter: Filter<*>, clazz: Class<*>, variant: DatabaseVariant): ParametrizedSql {
         val databaseColumnName: String = if (filter is BeanFilter) filter.propertyName.toNativeColumnName(clazz) else ""
         val parameterName = "p${System.identityHashCode(filter).toString(36)}"
         return when (filter) {
@@ -62,14 +63,14 @@ public class DefaultFilterToSqlConverter : FilterToSqlConverter {
             is IsNotNullFilter -> ParametrizedSql("$databaseColumnName is not null", mapOf())
             is StartsWithFilter -> ParametrizedSql("$databaseColumnName ${if (filter.ignoreCase) "ILIKE" else "LIKE"} :$parameterName", mapOf(parameterName to "${filter.value}%"))
             is AndFilter -> {
-                val c: List<ParametrizedSql> = filter.children.map { it.toParametrizedSql(clazz) }
+                val c: List<ParametrizedSql> = filter.children.map { it.toParametrizedSql(clazz, variant) }
                 val sql92: String = c.joinToString(" and ", "(", ")") { it.sql92 }
                 val map: MutableMap<String, Any?> = mutableMapOf()
                 c.forEach { map.putAll(it.sql92Parameters) }
                 ParametrizedSql(sql92, map)
             }
             is OrFilter -> {
-                val c: List<ParametrizedSql> = filter.children.map { it.toParametrizedSql(clazz) }
+                val c: List<ParametrizedSql> = filter.children.map { it.toParametrizedSql(clazz, variant) }
                 val sql92: String = c.joinToString(" or ", "(", ")") { it.sql92 }
                 val map: MutableMap<String, Any?> = mutableMapOf()
                 c.forEach { map.putAll(it.sql92Parameters) }
@@ -77,37 +78,41 @@ public class DefaultFilterToSqlConverter : FilterToSqlConverter {
             }
             is NativeSqlFilter -> ParametrizedSql(filter.where, filter.params)
             is SubstringFilter -> ParametrizedSql("$databaseColumnName ${if (filter.ignoreCase) "ILIKE" else "LIKE"} :$parameterName", mapOf(parameterName to "%${filter.value}%"))
-            is FullTextFilter -> convertFullTextFilter(filter, databaseColumnName, parameterName, clazz)
+            is FullTextFilter -> convertFullTextFilter(filter, databaseColumnName, parameterName, clazz, variant)
             else -> throw IllegalArgumentException("Unsupported: cannot convert filter $filter to SQL92. Please provide a custom VokOrm.filterToSqlConverter which supports this filter type")
         }
     }
 
     public fun convertFullTextFilter(filter: FullTextFilter<*>, databaseColumnName: String,
-                              parameterName: String, clazz: Class<*>): ParametrizedSql {
+                              parameterName: String, clazz: Class<*>, databaseVariant: DatabaseVariant): ParametrizedSql {
         if (filter.words.isEmpty()) {
             return MATCH_ALL
         }
-        val databaseVariant: DatabaseVariant = VokOrm.databaseVariant
-        return if (databaseVariant == DatabaseVariant.MySQLMariaDB) {
-            val booleanQuery: String = toMySQLFulltextBooleanQuery(filter.words)
-            if (booleanQuery.isBlank()) {
-                return MATCH_ALL
+        return when (databaseVariant) {
+            DatabaseVariant.MySQLMariaDB -> {
+                val booleanQuery: String = toMySQLFulltextBooleanQuery(filter.words)
+                if (booleanQuery.isBlank()) {
+                    return MATCH_ALL
+                }
+                ParametrizedSql("MATCH($databaseColumnName) AGAINST (:$parameterName IN BOOLEAN MODE)",
+                        mapOf(parameterName to booleanQuery))
             }
-            ParametrizedSql("MATCH($databaseColumnName) AGAINST (:$parameterName IN BOOLEAN MODE)",
-                    mapOf(parameterName to booleanQuery))
-        } else if (databaseVariant == DatabaseVariant.PostgreSQL) {
-            // see https://www.postgresql.org/docs/9.5/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES for more documentation
-            ParametrizedSql("to_tsvector('english', $databaseColumnName) @@ to_tsquery('english', :$parameterName)",
-                    mapOf(parameterName to filter.words.joinToString(" & ") { "$it:*" }))
-        } else if (databaseVariant == DatabaseVariant.H2) {
-            val meta: EntityMeta<*> = EntityMeta(clazz)
-            val idColumn: String = meta.idProperty[0].dbColumnName
-            val query: String = filter.words.joinToString(" AND ") { "$it*" }
-            // Need to CAST(FT.KEYS[1] AS BIGINT) otherwise IN won't match anything
-            ParametrizedSql("$idColumn IN (SELECT CAST(FT.KEYS[1] AS BIGINT) AS ID FROM FTL_SEARCH_DATA(:$parameterName, 0, 0) FT WHERE FT.`TABLE`='${meta.databaseTableName.toUpperCase()}')",
-                    mapOf(parameterName to query))
-        } else {
-            throw IllegalArgumentException("Unsupported FullText search for variant $databaseVariant. Either set proper variant to VokOrm.databaseVariant, or provide custom VokOrm.filterToSqlConverter which supports proper full-text search syntax: $filter")
+            DatabaseVariant.PostgreSQL -> {
+                // see https://www.postgresql.org/docs/9.5/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES for more documentation
+                ParametrizedSql("to_tsvector('english', $databaseColumnName) @@ to_tsquery('english', :$parameterName)",
+                        mapOf(parameterName to filter.words.joinToString(" & ") { "$it:*" }))
+            }
+            DatabaseVariant.H2 -> {
+                val meta: EntityMeta<*> = EntityMeta(clazz)
+                val idColumn: String = meta.idProperty[0].dbColumnName
+                val query: String = filter.words.joinToString(" AND ") { "$it*" }
+                // Need to CAST(FT.KEYS[1] AS BIGINT) otherwise IN won't match anything
+                ParametrizedSql("$idColumn IN (SELECT CAST(FT.KEYS[1] AS BIGINT) AS ID FROM FTL_SEARCH_DATA(:$parameterName, 0, 0) FT WHERE FT.`TABLE`='${meta.databaseTableName.toUpperCase()}')",
+                        mapOf(parameterName to query))
+            }
+            else -> {
+                throw IllegalArgumentException("Unsupported FullText search for variant $databaseVariant. Either set proper variant to VokOrm.databaseVariant, or provide custom VokOrm.filterToSqlConverter which supports proper full-text search syntax: $filter")
+            }
         }
     }
 
@@ -151,11 +156,4 @@ public class DefaultFilterToSqlConverter : FilterToSqlConverter {
 public fun <T: SqlStatement<*>> T.bind(sql: ParametrizedSql): T {
     sql.sql92Parameters.entries.forEach { (name: NativePropertyName, value: Any?) -> bind(name, value) }
     return this
-}
-
-public enum class DatabaseVariant {
-    Unknown,
-    MySQLMariaDB,
-    PostgreSQL,
-    H2
 }

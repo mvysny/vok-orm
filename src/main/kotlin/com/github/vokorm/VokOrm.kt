@@ -8,7 +8,4 @@ package com.github.vokorm
 public object VokOrm {
     @Volatile
     public var filterToSqlConverter: FilterToSqlConverter = DefaultFilterToSqlConverter()
-
-    @Volatile
-    public var databaseVariant: DatabaseVariant = DatabaseVariant.Unknown
 }

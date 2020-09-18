@@ -14,7 +14,7 @@ if (localProperties.exists()) {
 }
 
 plugins {
-    kotlin("jvm") version "1.4.0"
+    kotlin("jvm") version "1.4.10"
     id("com.jfrog.bintray") version "1.8.3"
     `maven-publish`
     id("org.jetbrains.dokka") version "0.9.17"
@@ -36,7 +36,7 @@ tasks.withType<KotlinCompile> {
 dependencies {
     api(kotlin("stdlib-jdk8"))
     api("com.github.mvysny.vokdataloader:vok-dataloader:0.8")
-    api("com.gitlab.mvysny.jdbiorm:jdbi-orm:0.6")
+    api("com.gitlab.mvysny.jdbiorm:jdbi-orm:0.7")
 
     // logging
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
@@ -59,11 +59,13 @@ dependencies {
     testImplementation("org.postgresql:postgresql:42.2.5")
     testImplementation("mysql:mysql-connector-java:5.1.48")
     testImplementation("org.mariadb.jdbc:mariadb-java-client:2.4.0")
+    testImplementation("com.microsoft.sqlserver:mssql-jdbc:8.4.1.jre8")
 
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
     testImplementation("org.testcontainers:mysql:$testcontainersVersion")
     testImplementation("org.testcontainers:mariadb:$testcontainersVersion")
+    testImplementation("org.testcontainers:mssqlserver:$testcontainersVersion")
 
     // IDEA language injections
     testImplementation("com.intellij:annotations:12.0")

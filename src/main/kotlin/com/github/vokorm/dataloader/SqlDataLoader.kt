@@ -5,6 +5,8 @@ import com.github.mvysny.vokdataloader.Filter
 import com.github.mvysny.vokdataloader.SortClause
 import com.github.vokorm.*
 import com.gitlab.mvysny.jdbiorm.DaoOfAny
+import com.gitlab.mvysny.jdbiorm.JdbiOrm
+import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.statement.Query
 
 /**
@@ -58,8 +60,8 @@ public class SqlDataLoader<T: Any>(public val dao: DaoOfAny<T>, public val sql: 
     override fun toString(): String = "SqlDataLoader($clazz:$sql($params))"
 
     override fun getCount(filter: Filter<T>?): Long = db {
-        val sql: ParametrizedSql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
-        val q: Query = handle.createQuery(computeSQL(true, sql))
+        val sql: ParametrizedSql = filter?.toParametrizedSql(clazz, JdbiOrm.databaseVariant!!) ?: ParametrizedSql("", mapOf())
+        val q: Query = handle.createQuery(handle.computeSQL(true, sql))
         params.entries.forEach { (name, value) -> q.bind(name, value) }
         q.fillInParamsFromFilters(sql)
         val count: Long = q.mapTo(Long::class.java).one() ?: 0
@@ -67,8 +69,8 @@ public class SqlDataLoader<T: Any>(public val dao: DaoOfAny<T>, public val sql: 
     }
 
     override fun fetch(filter: Filter<T>?, sortBy: List<SortClause>, range: LongRange): List<T> = db {
-        val sql: ParametrizedSql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("", mapOf())
-        val q: Query = handle.createQuery(computeSQL(false, sql, sortBy, range))
+        val sql: ParametrizedSql = filter?.toParametrizedSql(clazz, JdbiOrm.databaseVariant!!) ?: ParametrizedSql("", mapOf())
+        val q: Query = handle.createQuery(handle.computeSQL(false, sql, sortBy, range))
         params.entries.forEach { (name, value) -> q.bind(name, value) }
         q.fillInParamsFromFilters(sql)
         q.map(dao.getRowMapper()).list()
@@ -85,18 +87,21 @@ public class SqlDataLoader<T: Any>(public val dao: DaoOfAny<T>, public val sql: 
     /**
      * Using [sql] as a template, computes the replacement strings for the `{{WHERE}}`, `{{ORDER}}` and `{{PAGING}}` replacement strings.
      */
-    private fun computeSQL(isCountQuery: Boolean, filter: ParametrizedSql, sortOrders: List<SortClause> = listOf(), range: LongRange = 0..Long.MAX_VALUE): String {
+    private fun Handle.computeSQL(isCountQuery: Boolean, filter: ParametrizedSql, sortOrders: List<SortClause> = listOf(), range: LongRange = 0..Long.MAX_VALUE): String {
         // compute the {{WHERE}} replacement
         var where: String = filter.sql92
         if (where.isNotBlank()) where = "and $where"
 
         // compute the {{ORDER}} replacement
-        var orderBy: String = if (isCountQuery) "" else sortOrders.toSql92OrderByClause()
+        var orderBy: String = (if (isCountQuery) "" else sortOrders.toSql92OrderByClause(clazz)) ?: ""
         if (orderBy.isNotBlank()) orderBy = ", $orderBy"
 
         // compute the {{PAGING}} replacement
-        // MariaDB requires LIMIT first, then OFFSET: https://mariadb.com/kb/en/library/limit/
-        val paging: String = if (!isCountQuery && range != 0..Long.MAX_VALUE) " LIMIT ${range.length.coerceAtMost(Int.MAX_VALUE.toLong())} OFFSET ${range.start}" else ""
+        val paging: String = if (!isCountQuery && range != 0..Long.MAX_VALUE) {
+            " " + quirks.offsetLimit(range.start.coerceAtMost(Int.MAX_VALUE.toLong()), range.length.coerceAtMost(Int.MAX_VALUE.toLong()))
+        } else {
+            ""
+        }
 
         var s: String = sql.replace("{{WHERE}}", where).replace("{{ORDER}}", orderBy).replace("{{PAGING}}", paging)
 
@@ -109,14 +114,4 @@ public class SqlDataLoader<T: Any>(public val dao: DaoOfAny<T>, public val sql: 
         }
         return s
     }
-
-    /**
-     * Converts [SortClause] to something like "name ASC".
-     */
-    private fun SortClause.toSql92OrderByClause(): String = "${propertyName.toNativeColumnName(clazz)} ${if (asc) "ASC" else "DESC"}"
-
-    /**
-     * Converts a list of [SortClause] to something like "name DESC, age ASC". If the list is empty, returns an empty string.
-     */
-    private fun List<SortClause>.toSql92OrderByClause(): String = joinToString { it.toSql92OrderByClause() }
 }

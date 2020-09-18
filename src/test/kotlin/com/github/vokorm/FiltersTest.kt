@@ -2,9 +2,8 @@ package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectList
-import com.github.mvysny.vokdataloader.Filter
-import com.github.mvysny.vokdataloader.FullTextFilter
-import com.github.mvysny.vokdataloader.SqlWhereBuilder
+import com.github.mvysny.vokdataloader.*
+import com.gitlab.mvysny.jdbiorm.quirks.DatabaseVariant
 import kotlin.test.expect
 
 class FiltersTest : DynaTest({
@@ -16,7 +15,7 @@ class FiltersTest : DynaTest({
     }
     fun sql(block: SqlWhereBuilder<Person>.()-> Filter<Person>): String {
         val filter: Filter<Person> = block(SqlWhereBuilder(Person::class.java))
-        return unmangleParameterNames(filter.toParametrizedSql(Person::class.java))
+        return unmangleParameterNames(filter.toParametrizedSql(Person::class.java, DatabaseVariant.Unknown))
     }
 
     test("ToSQL92") {
@@ -26,6 +25,10 @@ class FiltersTest : DynaTest({
     }
 
     withAllDatabases {
+        test("api test") {
+            Person.findAll(Person::age.asc, Person::created.desc)
+            Person.findAllBy(Person::age.asc, Person::created.desc, filter = FullTextFilter<Person>("name", ""))
+        }
         group("full-text search") {
             test("smoke test") {
                 Person.findAllBy(filter = FullTextFilter<Person>("name", ""))

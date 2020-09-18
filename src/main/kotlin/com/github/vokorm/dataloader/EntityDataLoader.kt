@@ -4,8 +4,7 @@ import com.github.mvysny.vokdataloader.*
 import com.github.vokorm.*
 import com.gitlab.mvysny.jdbiorm.Dao
 import com.gitlab.mvysny.jdbiorm.Entity
-import com.gitlab.mvysny.jdbiorm.EntityMeta
-import com.gitlab.mvysny.jdbiorm.PropertyMeta
+import com.gitlab.mvysny.jdbiorm.JdbiOrm
 import com.gitlab.mvysny.jdbiorm.spi.AbstractEntity
 
 /**
@@ -32,15 +31,13 @@ public class EntityDataLoader<T : AbstractEntity<*>>(public val dao: Dao<T, *>) 
         require(range.first >= 0) { "range.start: ${range.first} must be 0 or more" }
         require(range.last >= 0) { "limit: ${range.last} must be 0 or more" }
 
-        val sqlw: ParametrizedSql = filter?.toParametrizedSql(clazz) ?: ParametrizedSql("1=1", mapOf())
-        val orderBy: String = sortBy.joinToString { "${it.getNativeColumnName(clazz)} ${if (it.asc) "ASC" else "DESC"}" }
-        var where: String = sqlw.sql92
-        if (orderBy.isNotBlank()) {
-            where += " order by $orderBy"
-        }
+        val sqlw: ParametrizedSql = filter?.toParametrizedSql(clazz, JdbiOrm.databaseVariant!!) ?: ParametrizedSql("1=1", mapOf())
+        val orderBy: String? = sortBy.toSql92OrderByClause(clazz)
+        val where: String = sqlw.sql92
+
         val limit: Long? = if (range != (0L..Long.MAX_VALUE)) range.length.coerceAtMost(Int.MAX_VALUE.toLong()) else null
         val offset: Long? = if (range != (0L..Long.MAX_VALUE)) range.first else null
-        return dao.findAllBy(where, offset, limit) { query -> query.bind(sqlw) }
+        return dao.findAllBy(where, orderBy, offset, limit) { query -> query.bind(sqlw) }
     }
 }
 
@@ -48,17 +45,6 @@ public fun <T: AbstractEntity<ID>, ID> EntityDataLoader(clazz: Class<T>): Entity
         EntityDataLoader(Dao<T, ID>(clazz))
 
 public val LongRange.length: Long get() = if (isEmpty()) 0 else endInclusive - start + 1
-
-/**
- * Converts the data loader property name to underlying database column name. However, if there is no such
- * property then it assumes that the data loader property name is already the column name and simply returns this.
- */
-internal fun DataLoaderPropertyName.toNativeColumnName(clazz: Class<*>): NativePropertyName {
-    val property: PropertyMeta = EntityMeta(clazz).properties.firstOrNull { it.name == this } ?: return this
-    return property.dbColumnName
-}
-
-internal fun SortClause.getNativeColumnName(clazz: Class<*>): NativePropertyName = propertyName.toNativeColumnName(clazz)
 
 /**
  * Provides instances of this entity from a database. Does not support joins on any of the like; supports filtering
