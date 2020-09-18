@@ -110,8 +110,13 @@ public class DefaultFilterToSqlConverter : FilterToSqlConverter {
                 ParametrizedSql("$idColumn IN (SELECT CAST(FT.KEYS[1] AS BIGINT) AS ID FROM FTL_SEARCH_DATA(:$parameterName, 0, 0) FT WHERE FT.`TABLE`='${meta.databaseTableName.toUpperCase()}')",
                         mapOf(parameterName to query))
             }
+            DatabaseVariant.MSSQL -> {
+                val query: String = filter.words.joinToString { "\"$it*\"" }
+                ParametrizedSql("CONTAINS($databaseColumnName, :$parameterName)",
+                        mapOf(parameterName to query))
+            }
             else -> {
-                throw IllegalArgumentException("Unsupported FullText search for variant $databaseVariant. Either set proper variant to VokOrm.databaseVariant, or provide custom VokOrm.filterToSqlConverter which supports proper full-text search syntax: $filter")
+                throw IllegalArgumentException("Unsupported FullText search for variant $databaseVariant. Either set proper variant to JdbiOrm.databaseVariant, or provide custom VokOrm.filterToSqlConverter which supports proper full-text search syntax: $filter")
             }
         }
     }

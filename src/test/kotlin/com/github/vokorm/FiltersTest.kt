@@ -3,6 +3,7 @@ package com.github.vokorm
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectList
 import com.github.mvysny.vokdataloader.*
+import com.gitlab.mvysny.jdbiorm.JdbiOrm
 import com.gitlab.mvysny.jdbiorm.quirks.DatabaseVariant
 import kotlin.test.expect
 
@@ -24,38 +25,45 @@ class FiltersTest : DynaTest({
         expect("((age >= :25 and age <= :50) or alive = :true)") { sql { (Person::age between 25..50) or (Person::isAlive25 eq true) } }
     }
 
-    withAllDatabases {
+    withAllDatabases { info ->
         test("api test") {
             Person.findAll(Person::age.asc, Person::created.desc)
             Person.findAllBy(Person::age.asc, Person::created.desc, filter = FullTextFilter<Person>("name", ""))
         }
         group("full-text search") {
-            test("smoke test") {
-                Person.findAllBy(filter = FullTextFilter<Person>("name", ""))
-                Person.findAllBy(filter = FullTextFilter<Person>("name", "a"))
-                Person.findAllBy(filter = FullTextFilter<Person>("name", "the"))
-                Person.findAllBy(filter = FullTextFilter<Person>("name", "Moby"))
+
+            test("construct sql succeeds") {
+                FullTextFilter<Person>("name", "").toParametrizedSql(Person::class.java, JdbiOrm.databaseVariant!!)
             }
 
-            test("blank filter matches all records") {
-                val moby = Person(name = "Moby")
-                moby.create()
-                expectList(moby) { Person.findAllBy(filter = FullTextFilter<Person>("name", "")) }
-            }
+            if (info.variant.supportsFullText) {
+                test("smoke test") {
+                    Person.findAllBy(filter = FullTextFilter<Person>("name", ""))
+                    Person.findAllBy(filter = FullTextFilter<Person>("name", "a"))
+                    Person.findAllBy(filter = FullTextFilter<Person>("name", "the"))
+                    Person.findAllBy(filter = FullTextFilter<Person>("name", "Moby"))
+                }
 
-            test("various queries matching/not matching Moby") {
-                val moby = Person(name = "Moby")
-                moby.create()
-                expectList() { Person.findAllBy(filter = FullTextFilter<Person>("name", "foo")) }
-                expectList(moby) { Person.findAllBy(filter = FullTextFilter<Person>("name", "Moby")) }
-                expectList() { Person.findAllBy(filter = FullTextFilter<Person>("name", "Jerry")) }
-                expectList() { Person.findAllBy(filter = FullTextFilter<Person>("name", "Jerry Moby")) }
-            }
+                test("blank filter matches all records") {
+                    val moby = Person(name = "Moby")
+                    moby.create()
+                    expectList(moby) { Person.findAllBy(filter = FullTextFilter<Person>("name", "")) }
+                }
 
-            test("partial match") {
-                val moby = Person(name = "Moby")
-                moby.create()
-                expectList(moby) { Person.findAllBy(filter = FullTextFilter<Person>("name", "Mob")) }
+                test("various queries matching/not matching Moby") {
+                    val moby = Person(name = "Moby")
+                    moby.create()
+                    expectList() { Person.findAllBy(filter = FullTextFilter<Person>("name", "foo")) }
+                    expectList(moby) { Person.findAllBy(filter = FullTextFilter<Person>("name", "Moby")) }
+                    expectList() { Person.findAllBy(filter = FullTextFilter<Person>("name", "Jerry")) }
+                    expectList() { Person.findAllBy(filter = FullTextFilter<Person>("name", "Jerry Moby")) }
+                }
+
+                test("partial match") {
+                    val moby = Person(name = "Moby")
+                    moby.create()
+                    expectList(moby) { Person.findAllBy(filter = FullTextFilter<Person>("name", "Mob")) }
+                }
             }
         }
     }

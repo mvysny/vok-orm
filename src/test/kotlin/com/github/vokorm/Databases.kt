@@ -2,6 +2,7 @@ package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaNodeGroup
 import com.gitlab.mvysny.jdbiorm.*
+import com.gitlab.mvysny.jdbiorm.quirks.DatabaseVariant
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.intellij.lang.annotations.Language
@@ -269,6 +270,21 @@ private fun DynaNodeGroup.usingDockerizedMSSQL() {
                 maritalStatus varchar(200)
                  )"""
             )
+            ddl("CREATE UNIQUE INDEX ui_ukDoc ON Test(name);")
+            // unfortunately the default Docker image doesn't support the FULLTEXT index:
+            // https://stackoverflow.com/questions/60489784/installing-mssql-server-express-using-docker-with-full-text-search-support
+            // just skip the tests for now
+/*
+            ddl("""CREATE FULLTEXT INDEX ON Test
+(  
+    Test                         --Full-text index column name   
+        TYPE COLUMN name    --Name of column that contains file type information  
+        Language 2057                 --2057 is the LCID for British English  
+)  
+KEY INDEX ui_ukDoc ON AdvWksDocFTCat --Unique index  
+WITH CHANGE_TRACKING AUTO            --Population type;  """)
+*/
+
             ddl("""create table EntityWithAliasedId(myid bigint primary key IDENTITY(1,1) not null, name varchar(400) not null)""")
             ddl("""create table NaturalPerson(id varchar(10) primary key not null, name varchar(400) not null, bytes binary(16) not null)""")
             ddl("""create table LogRecord(id uniqueidentifier primary key not null, text varchar(400) not null)""")
@@ -283,34 +299,40 @@ private fun DynaNodeGroup.usingDockerizedMSSQL() {
     afterEach { clearDb() }
 }
 
-fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.()->Unit) {
+fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.(DatabaseInfo)->Unit) {
     group("H2") {
         usingH2Database()
-        block()
+        block(DatabaseInfo(DatabaseVariant.H2))
     }
 
     if (DockerClientFactory.instance().isDockerAvailable) {
         println("Docker is available, running PostgreSQL/MySQL/MariaDB tests")
         group("PostgreSQL 10.3") {
             usingDockerizedPosgresql()
-            block()
+            block(DatabaseInfo(DatabaseVariant.PostgreSQL))
         }
 
         group("MySQL 5.7.21") {
             usingDockerizedMysql()
-            block()
+            block(DatabaseInfo(DatabaseVariant.MySQLMariaDB))
         }
 
         group("MariaDB 10.1.31") {
             usingDockerizedMariaDB()
-            block()
+            block(DatabaseInfo(DatabaseVariant.MySQLMariaDB))
         }
 
         group("MSSQL 2017 Express") {
             usingDockerizedMSSQL()
-            block()
+            block(DatabaseInfo(DatabaseVariant.MSSQL))
         }
     } else {
         println("Docker is not available, not running PostgreSQL/MySQL/MariaDB tests")
     }
 }
+
+// unfortunately the default Docker image doesn't support the FULLTEXT index:
+// https://stackoverflow.com/questions/60489784/installing-mssql-server-express-using-docker-with-full-text-search-support
+val DatabaseVariant.supportsFullText: Boolean get() = this != DatabaseVariant.MSSQL
+
+data class DatabaseInfo(val variant: DatabaseVariant)
