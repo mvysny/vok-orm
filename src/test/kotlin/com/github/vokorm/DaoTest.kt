@@ -13,12 +13,12 @@ class DaoTest : DynaTest({
         group("Person") {
             test("FindById") {
                 expect(null) { Person.findById(25) }
-                val p = Person(name = "Albedo", age = 130)
+                val p = Person(name = "Albedo", age = 121)
                 p.save()
                 expect(p.withZeroNanos()) { Person.findById(p.id!!)?.withZeroNanos() }
             }
             test("GetById") {
-                val p = Person(name = "Albedo", age = 130)
+                val p = Person(name = "Albedo", age = 122)
                 p.save()
                 expect(p.withZeroNanos()) { Person.getById(p.id!!).withZeroNanos() }
             }
@@ -29,7 +29,7 @@ class DaoTest : DynaTest({
             }
             group("getOneBy() tests") {
                 test("succeeds if there is exactly one matching entity") {
-                    val p = Person(name = "Albedo", age = 130)
+                    val p = Person(name = "Albedo", age = 123)
                     p.save()
                     expect(p.withZeroNanos()) { Person.getOneBy { Person::name eq "Albedo" } .withZeroNanos() }
                 }
@@ -41,14 +41,14 @@ class DaoTest : DynaTest({
                 }
 
                 test("fails if there are two matching entities") {
-                    repeat(2) { Person(name = "Albedo", age = 130).save() }
+                    repeat(2) { Person(name = "Albedo", age = 124).save() }
                     expectThrows(IllegalStateException::class, message = "too many rows matching Person: 'name = ") {
                         Person.getOneBy { Person::name eq "Albedo" }
                     }
                 }
 
                 test("fails if there are ten matching entities") {
-                    repeat(10) { Person(name = "Albedo", age = 130).save() }
+                    repeat(10) { Person(name = "Albedo", age = 125).save() }
                     expectThrows(IllegalStateException::class, message = "too many rows matching Person: 'name = ") {
                         Person.getOneBy { Person::name eq "Albedo" }
                     }
@@ -57,7 +57,7 @@ class DaoTest : DynaTest({
             group("count") {
                 test("basic count") {
                     expect(0) { Person.count() }
-                    listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 130).save() }
+                    listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 126).save() }
                     expect(3) { Person.count() }
                 }
                 test("count with filters") {
@@ -67,14 +67,14 @@ class DaoTest : DynaTest({
                 }
             }
             test("DeleteAll") {
-                listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 130).save() }
+                listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 127).save() }
                 expect(3) { Person.count() }
                 Person.deleteAll()
                 expect(0) { Person.count() }
             }
             group("DeleteById") {
                 test("simple") {
-                    listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 130).save() }
+                    listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 128).save() }
                     expect(3) { Person.count() }
                     Person.deleteById(Person.findAll().first { it.name == "Albedo" }.id!!)
                     expect(listOf("Nigredo", "Rubedo")) { Person.findAll().map { it.name } }
@@ -85,7 +85,7 @@ class DaoTest : DynaTest({
                 }
             }
             test("DeleteBy") {
-                listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 130).save() }
+                listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 129).save() }
                 Person.deleteBy { "name = :name"("name" to "Albedo") }  // raw sql where
                 expect(listOf("Nigredo", "Rubedo")) { Person.findAll().map { it.name } }
                 Person.deleteBy { Person::name eq "Rubedo" }  // fancy type-safe criteria
@@ -103,21 +103,21 @@ class DaoTest : DynaTest({
                 }
 
                 test("fails if there are two matching entities") {
-                    repeat(2) { Person(name = "Albedo", age = 130).save() }
+                    repeat(2) { Person(name = "Albedo", age = 131).save() }
                     expectThrows(IllegalStateException::class, "too many rows matching Person: 'name = ") {
                         Person.findOneBy { Person::name eq "Albedo" }
                     }
                 }
 
                 test("fails if there are ten matching entities") {
-                    repeat(10) { Person(name = "Albedo", age = 130).save() }
+                    repeat(10) { Person(name = "Albedo", age = 132).save() }
                     expectThrows(IllegalStateException::class, "too many rows matching Person: 'name = ") {
                         Person.findOneBy { Person::name eq "Albedo" }
                     }
                 }
 
                 test("test filter by date") {
-                    val p = Person(name = "Albedo", age = 130, dateOfBirth = LocalDate.of(1980, 2, 2))
+                    val p = Person(name = "Albedo", age = 133, dateOfBirth = LocalDate.of(1980, 2, 2))
                     p.save()
                     expect(p.withZeroNanos()) { Person.findOneBy { Person::dateOfBirth eq LocalDate.of(1980, 2, 2) } ?.withZeroNanos() }
                     // here I don't care about whether it selects something or not, I'm only testing the database compatibility
@@ -132,14 +132,14 @@ class DaoTest : DynaTest({
                     expect(false) { Person.existsBy { Person::age le 26 } }
                 }
                 test("returns true on matching entity") {
-                    val p = Person(name = "Albedo", age = 130)
+                    val p = Person(name = "Albedo", age = 134)
                     p.save()
                     expect(true) { Person.existsAny() }
                     expect(true) { Person.existsById(p.id!!) }
                     expect(true) { Person.existsBy { Person::age ge 26 } }
                 }
                 test("returns false on non-matching entity") {
-                    val p = Person(name = "Albedo", age = 130)
+                    val p = Person(name = "Albedo", age = 135)
                     p.save()
                     expect(true) { Person.existsAny() }
                     expect(false) { Person.existsById(p.id!! + 1) }
@@ -147,7 +147,7 @@ class DaoTest : DynaTest({
                 }
             }
             test("sql92 filter works") {
-                val p = Person(name = "Albedo", age = 130, dateOfBirth = LocalDate.of(1980, 2, 2), isAlive25 = true)
+                val p = Person(name = "Albedo", age = 136, dateOfBirth = LocalDate.of(1980, 2, 2), isAlive25 = true)
                 p.save()
                 expect(p.withZeroNanos()) { db { Person.findOneBy(EqFilter("alive", true))?.withZeroNanos() } }
             }
