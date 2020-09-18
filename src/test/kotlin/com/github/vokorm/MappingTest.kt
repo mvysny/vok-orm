@@ -9,6 +9,7 @@ import com.google.gson.Gson
 import org.jdbi.v3.core.mapper.reflect.FieldMapper
 import java.lang.IllegalStateException
 import java.lang.Long
+import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoField
@@ -185,5 +186,12 @@ class MappingTest : DynaTest({
     }
 })
 
-val Instant.withZeroNanos: Instant get() = with(ChronoField.NANO_OF_SECOND, get(ChronoField.MILLI_OF_SECOND).toLong() * 1000000)
+// MSSQL nulls out millis for some reason when running on CI
+val Date.withZeroMillis: Date get() {
+    val result = Timestamp((this as Timestamp).time / 1000 * 1000)
+    result.nanos = 0
+    return result
+}
+
+val Instant.withZeroNanos: Instant get() = Instant.ofEpochMilli(toEpochMilli())
 val <T> Array<T>.plusNull: List<T?> get() = toList<T?>() + listOf(null)

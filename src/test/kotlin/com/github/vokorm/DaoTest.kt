@@ -15,14 +15,12 @@ class DaoTest : DynaTest({
                 expect(null) { Person.findById(25) }
                 val p = Person(name = "Albedo", age = 130)
                 p.save()
-                p.modified = p.modified!!.withZeroNanos
-                expect(p) { Person.findById(p.id!!) }
+                expect(p.withZeroNanos()) { Person.findById(p.id!!)?.withZeroNanos() }
             }
             test("GetById") {
                 val p = Person(name = "Albedo", age = 130)
                 p.save()
-                p.modified = p.modified!!.withZeroNanos
-                expect(p) { Person.getById(p.id!!) }
+                expect(p.withZeroNanos()) { Person.getById(p.id!!).withZeroNanos() }
             }
             test("GetById fails if there is no such entity") {
                 expectThrows(IllegalStateException::class, message = "There is no Person for id 25") {
@@ -33,8 +31,7 @@ class DaoTest : DynaTest({
                 test("succeeds if there is exactly one matching entity") {
                     val p = Person(name = "Albedo", age = 130)
                     p.save()
-                    p.modified = p.modified!!.withZeroNanos
-                    expect(p) { Person.getOneBy { Person::name eq "Albedo" } }
+                    expect(p.withZeroNanos()) { Person.getOneBy { Person::name eq "Albedo" } .withZeroNanos() }
                 }
 
                 test("fails if there is no such entity") {
@@ -98,8 +95,7 @@ class DaoTest : DynaTest({
                 test("succeeds if there is exactly one matching entity") {
                     val p = Person(name = "Albedo", age = 130)
                     p.save()
-                    p.modified = p.modified!!.withZeroNanos
-                    expect(p) { Person.findOneBy { Person::name eq "Albedo" } }
+                    expect(p.withZeroNanos()) { Person.findOneBy { Person::name eq "Albedo" } ?.withZeroNanos() }
                 }
 
                 test("returns null if there is no such entity") {
@@ -123,8 +119,7 @@ class DaoTest : DynaTest({
                 test("test filter by date") {
                     val p = Person(name = "Albedo", age = 130, dateOfBirth = LocalDate.of(1980, 2, 2))
                     p.save()
-                    p.modified = p.modified!!.withZeroNanos
-                    expect(p) { Person.findOneBy { Person::dateOfBirth eq LocalDate.of(1980, 2, 2) } }
+                    expect(p.withZeroNanos()) { Person.findOneBy { Person::dateOfBirth eq LocalDate.of(1980, 2, 2) } ?.withZeroNanos() }
                     // here I don't care about whether it selects something or not, I'm only testing the database compatibility
                     Person.findOneBy { "dateOfBirth = :a"("a" to Instant.now()) }
                     Person.findOneBy { "dateOfBirth = :a"("a" to Date()) }
@@ -139,7 +134,6 @@ class DaoTest : DynaTest({
                 test("returns true on matching entity") {
                     val p = Person(name = "Albedo", age = 130)
                     p.save()
-                    p.modified = p.modified!!.withZeroNanos
                     expect(true) { Person.existsAny() }
                     expect(true) { Person.existsById(p.id!!) }
                     expect(true) { Person.existsBy { Person::age ge 26 } }
@@ -147,7 +141,6 @@ class DaoTest : DynaTest({
                 test("returns false on non-matching entity") {
                     val p = Person(name = "Albedo", age = 130)
                     p.save()
-                    p.modified = p.modified!!.withZeroNanos
                     expect(true) { Person.existsAny() }
                     expect(false) { Person.existsById(p.id!! + 1) }
                     expect(false) { Person.existsBy { Person::age le 26 } }
@@ -156,8 +149,7 @@ class DaoTest : DynaTest({
             test("sql92 filter works") {
                 val p = Person(name = "Albedo", age = 130, dateOfBirth = LocalDate.of(1980, 2, 2), isAlive25 = true)
                 p.save()
-                p.modified = p.modified!!.withZeroNanos
-                expect(p) { db { Person.findOneBy(EqFilter("alive", true)) } }
+                expect(p.withZeroNanos()) { db { Person.findOneBy(EqFilter("alive", true))?.withZeroNanos() } }
             }
         }
 
