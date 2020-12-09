@@ -8,8 +8,6 @@ import com.gitlab.mvysny.jdbiorm.DaoOfAny
 import com.gitlab.mvysny.jdbiorm.EntityMeta
 import com.gitlab.mvysny.jdbiorm.JdbiOrm
 import org.jdbi.v3.core.statement.Query
-import org.jetbrains.annotations.NotNull
-import org.jetbrains.annotations.Nullable
 
 internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta(entityClass)
 
@@ -103,7 +101,7 @@ public fun <T : Any> DaoOfAny<T>.deleteBy(filter: Filter<T>) {
 }
 
 /**
- * Allows you to find rows by given where clause, with the maximum of [range] rows:
+ * Allows you to find rows by given where clause, fetching given [range] of rows:
  *
  * ```
  * Person.findAllBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
@@ -117,22 +115,26 @@ public fun <T : Any> DaoOfAny<T>.deleteBy(filter: Filter<T>) {
  * db { con.createQuery("select * from Foo where name = :name").addParameter("name", name).executeAndFetch(Person::class.java) }
  * ```
  * @param orderBy if not empty, this is passed in as the ORDER BY clause.
+ * @param range use LIMIT+OFFSET to fetch given page of data. Defaults to all data.
+ * @param block the filter to use.
  */
 public fun <T : Any> DaoOfAny<T>.findAllBy(
         vararg orderBy: SortClause = arrayOf(),
         range: IntRange = IntRange(0, Int.MAX_VALUE),
         block: FilterBuilder<T>.() -> Filter<T>
-): List<T> = findAllBy(orderBy = orderBy, range, block(FilterBuilder<T>(entityClass)))
+): List<T> = findAllBy(orderBy = orderBy, range = range, filter = block(FilterBuilder<T>(entityClass)))
 
 /**
  * Finds all rows in given table. Fails if there is no table in the database with the
  * name of {@link EntityMeta#getDatabaseTableName()}. If both offset and limit
  * are specified, then the LIMIT and OFFSET sql paging is used.
- * @param orderBy if not null, this is passed in as the ORDER BY clause, e.g. {@code surname ASC, name ASC}. Careful: this goes into the SQL as-is - could be misused for SQL injection!
- * @param offset start from this row. If not null, must be 0 or greater.
- * @param limit return this count of row at most. If not null, must be 0 or greater.
+ * @param orderBy if not empty, this is passed in as the ORDER BY clause.
+ * @param range use LIMIT+OFFSET to fetch given page of data. Defaults to all data.
  */
-public fun <T : Any> DaoOfAny<T>.findAll(vararg orderBy: SortClause, range: IntRange = IntRange(0, Int.MAX_VALUE)): List<T> {
+public fun <T : Any> DaoOfAny<T>.findAll(
+    vararg orderBy: SortClause = arrayOf(),
+    range: IntRange = IntRange(0, Int.MAX_VALUE)
+): List<T> {
     val orderByClause: String? = orderBy.toList().toSql92OrderByClause(entityClass)
     val offset: Long? = if (range == IntRange(0, Int.MAX_VALUE)) null else range.start.toLong()
     val limit: Long? = if (range == IntRange(0, Int.MAX_VALUE)) null else range.length.toLong()
@@ -140,7 +142,7 @@ public fun <T : Any> DaoOfAny<T>.findAll(vararg orderBy: SortClause, range: IntR
 }
 
 /**
- * Allows you to find rows by given [filter], with the maximum of [range] rows:
+ * Allows you to find rows by given [filter], fetching given [range] of rows:
  *
  * If you want more complex stuff or even joins, fall back and just write
  * SQL:
@@ -149,6 +151,8 @@ public fun <T : Any> DaoOfAny<T>.findAll(vararg orderBy: SortClause, range: IntR
  * db { con.createQuery("select * from Foo where name = :name").addParameter("name", name).executeAndFetch(Person::class.java) }
  * ```
  * @param orderBy if not empty, this is passed in as the ORDER BY clause.
+ * @param range use LIMIT+OFFSET to fetch given page of data. Defaults to all data.
+ * @param filter the filter to use.
  */
 public fun <T : Any> DaoOfAny<T>.findAllBy(
             vararg orderBy: SortClause = arrayOf(),
@@ -163,7 +167,7 @@ public fun <T : Any> DaoOfAny<T>.findAllBy(
 }
 
 /**
- * Checks whether there is any instance matching given block:
+ * Checks whether there is any instance matching given [block]:
  *
  * ```
  * Person.existsBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, preferred
@@ -175,6 +179,7 @@ public fun <T : Any> DaoOfAny<T>.findAllBy(
  * ```
  * db { con.createQuery("select count(1) from Foo where name = :name").addParameter("name", name).executeScalar(Long::class.java) > 0 }
  * ```
+ * @param block the filter to use.
  */
 public fun <T : Any> DaoOfAny<T>.existsBy(block: FilterBuilder<T>.() -> Filter<T>): Boolean =
         existsBy(block(FilterBuilder(entityClass)))
