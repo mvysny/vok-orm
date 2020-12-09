@@ -13,7 +13,7 @@ if (localProperties.exists()) {
 }
 
 plugins {
-    kotlin("jvm") version "1.4.20"
+    kotlin("jvm") version "1.4.21"
     id("com.jfrog.bintray") version "1.8.3"
     `maven-publish`
     id("org.jetbrains.dokka") version "1.4.0"
@@ -41,7 +41,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
 
     // validation support
-    testImplementation("org.hibernate.validator:hibernate-validator:6.1.4.Final")
+    testImplementation("org.hibernate.validator:hibernate-validator:6.1.6.Final")
     // EL is required: http://hibernate.org/validator/documentation/getting-started/
     testImplementation("org.glassfish:javax.el:3.0.1-b08")
 
@@ -88,7 +88,7 @@ publishing {
             this.artifactId = "vok-orm"
             version = project.version.toString()
             pom {
-                description.set("A very simple persistence framework, built on top of Sql2o")
+                description.set("A very simple persistence framework, built on top of jdbi")
                 name.set("VoK-ORM")
                 url.set("https://github.com/mvysny/vok-orm")
                 licenses {
