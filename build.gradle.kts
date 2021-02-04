@@ -1,22 +1,13 @@
-import com.jfrog.bintray.gradle.BintrayExtension
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.util.*
 
 val slf4jVersion = "1.7.30"
 val testcontainersVersion = "1.14.3"
 
-val local = Properties()
-val localProperties: java.io.File = rootProject.file("local.properties")
-if (localProperties.exists()) {
-    localProperties.inputStream().use { local.load(it) }
-}
-
 plugins {
     kotlin("jvm") version "1.4.30"
-    id("com.jfrog.bintray") version "1.8.3"
     `maven-publish`
-    id("org.jetbrains.dokka") version "1.4.0"
+    signing
 }
 
 defaultTasks("clean", "build")
@@ -25,7 +16,7 @@ group = "com.github.mvysny.vokorm"
 version = "1.5-SNAPSHOT"
 
 repositories {
-    jcenter() // dokka is not in mavenCentral()
+    mavenCentral()
 }
 
 tasks.withType<KotlinCompile> {
@@ -70,18 +61,25 @@ dependencies {
     testImplementation("com.intellij:annotations:12.0")
 }
 
-val sourceJar = task("sourceJar", Jar::class) {
-    dependsOn(tasks["classes"])
-    archiveClassifier.set("sources")
-    from(sourceSets.main.get().allSource)
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
-val javadocJar = task("javadocJar", Jar::class) {
-    from(tasks["dokkaJavadoc"])
-    archiveClassifier.set("javadoc")
+tasks.withType<Javadoc> {
+    isFailOnError = false
 }
 
 publishing {
+    repositories {
+        maven {
+            setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = project.properties["ossrhUsername"] as String? ?: "Unknown user"
+                password = project.properties["ossrhPassword"] as String? ?: "Unknown user"
+            }
+        }
+    }
     publications {
         create("mavenJava", MavenPublication::class.java).apply {
             groupId = project.group.toString()
@@ -110,27 +108,12 @@ publishing {
                 }
             }
             from(components["java"])
-            artifact(sourceJar)
-            artifact(javadocJar)
         }
     }
 }
 
-bintray {
-    user = local.getProperty("bintray.user")
-    key = local.getProperty("bintray.key")
-    pkg(closureOf<BintrayExtension.PackageConfig> {
-        repo = "github"
-        name = "com.github.mvysny.vokorm"
-        setLicenses("MIT")
-        vcsUrl = "https://github.com/mvysny/vok-orm"
-        publish = true
-        setPublications("mavenJava")
-        version(closureOf<BintrayExtension.VersionConfig> {
-            this.name = project.version.toString()
-            released = Date().toString()
-        })
-    })
+signing {
+    sign(publishing.publications["mavenJava"])
 }
 
 tasks.withType<Test> {
