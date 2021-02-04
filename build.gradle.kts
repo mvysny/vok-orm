@@ -122,17 +122,9 @@ tasks.withType<Test> {
         // to see the exceptions of failed tests in Travis-CI console.
         exceptionFormat = TestExceptionFormat.FULL
         showStandardStreams = true
-        showStackTraces = true
-        showExceptions = true
     }
 }
 
 kotlin {
     explicitApi()
 }
-
-buildScan {
-    termsOfServiceUrl = "https://gradle.com/terms-of-service"
-    termsOfServiceAgree = "yes"
-}
-
