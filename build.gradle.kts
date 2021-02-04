@@ -123,6 +123,7 @@ tasks.withType<Test> {
         exceptionFormat = TestExceptionFormat.FULL
         showStandardStreams = true
         showStackTraces = true
+        showExceptions = true
     }
 }
 
