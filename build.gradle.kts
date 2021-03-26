@@ -5,7 +5,7 @@ val slf4jVersion = "1.7.30"
 val testcontainersVersion = "1.15.1"
 
 plugins {
-    kotlin("jvm") version "1.4.30"
+    kotlin("jvm") version "1.4.31"
     `maven-publish`
     signing
 }
@@ -41,7 +41,7 @@ dependencies {
     testImplementation("com.google.code.gson:gson:2.8.5")
     testImplementation("org.slf4j:slf4j-simple:$slf4jVersion")
     testImplementation("com.h2database:h2:1.4.200")
-    testImplementation("com.zaxxer:HikariCP:3.4.5")
+    testImplementation("com.zaxxer:HikariCP:4.0.3")
 
     testImplementation("org.apache.lucene:lucene-analyzers-common:5.5.5") // for H2 Full-Text search
     testImplementation("org.apache.lucene:lucene-queryparser:5.5.5") // for H2 Full-Text search
@@ -58,7 +58,7 @@ dependencies {
     testImplementation("org.testcontainers:mssqlserver:$testcontainersVersion")
 
     // IDEA language injections
-    testImplementation("com.intellij:annotations:12.0")
+    testImplementation("org.jetbrains:annotations:20.1.0")
 }
 
 java {
