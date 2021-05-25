@@ -47,7 +47,7 @@ dependencies {
     testImplementation("org.apache.lucene:lucene-queryparser:5.5.5") // for H2 Full-Text search
 
     testImplementation("org.postgresql:postgresql:42.2.5")
-    testImplementation("mysql:mysql-connector-java:5.1.48")
+    testImplementation("mysql:mysql-connector-java:8.0.24")
     testImplementation("org.mariadb.jdbc:mariadb-java-client:2.4.0")
     testImplementation("com.microsoft.sqlserver:mssql-jdbc:8.4.1.jre8")
 
