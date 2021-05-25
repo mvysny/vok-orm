@@ -40,7 +40,7 @@ public interface FilterToSqlConverter {
 /**
  * Attempts to convert this filter into a SQL 92 WHERE-clause representation (omitting the `WHERE` keyword). There are two types of filters:
  * * Filters which do not match column to a value, for example [AndFilter] which produces something like `(filter1 and filter2)`
- * * Filters which do match column to a value, for example [LikeFilter] which produces things like `name LIKE :name`. All [BeanFilter]s are expected
+ * * Filters which do match column to a value, for example [StartsWithFilter] which produces things like `name LIKE :name`. All [BeanFilter]s are expected
  * to match a [NativePropertyName] database column to a value; that value is automatically prefilled into the JDBC query string.
  *
  * Examples of returned values:
@@ -107,7 +107,7 @@ public class DefaultFilterToSqlConverter : FilterToSqlConverter {
                 val idColumn: String = meta.idProperty[0].dbColumnName
                 val query: String = filter.words.joinToString(" AND ") { "$it*" }
                 // Need to CAST(FT.KEYS[1] AS BIGINT) otherwise IN won't match anything
-                ParametrizedSql("$idColumn IN (SELECT CAST(FT.KEYS[1] AS BIGINT) AS ID FROM FTL_SEARCH_DATA(:$parameterName, 0, 0) FT WHERE FT.`TABLE`='${meta.databaseTableName.toUpperCase()}')",
+                ParametrizedSql("$idColumn IN (SELECT CAST(FT.KEYS[1] AS BIGINT) AS ID FROM FTL_SEARCH_DATA(:$parameterName, 0, 0) FT WHERE FT.`TABLE`='${meta.databaseTableName.uppercase()}')",
                         mapOf(parameterName to query))
             }
             DatabaseVariant.MSSQL -> {
