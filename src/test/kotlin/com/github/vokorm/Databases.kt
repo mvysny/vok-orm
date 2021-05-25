@@ -103,7 +103,10 @@ fun DynaNodeGroup.usingDockerizedMysql() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: MySQLContainer<Nothing>
     beforeGroup {
-        container = MySQLContainer<Nothing>("mysql:5.7.21")
+        container = MySQLContainer<Nothing>("mysql:8.0.25")
+        // disable SSL, to avoid SSL-related exceptions on github actions:
+        // javax.net.ssl.SSLHandshakeException: No appropriate protocol (protocol is disabled or cipher suites are inappropriate)
+        container.withUrlParam("useSSL", "false")
         container.start()
     }
     beforeGroup {
@@ -312,7 +315,7 @@ fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.(DatabaseInfo)->Unit) {
             block(DatabaseInfo(DatabaseVariant.PostgreSQL))
         }
 
-        group("MySQL 5.7.21") {
+        group("MySQL 8.0.25") {
             usingDockerizedMysql()
             block(DatabaseInfo(DatabaseVariant.MySQLMariaDB))
         }
