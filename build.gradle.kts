@@ -32,12 +32,12 @@ dependencies {
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
 
     // validation support
-    testImplementation("org.hibernate.validator:hibernate-validator:6.1.6.Final")
+    testImplementation("org.hibernate.validator:hibernate-validator:6.2.0.Final")
     // EL is required: http://hibernate.org/validator/documentation/getting-started/
     testImplementation("org.glassfish:javax.el:3.0.1-b08")
 
     // tests
-    testImplementation("com.github.mvysny.dynatest:dynatest-engine:0.19")
+    testImplementation("com.github.mvysny.dynatest:dynatest-engine:0.20")
     testImplementation("com.google.code.gson:gson:2.8.5")
     testImplementation("org.slf4j:slf4j-simple:$slf4jVersion")
     testImplementation("com.h2database:h2:1.4.200")
