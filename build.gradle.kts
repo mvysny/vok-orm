@@ -1,11 +1,11 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val slf4jVersion = "1.7.30"
-val testcontainersVersion = "1.15.3"
+val slf4jVersion = "1.7.32"
+val testcontainersVersion = "1.16.0"
 
 plugins {
-    kotlin("jvm") version "1.5.10"
+    kotlin("jvm") version "1.5.21"
     `maven-publish`
     signing
 }
@@ -38,7 +38,7 @@ dependencies {
 
     // tests
     testImplementation("com.github.mvysny.dynatest:dynatest-engine:0.20")
-    testImplementation("com.google.code.gson:gson:2.8.5")
+    testImplementation("com.google.code.gson:gson:2.8.7")
     testImplementation("org.slf4j:slf4j-simple:$slf4jVersion")
     testImplementation("com.h2database:h2:1.4.200")
     testImplementation("com.zaxxer:HikariCP:4.0.3")
@@ -47,7 +47,7 @@ dependencies {
     testImplementation("org.apache.lucene:lucene-queryparser:5.5.5") // for H2 Full-Text search
 
     testImplementation("org.postgresql:postgresql:42.2.5")
-    testImplementation("mysql:mysql-connector-java:8.0.24")
+    testImplementation("mysql:mysql-connector-java:8.0.25")
     testImplementation("org.mariadb.jdbc:mariadb-java-client:2.4.0")
     testImplementation("com.microsoft.sqlserver:mssql-jdbc:8.4.1.jre8")
 
@@ -58,7 +58,7 @@ dependencies {
     testImplementation("org.testcontainers:mssqlserver:$testcontainersVersion")
 
     // IDEA language injections
-    testImplementation("org.jetbrains:annotations:20.1.0")
+    testImplementation("org.jetbrains:annotations:21.0.1")
 }
 
 java {
