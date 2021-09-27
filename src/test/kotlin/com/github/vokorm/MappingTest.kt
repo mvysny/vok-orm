@@ -74,7 +74,7 @@ class MappingTest : DynaTest({
                 expectList() { Person.findAll() }
             }
             test("JsonSerializationIgnoresMeta") {
-                expect("""{"name":"Zaphod","age":42}""") { Gson().toJson(Person(name = "Zaphod", age = 42)) }
+                expect("""{"name":"Zaphod","age":42}""") { gson.toJson(Person(name = "Zaphod", age = 42)) }
             }
             test("Meta") {
                 val meta = Person.meta
@@ -114,7 +114,7 @@ class MappingTest : DynaTest({
                 expect(listOf()) { EntityWithAliasedId.findAll() }
             }
             test("JsonSerializationIgnoresMeta") {
-                expect("""{"name":"Zaphod"}""") { Gson().toJson(EntityWithAliasedId(name = "Zaphod")) }
+                expect("""{"name":"Zaphod"}""") { gson.toJson(EntityWithAliasedId(name = "Zaphod")) }
             }
             test("Meta") {
                 val meta = EntityWithAliasedId.meta

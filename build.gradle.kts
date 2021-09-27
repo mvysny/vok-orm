@@ -38,7 +38,7 @@ dependencies {
 
     // tests
     testImplementation("com.github.mvysny.dynatest:dynatest-engine:0.20")
-    testImplementation("com.google.code.gson:gson:2.8.7")
+    testImplementation("com.google.code.gson:gson:2.8.8")
     testImplementation("org.slf4j:slf4j-simple:$slf4jVersion")
     testImplementation("com.h2database:h2:1.4.200")
     testImplementation("com.zaxxer:HikariCP:4.0.3")
@@ -57,8 +57,11 @@ dependencies {
     testImplementation("org.testcontainers:mariadb:$testcontainersVersion")
     testImplementation("org.testcontainers:mssqlserver:$testcontainersVersion")
 
+    // workaround for https://github.com/google/gson/issues/1059
+    testImplementation("com.fatboyindustrial.gson-javatime-serialisers:gson-javatime-serialisers:1.1.1")
+
     // IDEA language injections
-    testImplementation("org.jetbrains:annotations:21.0.1")
+    testImplementation("org.jetbrains:annotations:22.0.0")
 }
 
 java {
