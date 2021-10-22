@@ -128,7 +128,7 @@ class MappingTest : DynaTest({
         group("NaturalPerson") {
             test("save fails") {
                 val p = NaturalPerson(id = "12345678", name = "Albedo", bytes = byteArrayOf(5))
-                expectThrows(IllegalStateException::class, message = "We expected to update only one row but we updated 0 - perhaps there is no row with id 12345678?") {
+                expectThrows<IllegalStateException>("We expected to update only one row but we updated 0 - perhaps there is no row with id 12345678?") {
                     p.save()
                 }
             }
