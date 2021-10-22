@@ -37,7 +37,7 @@ dependencies {
     testImplementation("org.glassfish:javax.el:3.0.1-b08")
 
     // tests
-    testImplementation("com.github.mvysny.dynatest:dynatest-engine:0.20")
+    testImplementation("com.github.mvysny.dynatest:dynatest:0.22")
     testImplementation("com.google.code.gson:gson:2.8.8")
     testImplementation("org.slf4j:slf4j-simple:$slf4jVersion")
     testImplementation("com.h2database:h2:1.4.200")
