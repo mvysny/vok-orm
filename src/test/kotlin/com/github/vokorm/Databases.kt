@@ -58,9 +58,9 @@ data class TypeMappingEntity(override var id: Long? = null,
 
 private fun DynaNodeGroup.usingDockerizedPosgresql() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
-    lateinit var container: PostgreSQLContainer<Nothing>
+    lateinit var container: PostgreSQLContainer<*>
     beforeGroup {
-        container = PostgreSQLContainer<Nothing>("postgres:10.3")
+        container = PostgreSQLContainer("postgres:10.3")
         container.start()
     }
     beforeGroup {
@@ -101,9 +101,9 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
 
 fun DynaNodeGroup.usingDockerizedMysql() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
-    lateinit var container: MySQLContainer<Nothing>
+    lateinit var container: MySQLContainer<*>
     beforeGroup {
-        container = MySQLContainer<Nothing>("mysql:8.0.25")
+        container = MySQLContainer("mysql:8.0.25")
         // disable SSL, to avoid SSL-related exceptions on github actions:
         // javax.net.ssl.SSLHandshakeException: No appropriate protocol (protocol is disabled or cipher suites are inappropriate)
         container.withUrlParam("useSSL", "false")
@@ -191,7 +191,7 @@ fun PersistenceContext.ddl(@Language("sql") sql: String) {
 
 private fun DynaNodeGroup.usingDockerizedMariaDB() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
-    lateinit var container: MariaDBContainer<Nothing>
+    lateinit var container: MariaDBContainer<*>
     beforeGroup {
         container = MariaDBContainer("mariadb:10.1.31")
         container.start()
@@ -242,7 +242,7 @@ private fun clearDb() {
 
 private fun DynaNodeGroup.usingDockerizedMSSQL() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
-    lateinit var container: MSSQLServerContainer<Nothing>
+    lateinit var container: MSSQLServerContainer<*>
     beforeGroup {
         container = MSSQLServerContainer("mcr.microsoft.com/mssql/server:2017-latest-ubuntu")
         container.start()
