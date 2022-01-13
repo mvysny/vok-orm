@@ -16,6 +16,8 @@ import javax.validation.ConstraintViolationException
  * the DAO methods (see [com.gitlab.mvysny.jdbiorm.DaoOfAny] for more details); you only lose the ability to [save],
  * [create] and [delete].
  *
+ * Annotate the class with [com.gitlab.mvysny.jdbiorm.Table] to set SQL table name.
+ *
  * ### Mapping columns
  * Use the [org.jdbi.v3.core.mapper.reflect.ColumnName] annotation to change the name of the column.
  *
