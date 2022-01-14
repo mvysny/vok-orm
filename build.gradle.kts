@@ -129,9 +129,9 @@ tasks.withType<Test> {
         exceptionFormat = TestExceptionFormat.FULL
         showStandardStreams = true
     }
+    systemProperty("h2only", System.getProperty("h2only"))
 }
 
 kotlin {
     explicitApi()
 }
-

@@ -315,7 +315,11 @@ fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.(DatabaseInfo)->Unit) {
         block(DatabaseInfo(DatabaseVariant.H2))
     }
 
-    if (DockerClientFactory.instance().isDockerAvailable) {
+    if (System.getProperty("h2only").toBoolean()) {
+        println("`h2only` system property specified, skipping PostgreSQL/MySQL/MariaDB/MSSQL tests")
+    } else if (!DockerClientFactory.instance().isDockerAvailable) {
+        println("Docker is not available, not running PostgreSQL/MySQL/MariaDB/MSSQL tests")
+    } else {
         println("Docker is available, running PostgreSQL/MySQL/MariaDB tests")
         group("PostgreSQL 10.3") {
             usingDockerizedPosgresql()
@@ -336,8 +340,6 @@ fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.(DatabaseInfo)->Unit) {
             usingDockerizedMSSQL()
             block(DatabaseInfo(DatabaseVariant.MSSQL))
         }
-    } else {
-        println("Docker is not available, not running PostgreSQL/MySQL/MariaDB tests")
     }
 }
 
