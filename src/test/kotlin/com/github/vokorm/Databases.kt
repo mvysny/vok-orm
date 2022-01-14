@@ -1,6 +1,7 @@
 package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaNodeGroup
+import com.github.mvysny.dynatest.DynaTestDsl
 import com.gitlab.mvysny.jdbiorm.*
 import com.gitlab.mvysny.jdbiorm.quirks.DatabaseVariant
 import com.zaxxer.hikari.HikariConfig
@@ -56,6 +57,7 @@ data class TypeMappingEntity(override var id: Long? = null,
     companion object : Dao<TypeMappingEntity, Long>(TypeMappingEntity::class.java)
 }
 
+@DynaTestDsl
 private fun DynaNodeGroup.usingDockerizedPosgresql() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: PostgreSQLContainer<*>
@@ -99,6 +101,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
     afterEach { clearDb() }
 }
 
+@DynaTestDsl
 fun DynaNodeGroup.usingDockerizedMysql() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: MySQLContainer<*>
@@ -148,6 +151,7 @@ fun hikari(block: HikariConfig.() -> Unit) {
     JdbiOrm.setDataSource(HikariDataSource(HikariConfig().apply(block)))
 }
 
+@DynaTestDsl
 fun DynaNodeGroup.usingH2Database() {
     beforeGroup {
         hikari {
@@ -189,6 +193,7 @@ fun PersistenceContext.ddl(@Language("sql") sql: String) {
     handle.createUpdate(sql).execute()
 }
 
+@DynaTestDsl
 private fun DynaNodeGroup.usingDockerizedMariaDB() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: MariaDBContainer<*>
@@ -240,6 +245,7 @@ private fun clearDb() {
     TypeMappingEntity.deleteAll()
 }
 
+@DynaTestDsl
 private fun DynaNodeGroup.usingDockerizedMSSQL() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: MSSQLServerContainer<*>
@@ -302,6 +308,7 @@ WITH CHANGE_TRACKING AUTO            --Population type;  """)
     afterEach { clearDb() }
 }
 
+@DynaTestDsl
 fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.(DatabaseInfo)->Unit) {
     group("H2") {
         usingH2Database()

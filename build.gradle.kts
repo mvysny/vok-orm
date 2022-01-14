@@ -37,18 +37,19 @@ dependencies {
     testImplementation("org.glassfish:javax.el:3.0.1-b08")
 
     // tests
-    testImplementation("com.github.mvysny.dynatest:dynatest:0.22")
-    testImplementation("com.google.code.gson:gson:2.8.8")
+    testImplementation("com.github.mvysny.dynatest:dynatest:0.24")
+    testImplementation("com.google.code.gson:gson:2.8.9")
     testImplementation("org.slf4j:slf4j-simple:$slf4jVersion")
     testImplementation("com.h2database:h2:1.4.200")
+    // stay with HikariCP 4 sice 5.x requires JDK11: https://github.com/brettwooldridge/HikariCP
     testImplementation("com.zaxxer:HikariCP:4.0.3")
 
     testImplementation("org.apache.lucene:lucene-analyzers-common:5.5.5") // for H2 Full-Text search
     testImplementation("org.apache.lucene:lucene-queryparser:5.5.5") // for H2 Full-Text search
 
-    testImplementation("org.postgresql:postgresql:42.2.5")
+    testImplementation("org.postgresql:postgresql:42.3.1")
     testImplementation("mysql:mysql-connector-java:8.0.25")
-    testImplementation("org.mariadb.jdbc:mariadb-java-client:2.4.0")
+    testImplementation("org.mariadb.jdbc:mariadb-java-client:2.7.3")
     testImplementation("com.microsoft.sqlserver:mssql-jdbc:8.4.1.jre8")
 
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
