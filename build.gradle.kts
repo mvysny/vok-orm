@@ -40,12 +40,12 @@ dependencies {
     testImplementation("com.github.mvysny.dynatest:dynatest:0.24")
     testImplementation("com.google.code.gson:gson:2.8.9")
     testImplementation("org.slf4j:slf4j-simple:$slf4jVersion")
-    testImplementation("com.h2database:h2:1.4.200")
+    testImplementation("com.h2database:h2:2.0.206")
     // stay with HikariCP 4 sice 5.x requires JDK11: https://github.com/brettwooldridge/HikariCP
     testImplementation("com.zaxxer:HikariCP:4.0.3")
 
-    testImplementation("org.apache.lucene:lucene-analyzers-common:5.5.5") // for H2 Full-Text search
-    testImplementation("org.apache.lucene:lucene-queryparser:5.5.5") // for H2 Full-Text search
+    testImplementation("org.apache.lucene:lucene-analyzers-common:8.11.1") // for H2 Full-Text search
+    testImplementation("org.apache.lucene:lucene-queryparser:8.11.1") // for H2 Full-Text search
 
     testImplementation("org.postgresql:postgresql:42.3.1")
     testImplementation("mysql:mysql-connector-java:8.0.25")
