@@ -14,8 +14,8 @@ class FiltersTest : DynaTest({
         sql.sql92Parameters.entries.forEach { (key, value) -> s = s.replace(":$key", ":$value") }
         return s
     }
-    fun sql(block: SqlWhereBuilder<Person>.()-> Filter<Person>): String {
-        val filter: Filter<Person> = block(SqlWhereBuilder(Person::class.java))
+    fun sql(block: FilterBuilder<Person>.()-> Filter<Person>): String {
+        val filter: Filter<Person> = block(FilterBuilder(Person::class.java))
         return unmangleParameterNames(filter.toParametrizedSql(Person::class.java, DatabaseVariant.Unknown))
     }
 
