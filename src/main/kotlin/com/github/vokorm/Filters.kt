@@ -76,6 +76,14 @@ public class DefaultFilterToSqlConverter : FilterToSqlConverter {
                 c.forEach { map.putAll(it.sql92Parameters) }
                 ParametrizedSql(sql92, map)
             }
+            is NotFilter -> {
+                val c: ParametrizedSql = filter.child.toParametrizedSql(clazz, variant)
+                ParametrizedSql("not (${c.sql92})", c.sql92Parameters)
+            }
+            is InFilter -> {
+                val params = filter.value.mapIndexed { index, value -> "$parameterName$$index" to value }.toMap()
+                ParametrizedSql("$databaseColumnName in (${params.keys.joinToString { ":$it"}})", params)
+            }
             is NativeSqlFilter -> ParametrizedSql(filter.where, filter.params)
             is SubstringFilter -> ParametrizedSql("$databaseColumnName ${if (filter.ignoreCase) "ILIKE" else "LIKE"} :$parameterName", mapOf(parameterName to "%${filter.value}%"))
             is FullTextFilter -> convertFullTextFilter(filter, databaseColumnName, parameterName, clazz, variant)
