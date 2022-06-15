@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val slf4jVersion = "1.7.32"
+val slf4jVersion = "1.7.36"
 val testcontainersVersion = "1.16.2"
 
 plugins {
@@ -38,9 +38,9 @@ dependencies {
 
     // tests
     testImplementation("com.github.mvysny.dynatest:dynatest:0.24")
-    testImplementation("com.google.code.gson:gson:2.8.9")
+    testImplementation("com.google.code.gson:gson:2.9.0")
     testImplementation("org.slf4j:slf4j-simple:$slf4jVersion")
-    testImplementation("com.h2database:h2:2.1.210")
+    testImplementation("com.h2database:h2:2.1.212")
     // stay with HikariCP 4 sice 5.x requires JDK11: https://github.com/brettwooldridge/HikariCP
     testImplementation("com.zaxxer:HikariCP:4.0.3")
 
