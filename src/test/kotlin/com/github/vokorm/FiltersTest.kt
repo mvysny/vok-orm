@@ -34,6 +34,15 @@ class FiltersTest : DynaTest({
         }
 
         group("filter test") {
+            test("not filter test") {
+                Person(name = "Moby", age = 25).create()
+                Person(name = "Jerry", age = 26).create()
+                Person(name = "Paul", age = 27).create()
+                expectList("Moby", "Paul") {
+                    Person.findAllBy { !(Person::age eq 26) }.map { it.name }
+                }
+            }
+
             test("in filter test") {
                 Person(name = "Moby", age = 25).create()
                 Person(name = "Jerry", age = 26).create()
