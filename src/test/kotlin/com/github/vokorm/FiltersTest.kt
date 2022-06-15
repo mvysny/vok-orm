@@ -21,8 +21,10 @@ class FiltersTest : DynaTest({
 
     test("ToSQL92") {
         expect("age = :25") { sql { Person::age eq 25 } }
+        expect("not (age = :25)") { sql { !(Person::age eq 25) } }
         expect("(age >= :25 and age <= :50)") { sql { Person::age between 25..50 } }
         expect("((age >= :25 and age <= :50) or alive = :true)") { sql { (Person::age between 25..50) or (Person::isAlive25 eq true) } }
+        expect("age in (:25, :26)") { sql { Person::age `in` listOf(25, 26) } }
     }
 
     withAllDatabases { info ->
@@ -30,6 +32,18 @@ class FiltersTest : DynaTest({
             Person.findAll(Person::age.asc, Person::created.desc)
             Person.findAllBy(Person::age.asc, Person::created.desc, filter = FullTextFilter<Person>("name", ""))
         }
+
+        group("filter test") {
+            test("in filter test") {
+                Person(name = "Moby", age = 25).create()
+                Person(name = "Jerry", age = 26).create()
+                Person(name = "Paul", age = 27).create()
+                expectList("Moby", "Jerry") {
+                    Person.findAllBy { Person::age `in` listOf(25, 26, 28) }.map { it.name }
+                }
+            }
+        }
+
         group("full-text search") {
 
             test("construct sql succeeds") {
