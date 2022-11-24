@@ -225,8 +225,8 @@ that are attached to the [Dao](src/main/kotlin/com/github/vokorm/Dao.kt) interfa
 * `Category.deleteBy { (Category::name eq "Beer") or (Category::name eq "Cider") }` will delete all categories
   matching given criteria. This is an example of a statically-typed matching criteria which
   is converted into the WHERE clause.
-* `Category.getOneBy { "name = :name"("name" to "Beer") }` will fetch exactly one matching category, failing if there is no such category or there are more than one.
-* `Category.findOneBy { "name = :name"("name" to "Beer") }` will fetch one matching category, failing if there are more than one. Returns `null` if there is none.
+* `Category.singleBy { "name = :name"("name" to "Beer") }` will fetch exactly one matching category, failing if there is no such category or there are more than one.
+* `Category.findSingleBy { "name = :name"("name" to "Beer") }` will fetch one matching category, failing if there are more than one. Returns `null` if there is none.
 * `Category.count { "name = :name"("name" to "Beer") }` will return the number of rows in the Category table matching given query.
 
 In the spirit of type safety, the finder methods will only accept `Long` (or whatever is the type of
@@ -237,8 +237,8 @@ You can of course add your own custom finder methods into the Category companion
 ```kotlin
 data class Category(override var id: Long? = null, var name: String = "") : KEntity<Long> {
     companion object : Dao<Category> {
-        fun findByName(name: String): Category? = findOneBy { Category::name eq name }
-        fun getByName(name: String): Category = getOneBy { Category::name eq name }
+        fun findByName(name: String): Category? = findSingleBy { Category::name eq name }
+        fun getByName(name: String): Category = singleBy { Category::name eq name }
         fun existsWithName(name: String): Boolean = count { Category::name eq name } > 0
     }
 }
