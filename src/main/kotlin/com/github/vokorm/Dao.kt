@@ -14,13 +14,13 @@ internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta(entityClass)
 /**
  * Retrieves single entity matching given [filter]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
  *
- * This function fails if there is no such entity or there are 2 or more. Use [findOneBy] if you wish to return `null` in case that
+ * This function fails if there is no such entity or there are 2 or more. Use [findSingleBy] if you wish to return `null` in case that
  * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
-public fun <T : Any> DaoOfAny<T>.getOneBy(filter: Filter<T>): T {
+public fun <T : Any> DaoOfAny<T>.singleBy(filter: Filter<T>): T {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass, JdbiOrm.databaseVariant!!)
-    return getOneBy(sql.sql92) { query: Query -> query.bind(sql) }
+    return singleBy(sql.sql92) { query: Query -> query.bind(sql) }
 }
 
 /**
@@ -28,40 +28,40 @@ public fun <T : Any> DaoOfAny<T>.getOneBy(filter: Filter<T>): T {
  *
  * Example:
  * ```
- * Person.getOneBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
- * Person.getOneBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
+ * Person.getSingleBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
+ * Person.getSingleBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
  * ```
  *
- * This function fails if there is no such entity or there are 2 or more. Use [findOneBy] if you wish to return `null` in case that
+ * This function fails if there is no such entity or there are 2 or more. Use [findSingleBy] if you wish to return `null` in case that
  * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
-public fun <T : Any> DaoOfAny<T>.getOneBy(block: FilterBuilder<T>.() -> Filter<T>): T =
-        getOneBy(block(FilterBuilder(entityClass)))
+public fun <T : Any> DaoOfAny<T>.singleBy(block: FilterBuilder<T>.() -> Filter<T>): T =
+        singleBy(block(FilterBuilder(entityClass)))
 
 /**
  * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.
  * Fails if there are two or more entities matching the criteria.
  *
- * This function returns `null` if there is no such entity. Use [getOneBy] if you wish an exception to be thrown in case that
+ * This function returns `null` if there is no such entity. Use [singleBy] if you wish an exception to be thrown in case that
  * the entity does not exist.
  * @throws IllegalArgumentException if there are two or more matching entities.
  */
-public fun <T : Any> DaoOfAny<T>.findOneBy(filter: Filter<T>): T? {
+public fun <T : Any> DaoOfAny<T>.findSingleBy(filter: Filter<T>): T? {
     val sql: ParametrizedSql = filter.toParametrizedSql(entityClass, JdbiOrm.databaseVariant!!)
-    return findOneBy(sql.sql92) { query: Query -> query.bind(sql) }
+    return findSingleBy(sql.sql92) { query: Query -> query.bind(sql) }
 }
 
 /**
  * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.
  * Fails if there are two or more entities matching the criteria.
  *
- * This function returns `null` if there is no such entity. Use [getOneBy] if you wish an exception to be thrown in case that
+ * This function returns `null` if there is no such entity. Use [singleBy] if you wish an exception to be thrown in case that
  * the entity does not exist.
  * @throws IllegalArgumentException if there are two or more matching entities.
  */
-public fun <T : Any> DaoOfAny<T>.findOneBy(block: FilterBuilder<T>.() -> Filter<T>): T? =
-        findOneBy(block(FilterBuilder(entityClass)))
+public fun <T : Any> DaoOfAny<T>.findSingleBy(block: FilterBuilder<T>.() -> Filter<T>): T? =
+        findSingleBy(block(FilterBuilder(entityClass)))
 
 /**
  * Counts all rows in given table which matches given [block] clause.

@@ -1,7 +1,6 @@
 package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaNodeGroup
-import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.DynaTestDsl
 import com.github.mvysny.dynatest.expectThrows
 import com.github.mvysny.vokdataloader.EqFilter
@@ -29,30 +28,30 @@ fun DynaNodeGroup.dbDaoTests() {
                 Person.getById(25L)
             }
         }
-        group("getOneBy() tests") {
+        group("singleBy() tests") {
             test("succeeds if there is exactly one matching entity") {
                 val p = Person(name = "Albedo", age = 123)
                 p.save()
-                expect(p.withZeroNanos()) { Person.getOneBy { Person::name eq "Albedo" } .withZeroNanos() }
+                expect(p.withZeroNanos()) { Person.singleBy { Person::name eq "Albedo" } .withZeroNanos() }
             }
 
             test("fails if there is no such entity") {
                 expectThrows<IllegalStateException>("no row matching Person: 'name = ") {
-                    Person.getOneBy { Person::name eq "Albedo" }
+                    Person.singleBy { Person::name eq "Albedo" }
                 }
             }
 
             test("fails if there are two matching entities") {
                 repeat(2) { Person(name = "Albedo", age = 124).save() }
                 expectThrows<IllegalStateException>("too many rows matching Person: 'name = ") {
-                    Person.getOneBy { Person::name eq "Albedo" }
+                    Person.singleBy { Person::name eq "Albedo" }
                 }
             }
 
             test("fails if there are ten matching entities") {
                 repeat(10) { Person(name = "Albedo", age = 125).save() }
                 expectThrows<IllegalStateException>("too many rows matching Person: 'name = ") {
-                    Person.getOneBy { Person::name eq "Albedo" }
+                    Person.singleBy { Person::name eq "Albedo" }
                 }
             }
         }
@@ -97,34 +96,34 @@ fun DynaNodeGroup.dbDaoTests() {
             test("succeeds if there is exactly one matching entity") {
                 val p = Person(name = "Albedo", age = 130)
                 p.save()
-                expect(p.withZeroNanos()) { Person.findOneBy { Person::name eq "Albedo" } ?.withZeroNanos() }
+                expect(p.withZeroNanos()) { Person.findSingleBy { Person::name eq "Albedo" } ?.withZeroNanos() }
             }
 
             test("returns null if there is no such entity") {
-                expect(null) { Person.findOneBy { Person::name eq "Albedo" } }
+                expect(null) { Person.findSingleBy { Person::name eq "Albedo" } }
             }
 
             test("fails if there are two matching entities") {
                 repeat(2) { Person(name = "Albedo", age = 131).save() }
                 expectThrows(IllegalStateException::class, "too many rows matching Person: 'name = ") {
-                    Person.findOneBy { Person::name eq "Albedo" }
+                    Person.findSingleBy { Person::name eq "Albedo" }
                 }
             }
 
             test("fails if there are ten matching entities") {
                 repeat(10) { Person(name = "Albedo", age = 132).save() }
                 expectThrows(IllegalStateException::class, "too many rows matching Person: 'name = ") {
-                    Person.findOneBy { Person::name eq "Albedo" }
+                    Person.findSingleBy { Person::name eq "Albedo" }
                 }
             }
 
             test("test filter by date") {
                 val p = Person(name = "Albedo", age = 133, dateOfBirth = LocalDate.of(1980, 2, 2))
                 p.save()
-                expect(p.withZeroNanos()) { Person.findOneBy { Person::dateOfBirth eq LocalDate.of(1980, 2, 2) } ?.withZeroNanos() }
+                expect(p.withZeroNanos()) { Person.findSingleBy { Person::dateOfBirth eq LocalDate.of(1980, 2, 2) } ?.withZeroNanos() }
                 // here I don't care about whether it selects something or not, I'm only testing the database compatibility
-                Person.findOneBy { "dateOfBirth = :a"("a" to Instant.now()) }
-                Person.findOneBy { "dateOfBirth = :a"("a" to Date()) }
+                Person.findSingleBy { "dateOfBirth = :a"("a" to Instant.now()) }
+                Person.findSingleBy { "dateOfBirth = :a"("a" to Date()) }
             }
         }
         group("exists") {
@@ -151,7 +150,7 @@ fun DynaNodeGroup.dbDaoTests() {
         test("sql92 filter works") {
             val p = Person(name = "Albedo", age = 136, dateOfBirth = LocalDate.of(1980, 2, 2), isAlive25 = true)
             p.save()
-            expect(p.withZeroNanos()) { db { Person.findOneBy(EqFilter("alive", true))?.withZeroNanos() } }
+            expect(p.withZeroNanos()) { db { Person.findSingleBy(EqFilter("alive", true))?.withZeroNanos() } }
         }
     }
 
@@ -168,11 +167,11 @@ fun DynaNodeGroup.dbDaoTests() {
             p.save()
             expect(p) { EntityWithAliasedId.getById(p.id!!) }
         }
-        group("getOneBy() tests") {
+        group("singleBy() tests") {
             test("succeeds if there is exactly one matching entity") {
                 val p = EntityWithAliasedId(name = "Albedo")
                 p.save()
-                expect(p) { EntityWithAliasedId.getOneBy { EntityWithAliasedId::name eq "Albedo" } }
+                expect(p) { EntityWithAliasedId.singleBy { EntityWithAliasedId::name eq "Albedo" } }
             }
         }
         group("count") {
@@ -213,7 +212,7 @@ fun DynaNodeGroup.dbDaoTests() {
             test("succeeds if there is exactly one matching entity") {
                 val p = EntityWithAliasedId(name = "Albedo")
                 p.save()
-                expect(p) { EntityWithAliasedId.findOneBy { EntityWithAliasedId::name eq "Albedo" } }
+                expect(p) { EntityWithAliasedId.findSingleBy { EntityWithAliasedId::name eq "Albedo" } }
             }
         }
         group("exists") {
