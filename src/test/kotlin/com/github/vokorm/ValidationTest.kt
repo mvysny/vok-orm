@@ -8,6 +8,8 @@ import kotlin.test.expect
 import kotlin.test.fail
 
 class ValidationTest : DynaTest({
+    // this is not really testing the database: we're testing Entity.validate().
+    // Therefore, it's enough to run this battery on H2 only.
     usingH2Database()
     test("Validation on empty name fails") {
         expectThrows(ValidationException::class) {
