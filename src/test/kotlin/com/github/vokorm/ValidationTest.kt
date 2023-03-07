@@ -3,7 +3,7 @@ package com.github.vokorm
 import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.expectThrows
 import com.gitlab.mvysny.jdbiorm.Entity
-import javax.validation.ValidationException
+import jakarta.validation.ValidationException
 import kotlin.test.expect
 import kotlin.test.fail
 

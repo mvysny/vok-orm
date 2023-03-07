@@ -3,7 +3,7 @@ package com.github.vokorm
 import com.gitlab.mvysny.jdbiorm.Dao
 import com.gitlab.mvysny.jdbiorm.EntityMeta
 import com.gitlab.mvysny.jdbiorm.spi.AbstractEntity
-import javax.validation.ConstraintViolationException
+import jakarta.validation.ConstraintViolationException
 
 /**
  * Allows you to fetch rows of a database table, and adds useful utility methods [save]
