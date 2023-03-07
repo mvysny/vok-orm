@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val slf4jVersion = "2.0.4"
+val slf4jVersion = "2.0.6"
 val testcontainersVersion = "1.17.6"
 
 plugins {
@@ -40,14 +40,14 @@ dependencies {
     testImplementation("com.github.mvysny.dynatest:dynatest:0.24")
     testImplementation("com.google.code.gson:gson:2.9.0")
     testImplementation("org.slf4j:slf4j-simple:$slf4jVersion")
-    testImplementation("com.h2database:h2:2.1.212")
+    testImplementation("com.h2database:h2:2.1.214")
     // stay with HikariCP 4 sice 5.x requires JDK11: https://github.com/brettwooldridge/HikariCP
     testImplementation("com.zaxxer:HikariCP:4.0.3")
 
     testImplementation("org.apache.lucene:lucene-analyzers-common:8.11.1") // for H2 Full-Text search
     testImplementation("org.apache.lucene:lucene-queryparser:8.11.1") // for H2 Full-Text search
 
-    testImplementation("org.postgresql:postgresql:42.5.0")
+    testImplementation("org.postgresql:postgresql:42.5.1")
     testImplementation("mysql:mysql-connector-java:8.0.30")
     testImplementation("org.mariadb.jdbc:mariadb-java-client:3.0.6")
     testImplementation("com.microsoft.sqlserver:mssql-jdbc:11.2.1.jre8")
@@ -62,7 +62,7 @@ dependencies {
     testImplementation("com.fatboyindustrial.gson-javatime-serialisers:gson-javatime-serialisers:1.1.1")
 
     // IDEA language injections
-    testImplementation("org.jetbrains:annotations:22.0.0")
+    testImplementation("org.jetbrains:annotations:23.1.0")
 }
 
 java {
