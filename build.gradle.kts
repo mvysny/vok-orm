@@ -41,8 +41,7 @@ dependencies {
     testImplementation("com.google.code.gson:gson:2.9.0")
     testImplementation("org.slf4j:slf4j-simple:$slf4jVersion")
     testImplementation("com.h2database:h2:2.1.214")
-    // stay with HikariCP 4 sice 5.x requires JDK11: https://github.com/brettwooldridge/HikariCP
-    testImplementation("com.zaxxer:HikariCP:4.0.3")
+    testImplementation("com.zaxxer:HikariCP:5.0.1")
 
     testImplementation("org.apache.lucene:lucene-analyzers-common:8.11.1") // for H2 Full-Text search
     testImplementation("org.apache.lucene:lucene-queryparser:8.11.1") // for H2 Full-Text search
