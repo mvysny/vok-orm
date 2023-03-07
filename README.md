@@ -50,6 +50,13 @@ Maven: (it's very simple since vok-orm is in Maven Central):
 See the [vok-orm-playground](https://gitlab.com/mvysny/vok-orm-playground) for a very simple example project
 using `vok-orm`.
 
+Compatibility Chart:
+
+| vok-orm version | validation API     | Min. Java version |
+|-----------------|--------------------|-------------------|
+| 1.x             | javax.validation   | 8+                |
+| 2.x             | jakarta.validation | 11+               |
+
 ## Usage Examples
 
 Say that we have a table containing a list of beverage categories, such as Cider or Beer. The H2 DDL for such table is simple:
