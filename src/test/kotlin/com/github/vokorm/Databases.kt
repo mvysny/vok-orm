@@ -62,7 +62,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: PostgreSQLContainer<*>
     beforeGroup {
-        container = PostgreSQLContainer("postgres:10.3")
+        container = PostgreSQLContainer("postgres:15.2")
         container.start()
     }
     beforeGroup {
@@ -106,7 +106,7 @@ fun DynaNodeGroup.usingDockerizedMysql() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: MySQLContainer<*>
     beforeGroup {
-        container = MySQLContainer("mysql:8.0.31")
+        container = MySQLContainer("mysql:8.0.33")
         // disable SSL, to avoid SSL-related exceptions on github actions:
         // javax.net.ssl.SSLHandshakeException: No appropriate protocol (protocol is disabled or cipher suites are inappropriate)
         container.withUrlParam("useSSL", "false")
@@ -198,7 +198,7 @@ private fun DynaNodeGroup.usingDockerizedMariaDB() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: MariaDBContainer<*>
     beforeGroup {
-        container = MariaDBContainer("mariadb:10.10.2")
+        container = MariaDBContainer("mariadb:10.11.2")
         container.start()
     }
     beforeGroup {
