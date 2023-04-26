@@ -19,6 +19,11 @@ sorts of environments.
 > vok-orm uses the [jdbi-orm](https://gitlab.com/mvysny/jdbi-orm) and [JDBI](http://jdbi.org/) under the belt,
 and introduces first-class Kotlin support on top of those frameworks.
 
+## Supported Databases
+
+vok-orm currently supports MySQL, MariaDB, PostgreSQL, H2, Microsoft SQL and CockroachDB.
+Other databases are untested - they might or might not work.
+
 ## Usage
 
 Just add the following lines to your Gradle script, to include this library in your project:
