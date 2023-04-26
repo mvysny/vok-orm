@@ -119,7 +119,7 @@ fun DynaNodeGroup.dbFiltersTest(info: DatabaseInfo) {
             FullTextFilter<Person>("name", "").toParametrizedSql(Person::class.java, JdbiOrm.databaseVariant!!)
         }
 
-        if (info.variant.supportsFullText) {
+        if (info.supportsFullText) {
             test("smoke test") {
                 Person.findAllBy(filter = FullTextFilter<Person>("name", ""))
                 Person.findAllBy(filter = FullTextFilter<Person>("name", "a"))
