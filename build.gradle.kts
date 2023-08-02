@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val slf4jVersion = "2.0.6"
+val slf4jVersion = "2.0.7"
 val testcontainersVersion = "1.18.0"
 
 plugins {
@@ -38,9 +38,9 @@ dependencies {
 
     // tests
     testImplementation("com.github.mvysny.dynatest:dynatest:0.24")
-    testImplementation("com.google.code.gson:gson:2.9.0")
+    testImplementation("com.google.code.gson:gson:2.10.1")
     testImplementation("org.slf4j:slf4j-simple:$slf4jVersion")
-    testImplementation("com.h2database:h2:2.1.214")
+    testImplementation("com.h2database:h2:2.2.220")
     testImplementation("com.zaxxer:HikariCP:5.0.1")
 
     testImplementation("org.apache.lucene:lucene-analyzers-common:8.11.1") // for H2 Full-Text search
