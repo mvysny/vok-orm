@@ -5,7 +5,7 @@ val slf4jVersion = "2.0.6"
 val testcontainersVersion = "1.18.0"
 
 plugins {
-    kotlin("jvm") version "1.8.21"
+    kotlin("jvm") version "1.9.0"
     `maven-publish`
     signing
 }
