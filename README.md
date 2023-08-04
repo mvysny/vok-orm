@@ -409,7 +409,7 @@ Let's thus create a `ReviewWithCategory` class:
 class ReviewWithCategory : Serializable {
     @Nested
     var review: Review = Review()
-    @ColumnName("name")
+    @field:ColumnName("name")
     var categoryName: String? = null
 }
 ```
@@ -450,7 +450,7 @@ The only thing that matters is that the class will have properties named exactly
 using the `@ColumnName` annotation):
 
 ```kotlin
-data class Beverage(@ColumnName("beverageName") var name: String = "", @ColumnName("name") var category: String? = null) : Serializable {
+data class Beverage(@field:ColumnName("beverageName") var name: String = "", @field:ColumnName("name") var category: String? = null) : Serializable {
     companion object {
         fun findAll(): List<Beverage> = db {
             handle.createQuery("select r.beverageName, c.name from Review r left join Category c on r.category = c.id")
@@ -689,8 +689,8 @@ Therefore, instead of database-based aliases it's better to use the `@ColumnName
 such as `Customer` and projection-only entities such as `CustomerAddress`:
 
 ```kotlin
-data class Customer(@ColumnName("CUSTOMER_NAME") var name: String? = null) : KEntity<Long>
-data class CustomerAddress(@ColumnName("CUSTOMER_NAME") var customerName: String? = null)
+data class Customer(@field:ColumnName("CUSTOMER_NAME") var name: String? = null) : KEntity<Long>
+data class CustomerAddress(@field:ColumnName("CUSTOMER_NAME") var customerName: String? = null)
 ```
 
 The `@ColumnName` annotation is honored both by `Dao`s and by all data loaders.

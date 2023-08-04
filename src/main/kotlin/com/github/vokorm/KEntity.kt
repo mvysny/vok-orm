@@ -4,6 +4,7 @@ import com.gitlab.mvysny.jdbiorm.Dao
 import com.gitlab.mvysny.jdbiorm.EntityMeta
 import com.gitlab.mvysny.jdbiorm.spi.AbstractEntity
 import jakarta.validation.ConstraintViolationException
+import org.jdbi.v3.core.mapper.reflect.ColumnName
 
 /**
  * Allows you to fetch rows of a database table, and adds useful utility methods [save]
@@ -19,7 +20,9 @@ import jakarta.validation.ConstraintViolationException
  * Annotate the class with [com.gitlab.mvysny.jdbiorm.Table] to set SQL table name.
  *
  * ### Mapping columns
- * Use the [org.jdbi.v3.core.mapper.reflect.ColumnName] annotation to change the name of the column.
+ * Use the [ColumnName] annotation to change the name of the column.
+ * Please make sure to attach the annotation the field, for example
+ * `@field:ColumnName("DateTime")`.
  *
  * ### Auto-generated IDs vs pre-provided IDs
  * There are generally three cases for entity ID generation:
@@ -51,7 +54,11 @@ import jakarta.validation.ConstraintViolationException
  */
 public interface KEntity<ID: Any> : AbstractEntity<ID> {
     /**
-     * The ID primary key. You can use the [org.jdbi.v3.core.mapper.reflect.ColumnName] annotation to change the actual db column name.
+     * The ID primary key.
+     *
+     * You can use the [ColumnName] annotation to change
+     * the actual db column name - please make sure to attach the annotation the field, for example
+     * `@field:ColumnName("DateTime")`.
      */
     public var id: ID?
 
@@ -59,10 +66,8 @@ public interface KEntity<ID: Any> : AbstractEntity<ID> {
      * Validates current entity. By default performs the java validation: just add `javax.validation`
      * annotations to entity properties.
      *
-     *
      * Make sure to add the validation annotations to
-     * fields otherwise they will be ignored.
-     *
+     * fields otherwise they will be ignored. For example `@field:NotNull`.
      *
      * You can override this method to perform additional validations on the level of the entire entity.
      *
