@@ -62,7 +62,7 @@ dependencies {
     testImplementation("com.fatboyindustrial.gson-javatime-serialisers:gson-javatime-serialisers:1.1.1")
 
     // IDEA language injections
-    testImplementation("org.jetbrains:annotations:23.1.0")
+    testImplementation("org.jetbrains:annotations:24.0.1")
 }
 
 java {
