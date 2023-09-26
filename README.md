@@ -838,17 +838,30 @@ for the complete explanation of ideas behind this framework.
 This framework uses [JDBI](http://jdbi.org/) to map data from the JDBC `ResultSet` to POJOs; in addition it provides a very simple
 mechanism to store/update the data back to the database.
 
+## Comparison with other database-related libraries
+
+* [ActiveJDBC](https://javalite.io/activejdbc) has much in common with jdbi-orm; the advantage of jdbi-orm
+  is that we do not require any instrumentation to work (we use only Java language features).
+* [JOOQ](https://www.jooq.org/) is great but requires initial generation of java code from your database scheme
+  (you write your entities by hand with jdbi-orm), and promotes type-safe query building instead of plain SQLs.
+  There's the usual set of problems coming with generated classes: you can't add your custom utility functions to those,
+  you can't add validation annotations, etc.
+  If you don't mind that, go for JOOQ - it's definitely more popular than jdbi-orm.
+* JPA: just no. We want real POJOs, not a dynamically-enhanced thing managed by the Entity Manager. Also see below.
+* Spring JdbcTemplate: not bad but it depends on Spring; jdbi-orm must be able to work on pure JVM, without Spring.
+
 ## Why not JPA
 
-JPA is *the* default framework of choice for many projects. However, there are issues in JPA which cannot be overlooked:
+JPA promises simplicity of usage by providing an object-oriented API. However, this is achieved by
+creating a *virtual object database* layer over a relational database; that creates much complexity
+under the hood which leaks in various ways. In short, JPA is a double failure: it chose the wrong abstraction,
+and implemented it poorly.
+
+There are major issues in JPA which cannot be overlooked:
 
 * [Vaadin-on-Kotlin Issue #3 Remove JPA](https://github.com/mvysny/vaadin-on-kotlin/issues/3)
 * [Back to Base - make SQL great again](http://mavi.logdown.com/posts/5771422)
 * [Do-It-Yourself ORM as an Alternative to Hibernate](https://blog.philipphauer.de/do-it-yourself-orm-alternative-hibernate-drawbacks/)
-
-JPA promises simplicity of usage by providing an object-oriented API. However, this is achieved by
-creating a *virtual object database* layer over a relational database; that creates much complexity
-under the hood which leaks in various ways.
 
 We strive to erase the virtual object database layer. We acknowledge the existence of
 the relational database; we only provide tools to ease the use of the database from a
