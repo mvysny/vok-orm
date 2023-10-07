@@ -63,7 +63,7 @@ public interface KEntity<ID: Any> : AbstractEntity<ID> {
     public var id: ID?
 
     /**
-     * Validates current entity. By default performs the java validation: just add `javax.validation`
+     * Validates current entity. The Java JSR303 validation is performed by default: just add `jakarta.validation`
      * annotations to entity properties.
      *
      * Make sure to add the validation annotations to
@@ -71,12 +71,15 @@ public interface KEntity<ID: Any> : AbstractEntity<ID> {
      *
      * You can override this method to perform additional validations on the level of the entire entity.
      *
-     * @throws javax.validation.ValidationException when validation fails.
+     * @throws ConstraintViolationException when validation fails.
      */
     public fun validate() {
         EntityMeta<KEntity<ID>>(javaClass).defaultValidate(this)
     }
 
+    /**
+     * Checks whether this entity is valid: calls [validate] and returns false if [ConstraintViolationException] is thrown.
+     */
     public val isValid: Boolean
         get() = try {
             validate()

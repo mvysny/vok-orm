@@ -407,9 +407,9 @@ Let's thus create a `ReviewWithCategory` class:
 
 ```kotlin
 class ReviewWithCategory : Serializable {
-    @Nested
+    @field:Nested
     var review: Review = Review()
-    @field:ColumnName("name")
+    @field:ColumnName("categoryName")
     var categoryName: String? = null
 }
 ```
