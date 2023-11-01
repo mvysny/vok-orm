@@ -92,25 +92,25 @@ publishing {
             this.artifactId = "vok-orm"
             version = project.version.toString()
             pom {
-                description.set("A very simple persistence framework, built on top of jdbi")
-                name.set("VoK-ORM")
-                url.set("https://github.com/mvysny/vok-orm")
+                description = "A very simple persistence framework, built on top of jdbi"
+                name = "VoK-ORM"
+                url = "https://github.com/mvysny/vok-orm"
                 licenses {
                     license {
-                        name.set("The MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
-                        distribution.set("repo")
+                        name = "The MIT License"
+                        url = "https://opensource.org/licenses/MIT"
+                        distribution = "repo"
                     }
                 }
                 developers {
                     developer {
-                        id.set("mavi")
-                        name.set("Martin Vysny")
-                        email.set("martin@vysny.me")
+                        id = "mavi"
+                        name = "Martin Vysny"
+                        email = "martin@vysny.me"
                     }
                 }
                 scm {
-                    url.set("https://github.com/mvysny/vok-orm")
+                    url = "https://github.com/mvysny/vok-orm"
                 }
             }
             from(components["java"])
@@ -125,7 +125,7 @@ signing {
 tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {
-        // to see the exceptions of failed tests in Travis-CI console.
+        // to see the stacktraces of failed tests in the CI console.
         exceptionFormat = TestExceptionFormat.FULL
         showStandardStreams = true
     }
