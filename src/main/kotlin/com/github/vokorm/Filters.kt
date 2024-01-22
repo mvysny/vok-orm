@@ -111,8 +111,8 @@ public class DefaultFilterToSqlConverter : FilterToSqlConverter {
                         mapOf(parameterName to filter.words.joinToString(" & ") { "$it:*" }))
             }
             DatabaseVariant.H2 -> {
-                val meta: EntityMeta<*> = EntityMeta(clazz)
-                val idColumn: String = meta.idProperty[0].dbColumnName
+                val meta: EntityMeta<*> = EntityMeta.of(clazz)
+                val idColumn: String = meta.idProperty[0].dbName.qualifiedName
                 val query: String = filter.words.joinToString(" AND ") { "$it*" }
                 // Need to CAST(FT.KEYS[1] AS BIGINT) otherwise IN won't match anything
                 ParametrizedSql("$idColumn IN (SELECT CAST(FT.KEYS[1] AS BIGINT) AS ID FROM FTL_SEARCH_DATA(:$parameterName, 0, 0) FT WHERE FT.`TABLE`='${meta.databaseTableName.uppercase()}')",

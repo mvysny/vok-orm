@@ -39,6 +39,6 @@ internal fun List<SortClause>.toSql92OrderByClause(entityClass: Class<*>): Strin
  * property then it assumes that the data loader property name is already the column name and simply returns this.
  */
 internal fun DataLoaderPropertyName.toNativeColumnName(clazz: Class<*>): NativePropertyName {
-    val property: PropertyMeta = EntityMeta(clazz).properties.firstOrNull { it.name == this } ?: return this
-    return property.dbColumnName
+    val property: PropertyMeta = EntityMeta.of(clazz).properties.firstOrNull { it.name.name == this } ?: return this
+    return property.dbName.unqualifiedName
 }

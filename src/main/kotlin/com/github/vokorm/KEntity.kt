@@ -74,7 +74,7 @@ public interface KEntity<ID: Any> : AbstractEntity<ID> {
      * @throws ConstraintViolationException when validation fails.
      */
     public fun validate() {
-        EntityMeta<KEntity<ID>>(javaClass).defaultValidate(this)
+        EntityMeta.of<KEntity<ID>>(javaClass).defaultValidate(this)
     }
 
     /**
@@ -109,7 +109,7 @@ public interface KEntity<ID: Any> : AbstractEntity<ID> {
         if (validate) {
             validate()
         }
-        EntityMeta<KEntity<ID>>(javaClass).defaultCreate(this)
+        EntityMeta.of<KEntity<ID>>(javaClass).defaultCreate(this)
     }
 
     /**
@@ -141,7 +141,7 @@ public interface KEntity<ID: Any> : AbstractEntity<ID> {
         if (id == null) {
             create(false) // no need to validate again
         } else {
-            EntityMeta<KEntity<ID>>(javaClass).defaultSave(this)
+            EntityMeta.of<KEntity<ID>>(javaClass).defaultSave(this)
         }
     }
 
@@ -152,6 +152,6 @@ public interface KEntity<ID: Any> : AbstractEntity<ID> {
      */
     public fun reload() {
         checkNotNull(id) { "Invalid state: id is null" }
-        EntityMeta<KEntity<*>>(javaClass).defaultReload(this)
+        EntityMeta.of<KEntity<*>>(javaClass).defaultReload(this)
     }
 }

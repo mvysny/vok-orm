@@ -9,7 +9,7 @@ import com.gitlab.mvysny.jdbiorm.EntityMeta
 import com.gitlab.mvysny.jdbiorm.JdbiOrm
 import org.jdbi.v3.core.statement.Query
 
-internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta(entityClass)
+internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta.of(entityClass)
 
 /**
  * Retrieves single entity matching given [filter]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
@@ -91,7 +91,7 @@ public fun <T : Any> DaoOfAny<T>.count(filter: Filter<T>): Long {
  * db { con.createQuery("delete from Foo where name = :name").addParameter("name", name).executeUpdate() }
  * ```
  */
-public fun <T : Any> DaoOfAny<T>.deleteBy(block: FilterBuilder<T>.() -> Filter<T>) {
+public fun <T : Any> DaoOfAny<T>.deleteBy2(block: FilterBuilder<T>.() -> Filter<T>) {
     deleteBy(FilterBuilder<T>(entityClass).block())
 }
 
@@ -118,7 +118,7 @@ public fun <T : Any> DaoOfAny<T>.deleteBy(filter: Filter<T>) {
  * @param range use LIMIT+OFFSET to fetch given page of data. Defaults to all data.
  * @param block the filter to use.
  */
-public fun <T : Any> DaoOfAny<T>.findAllBy(
+public fun <T : Any> DaoOfAny<T>.findAllBy2(
         vararg orderBy: SortClause = arrayOf(),
         range: IntRange = IntRange(0, Int.MAX_VALUE),
         block: FilterBuilder<T>.() -> Filter<T>
@@ -171,7 +171,7 @@ public fun <T : Any> DaoOfAny<T>.findAllBy(
  *
  * ```
  * Person.existsBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, preferred
- * Person.existsBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
+ * Person.existsBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programmatically.
  * ```
  *
  * If you want more complex stuff or even joins, fall back and just write SQL:
@@ -181,7 +181,7 @@ public fun <T : Any> DaoOfAny<T>.findAllBy(
  * ```
  * @param block the filter to use.
  */
-public fun <T : Any> DaoOfAny<T>.existsBy(block: FilterBuilder<T>.() -> Filter<T>): Boolean =
+public fun <T : Any> DaoOfAny<T>.existsBy2(block: FilterBuilder<T>.() -> Filter<T>): Boolean =
         existsBy(block(FilterBuilder(entityClass)))
 
 /**

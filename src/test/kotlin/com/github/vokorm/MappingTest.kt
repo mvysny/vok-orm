@@ -77,7 +77,7 @@ fun DynaNodeGroup.dbMappingTests() {
         test("Meta") {
             val meta = Person.meta
             expect("Test") { meta.databaseTableName }  // since Person is annotated with @Entity("Test")
-            expect("id") { meta.idProperty[0].dbColumnName }
+            expect("Test.id") { meta.idProperty[0].dbName.qualifiedName }
             expect(Person::class.java) { meta.entityClass }
             expect(Long::class.java) { meta.idProperty[0].valueType }
             expect(
@@ -91,7 +91,7 @@ fun DynaNodeGroup.dbMappingTests() {
                             "maritalStatus",
                             "modified"
                     )
-            ) { meta.persistedFieldDbNames }
+            ) { meta.persistedFieldDbNames.map { it.unqualifiedName } .toSet() }
         }
     }
     group("EntityWithAliasedId") {
@@ -117,10 +117,10 @@ fun DynaNodeGroup.dbMappingTests() {
         test("Meta") {
             val meta = EntityWithAliasedId.meta
             expect("EntityWithAliasedId") { meta.databaseTableName }
-            expect("myid") { meta.idProperty[0].dbColumnName }
+            expect("myid") { meta.idProperty[0].dbName.unqualifiedName }
             expect(EntityWithAliasedId::class.java) { meta.entityClass }
             expect(Long::class.java) { meta.idProperty[0].valueType }
-            expect(setOf("myid", "name")) { meta.persistedFieldDbNames }
+            expect(setOf("myid", "name")) { meta.persistedFieldDbNames.map { it.unqualifiedName } .toSet() }
         }
     }
     group("NaturalPerson") {

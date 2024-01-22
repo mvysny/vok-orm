@@ -87,9 +87,9 @@ fun DynaNodeGroup.dbDaoTests() {
         }
         test("DeleteBy") {
             listOf("Albedo", "Nigredo", "Rubedo").forEach { Person(name = it, age = 129).save() }
-            Person.deleteBy { "name = :name"("name" to "Albedo") }  // raw sql where
+            Person.deleteBy2 { "name = :name"("name" to "Albedo") }  // raw sql where
             expect(listOf("Nigredo", "Rubedo")) { Person.findAll().map { it.name } }
-            Person.deleteBy { Person::name eq "Rubedo" }  // fancy type-safe criteria
+            Person.deleteBy2 { Person::name eq "Rubedo" }  // fancy type-safe criteria
             expect(listOf("Nigredo")) { Person.findAll().map { it.name } }
         }
         group("findOneBy() tests") {
@@ -130,21 +130,21 @@ fun DynaNodeGroup.dbDaoTests() {
             test("returns false on empty table") {
                 expect(false) { Person.existsAny() }
                 expect(false) { Person.existsById(25) }
-                expect(false) { Person.existsBy { Person::age le 26 } }
+                expect(false) { Person.existsBy2 { Person::age le 26 } }
             }
             test("returns true on matching entity") {
                 val p = Person(name = "Albedo", age = 134)
                 p.save()
                 expect(true) { Person.existsAny() }
                 expect(true) { Person.existsById(p.id!!) }
-                expect(true) { Person.existsBy { Person::age ge 26 } }
+                expect(true) { Person.existsBy2 { Person::age ge 26 } }
             }
             test("returns false on non-matching entity") {
                 val p = Person(name = "Albedo", age = 135)
                 p.save()
                 expect(true) { Person.existsAny() }
                 expect(false) { Person.existsById(p.id!! + 1) }
-                expect(false) { Person.existsBy { Person::age le 26 } }
+                expect(false) { Person.existsBy2 { Person::age le 26 } }
             }
         }
         test("sql92 filter works") {
@@ -205,7 +205,7 @@ fun DynaNodeGroup.dbDaoTests() {
         }
         test("DeleteBy") {
             listOf("Albedo", "Nigredo", "Rubedo").forEach { EntityWithAliasedId(name = it).save() }
-            EntityWithAliasedId.deleteBy { "name = :name"("name" to "Albedo") }  // raw sql where
+            EntityWithAliasedId.deleteBy2 { "name = :name"("name" to "Albedo") }  // raw sql where
             expect(listOf("Nigredo", "Rubedo")) { EntityWithAliasedId.findAll().map { it.name } }
         }
         group("findOneBy() tests") {
@@ -219,14 +219,14 @@ fun DynaNodeGroup.dbDaoTests() {
             test("returns false on empty table") {
                 expect(false) { EntityWithAliasedId.existsAny() }
                 expect(false) { EntityWithAliasedId.existsById(25) }
-                expect(false) { EntityWithAliasedId.existsBy { EntityWithAliasedId::name le "a" } }
+                expect(false) { EntityWithAliasedId.existsBy2 { EntityWithAliasedId::name le "a" } }
             }
             test("returns true on matching entity") {
                 val p = EntityWithAliasedId(name = "Albedo")
                 p.save()
                 expect(true) { EntityWithAliasedId.existsAny() }
                 expect(true) { EntityWithAliasedId.existsById(p.id!!) }
-                expect(true) { EntityWithAliasedId.existsBy { EntityWithAliasedId::name eq "Albedo" } }
+                expect(true) { EntityWithAliasedId.existsBy2 { EntityWithAliasedId::name eq "Albedo" } }
             }
         }
     }
