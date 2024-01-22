@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val slf4jVersion = "2.0.9"
-val testcontainersVersion = "1.18.0"
+val testcontainersVersion = "1.19.3"
 
 plugins {
     kotlin("jvm") version "1.9.22"
