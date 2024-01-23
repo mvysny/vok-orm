@@ -44,7 +44,7 @@ internal fun DataLoaderPropertyName.toNativeColumnName(clazz: Class<*>): NativeP
 }
 
 /**
- * Converts Kotlin [KProperty1] to JDBI-ORM [TableProperty], allowing you to construct JDBI-ORM Conditions easily:
+ * Converts Kotlin [KProperty1] to JDBI-ORM [TableProperty] which is an expression. That allows you to construct JDBI-ORM Conditions easily:
  * ```kotlin
  * dao.findAll(Person::id.exp.eq(25))
  * ```
