@@ -2,7 +2,9 @@ package com.github.vokorm.dataloader
 
 import com.github.mvysny.dynatest.*
 import com.github.mvysny.vokdataloader.SortClause
+import com.github.mvysny.vokdataloader.asc
 import com.github.mvysny.vokdataloader.buildFilter
+import com.github.mvysny.vokdataloader.desc
 import com.github.vokorm.*
 import com.gitlab.mvysny.jdbiorm.Table
 import com.gitlab.mvysny.jdbiorm.quirks.DatabaseVariant

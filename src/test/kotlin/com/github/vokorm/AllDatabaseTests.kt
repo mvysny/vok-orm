@@ -1,8 +1,6 @@
 package com.github.vokorm
 
 import com.github.mvysny.dynatest.*
-import com.github.vokorm.dataloader.SqlDataLoaderTest
-import com.github.vokorm.dataloader.dbEntityDataLoaderTests
 import com.github.vokorm.dataloader.dbSqlDataLoaderTests
 import org.jdbi.v3.core.Handle
 import java.io.IOException
@@ -24,9 +22,6 @@ class AllDatabaseTests : DynaTest({
         }
         group("Filters") {
             dbFiltersTest(info)
-        }
-        group("EntityDataLoader") {
-            dbEntityDataLoaderTests()
         }
         group("SqlDataLoader") {
             dbSqlDataLoaderTests(info)

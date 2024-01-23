@@ -520,46 +520,9 @@ has validations enabled and all necessary jars included.
 
 ## Data Loaders
 
-Very often the UI frameworks provide some kind of tabular component which allows
-for viewing database tables, or even outcomes of any SELECT
-command (possibly joined). An example of such tabular component is the Vaadin Grid;
-you can see the [live demo](https://vok-crud.herokuapp.com/crud)
-of the Grid for yourself.
-
-Typically such tables provide sorting and filtering for the user;
-since they fetch data lazily as the user scrolls the table, the table must be
-able to fetch data in pages.
-
-vok-orm provide the Data Loaders which offer all of the above-mentioned functionality:
-sorting, filtering and lazy-loading. You can check out
-the project and the API at [Data Loader](https://gitlab.com/mvysny/vok-dataloader).
-You then need to write a thin wrapper which wraps
-the `DataLoader` and adapts it to the API as required by the particular tabular
-component from a particular framework. However, since all
-of the functionality is provided, the wrapper is typically thin and easy to write.
-
-> The Vaadin-on-Kotlin project provides data loader wrappers for Vaadin 8 and Vaadin 10+ Grid
-(wraps DataLoader as DataProvider)
-
-`vok-orm` provides two concrete implementations of data loaders out-of-the-box: the `EntityDataLoader` and the `SqlDataLoader`.
-
-### EntityDataLoader
-
-The [EntityDataLoader](src/main/kotlin/com/github/vokorm/dataloader/EntityDataLoader.kt) is able to provide instances of any class which implements the `Entity` interface. Simply create the `EntityDataLoader`
-instance for your entity class and you're good to go.
-
-The `EntityDataLoader` honors the `@ColumnName` annotation when mapping class
-instances from the outcome of the `SELECT *` clause. If you don't use SQL aliases
-but you stick to use `@ColumnName`, then you can use the `Filter` class hierarchy
-to filter out the results, and you can use `SortClause` to sort
-the results. Just keep in mind to pass in the database column name into the
-`Filter` and `SortClause`, and not the bean property name.
-
-Note that the `EntityDataLoader` will construct the entire SQL SELECT command
-by itself - you cannot change the way it's constructed. This way
-it is very simple to use the `EntityDataLoader`. If you need a full power of
-the SQL SELECT command, use the `SqlDataLoader`, or
-create a database view.
+The support for [Data Loader](https://gitlab.com/mvysny/vok-dataloader) is deprecated and removed.
+For Vaadin integration please see [jdbi-orm-vaadin](https://gitlab.com/mvysny/jdbi-orm-vaadin)
+which supports vok-orm too.
 
 ### SqlDataLoader
 
