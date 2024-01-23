@@ -91,7 +91,7 @@ public fun <T : Any> DaoOfAny<T>.count(filter: Filter<T>): Long {
  * db { con.createQuery("delete from Foo where name = :name").addParameter("name", name).executeUpdate() }
  * ```
  */
-public fun <T : Any> DaoOfAny<T>.deleteBy2(block: FilterBuilder<T>.() -> Filter<T>) {
+public fun <T : Any> DaoOfAny<T>.deleteBy(block: FilterBuilder<T>.() -> Filter<T>) {
     deleteBy(FilterBuilder<T>(entityClass).block())
 }
 
@@ -118,7 +118,7 @@ public fun <T : Any> DaoOfAny<T>.deleteBy(filter: Filter<T>) {
  * @param range use LIMIT+OFFSET to fetch given page of data. Defaults to all data.
  * @param block the filter to use.
  */
-public fun <T : Any> DaoOfAny<T>.findAllBy2(
+public fun <T : Any> DaoOfAny<T>.findAllBy(
         vararg orderBy: SortClause = arrayOf(),
         range: IntRange = IntRange(0, Int.MAX_VALUE),
         block: FilterBuilder<T>.() -> Filter<T>
@@ -181,7 +181,7 @@ public fun <T : Any> DaoOfAny<T>.findAllBy(
  * ```
  * @param block the filter to use.
  */
-public fun <T : Any> DaoOfAny<T>.existsBy2(block: FilterBuilder<T>.() -> Filter<T>): Boolean =
+public fun <T : Any> DaoOfAny<T>.existsBy(block: FilterBuilder<T>.() -> Filter<T>): Boolean =
         existsBy(block(FilterBuilder(entityClass)))
 
 /**
