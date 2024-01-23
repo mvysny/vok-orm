@@ -6,6 +6,7 @@ import com.github.mvysny.dynatest.DynaTestDsl
 import com.github.mvysny.dynatest.expectList
 import com.github.mvysny.vokdataloader.*
 import com.gitlab.mvysny.jdbiorm.JdbiOrm
+import com.gitlab.mvysny.jdbiorm.OrderBy
 import com.gitlab.mvysny.jdbiorm.quirks.DatabaseVariant
 import kotlin.test.expect
 
@@ -31,11 +32,13 @@ class FiltersTest : DynaTest({
 
 })
 
+val OrderBy.sortClause: SortClause get() = SortClause(name.name, order == OrderBy.Order.ASC)
+
 @DynaTestDsl
 fun DynaNodeGroup.dbFiltersTest(info: DatabaseInfo) {
     test("api test") {
         Person.findAll(Person::age.asc, Person::created.desc)
-        Person.findAllBy(Person::age.asc, Person::created.desc, filter = FullTextFilter<Person>("name", ""))
+        Person.findAllBy(Person::age.asc.sortClause, Person::created.desc.sortClause, filter = FullTextFilter<Person>("name", ""))
     }
 
     group("filter test") {

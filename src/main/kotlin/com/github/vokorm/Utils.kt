@@ -3,11 +3,11 @@ package com.github.vokorm
 import com.github.mvysny.vokdataloader.DataLoaderPropertyName
 import com.github.mvysny.vokdataloader.NativePropertyName
 import com.github.mvysny.vokdataloader.SortClause
-import com.gitlab.mvysny.jdbiorm.EntityMeta
-import com.gitlab.mvysny.jdbiorm.PropertyMeta
+import com.gitlab.mvysny.jdbiorm.*
 import com.gitlab.mvysny.jdbiorm.quirks.DatabaseVariant
 import com.gitlab.mvysny.jdbiorm.quirks.Quirks
 import org.jdbi.v3.core.Handle
+import kotlin.reflect.KProperty1
 
 /**
  * Checks whether this class implements given interface [intf].
@@ -42,3 +42,27 @@ internal fun DataLoaderPropertyName.toNativeColumnName(clazz: Class<*>): NativeP
     val property: PropertyMeta = EntityMeta.of(clazz).properties.firstOrNull { it.name.name == this } ?: return this
     return property.dbName.unqualifiedName
 }
+
+/**
+ * Converts Kotlin [KProperty1] to JDBI-ORM [TableProperty], allowing you to construct JDBI-ORM Conditions easily:
+ * ```kotlin
+ * dao.findAll(Person::id.exp.eq(25))
+ * ```
+ */
+public inline val <reified T, V> KProperty1<T, V>.exp: TableProperty<T, V> get() = TableProperty.of(T::class.java, name)
+
+/**
+ * Produces [OrderBy] suitable to be passed into [Dao.findAll]
+ * ```kotlin
+ * dao.findAll(Person::id.asc)
+ * ```
+ */
+public val KProperty1<*, *>.asc: OrderBy get() = OrderBy(Property.Name(name), OrderBy.Order.ASC)
+
+/**
+ * Produces [OrderBy] suitable to be passed into [Dao.findAll]
+ * ```kotlin
+ * dao.findAll(Person::id.asc)
+ * ```
+ */
+public val KProperty1<*, *>.desc: OrderBy get() = OrderBy(Property.Name(name), OrderBy.Order.DESC)

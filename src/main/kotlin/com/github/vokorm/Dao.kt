@@ -7,6 +7,8 @@ import com.github.mvysny.vokdataloader.length
 import com.gitlab.mvysny.jdbiorm.DaoOfAny
 import com.gitlab.mvysny.jdbiorm.EntityMeta
 import com.gitlab.mvysny.jdbiorm.JdbiOrm
+import com.gitlab.mvysny.jdbiorm.OrderBy
+import com.gitlab.mvysny.jdbiorm.condition.Condition
 import org.jdbi.v3.core.statement.Query
 
 internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta.of(entityClass)
@@ -132,13 +134,12 @@ public fun <T : Any> DaoOfAny<T>.findAllBy(
  * @param range use LIMIT+OFFSET to fetch given page of data. Defaults to all data.
  */
 public fun <T : Any> DaoOfAny<T>.findAll(
-    vararg orderBy: SortClause = arrayOf(),
+    vararg orderBy: OrderBy = arrayOf(),
     range: IntRange = IntRange(0, Int.MAX_VALUE)
 ): List<T> {
-    val orderByClause: String? = orderBy.toList().toSql92OrderByClause(entityClass)
     val offset: Long? = if (range == IntRange(0, Int.MAX_VALUE)) null else range.start.toLong()
     val limit: Long? = if (range == IntRange(0, Int.MAX_VALUE)) null else range.length.toLong()
-    return findAll(orderByClause, offset, limit)
+    return findAll(orderBy.toList(), offset, limit)
 }
 
 /**

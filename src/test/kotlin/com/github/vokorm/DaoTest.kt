@@ -153,6 +153,10 @@ fun DynaNodeGroup.dbDaoTests() {
             p.save()
             expect(p.withZeroNanos()) { db { Person.findSingleBy(EqFilter("alive", true))?.withZeroNanos() } }
         }
+        test("findAll sorting") {
+            Person.findAll(Person::id.asc)
+            Person.findAll(Person::id.desc)
+        }
     }
 
     // quick tests which test that DAO methods generally work with entities with aliased ID columns
