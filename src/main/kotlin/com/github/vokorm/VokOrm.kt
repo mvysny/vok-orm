@@ -5,7 +5,4 @@ package com.github.vokorm
  * [com.gitlab.mvysny.jdbiorm.JdbiOrm].
  * @author mavi
  */
-public object VokOrm {
-    @Volatile
-    public var filterToSqlConverter: FilterToSqlConverter = DefaultFilterToSqlConverter()
-}
+public object VokOrm {}

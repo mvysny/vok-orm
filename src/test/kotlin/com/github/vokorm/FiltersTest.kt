@@ -1,36 +1,8 @@
 package com.github.vokorm
 
 import com.github.mvysny.dynatest.DynaNodeGroup
-import com.github.mvysny.dynatest.DynaTest
 import com.github.mvysny.dynatest.DynaTestDsl
 import com.github.mvysny.dynatest.expectList
-import com.github.mvysny.vokdataloader.*
-import com.gitlab.mvysny.jdbiorm.JdbiOrm
-import com.gitlab.mvysny.jdbiorm.OrderBy
-import com.gitlab.mvysny.jdbiorm.quirks.DatabaseVariant
-import kotlin.test.expect
-
-class FiltersTest : DynaTest({
-
-    fun unmangleParameterNames(sql: ParametrizedSql): String {
-        var s = sql.sql92
-        sql.sql92Parameters.entries.forEach { (key, value) -> s = s.replace(":$key", ":$value") }
-        return s
-    }
-    fun sql(block: FilterBuilder<Person>.()-> Filter<Person>): String {
-        val filter: Filter<Person> = block(FilterBuilder(Person::class.java))
-        return unmangleParameterNames(filter.toParametrizedSql(Person::class.java, DatabaseVariant.Unknown))
-    }
-
-    test("ToSQL92") {
-        expect("age = :25") { sql { Person::age eq 25 } }
-        expect("not (age = :25)") { sql { !(Person::age eq 25) } }
-        expect("(age >= :25 and age <= :50)") { sql { Person::age between 25..50 } }
-        expect("((age >= :25 and age <= :50) or alive = :true)") { sql { (Person::age between 25..50) or (Person::isAlive25 eq true) } }
-        expect("age in (:25, :26)") { sql { Person::age `in` listOf(25, 26) } }
-    }
-
-})
 
 @DynaTestDsl
 fun DynaNodeGroup.dbFiltersTest(info: DatabaseInfo) {
@@ -115,11 +87,6 @@ fun DynaNodeGroup.dbFiltersTest(info: DatabaseInfo) {
     }
 
     group("full-text search") {
-
-        test("construct sql succeeds") {
-            FullTextFilter<Person>("name", "").toParametrizedSql(Person::class.java, JdbiOrm.databaseVariant!!)
-        }
-
         if (info.supportsFullText) {
             test("smoke test") {
                 Person.findAllBy(Person::name.exp.fullTextMatches(""))
