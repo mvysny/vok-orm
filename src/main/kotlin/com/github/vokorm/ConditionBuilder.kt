@@ -1,5 +1,7 @@
 package com.github.vokorm
 
+import com.github.mvysny.vokdataloader.Filter
+import com.github.mvysny.vokdataloader.NativeSqlFilter
 import com.gitlab.mvysny.jdbiorm.condition.Condition
 import java.io.Serializable
 import kotlin.reflect.KProperty1
@@ -95,6 +97,12 @@ public class ConditionBuilder<T : Any>(public val clazz: Class<T>) {
      * Matches only when the property is false. See [Expression.isFalse] for more details.
      */
     public val KProperty1<T, Boolean?>.isFalse: Condition get() = toProperty(clazz).isFalse
+
+    /**
+     * Allows for a native SQL query: `"age < :age_p"("age_p" to 60)`
+     */
+    public operator fun String.invoke(vararg params: Pair<String, Any?>): Condition =
+        NativeSQLCondition(this, mapOf(*params))
 }
 
 public infix fun Condition.and(other: Condition): Condition = and(other)
