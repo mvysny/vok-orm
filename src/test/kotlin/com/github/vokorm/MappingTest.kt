@@ -3,14 +3,12 @@
 package com.github.vokorm
 
 import com.github.mvysny.dynatest.*
-import com.google.gson.Gson
 import org.jdbi.v3.core.mapper.reflect.FieldMapper
 import java.lang.IllegalStateException
 import java.lang.Long
 import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
-import java.time.temporal.ChronoField
 import java.util.*
 import kotlin.test.expect
 
@@ -172,7 +170,7 @@ fun DynaNodeGroup.dbMappingTests() {
     }
     group("TypeMapping") {
         test("java enum to native db enum") {
-            for (it in MaritalStatus.values().plusNull) {
+            for (it in MaritalStatus.entries.plusNull) {
                 val id: kotlin.Long? = TypeMappingEntity(enumTest = it).run { save(); id }
                 val loaded = TypeMappingEntity.findById(id!!)!!
                 expect(it) { loaded.enumTest }
@@ -189,4 +187,4 @@ val Date.withZeroMillis: Date get() {
 }
 
 val Instant.withZeroNanos: Instant get() = Instant.ofEpochMilli(toEpochMilli())
-val <T> Array<T>.plusNull: List<T?> get() = toList<T?>() + listOf(null)
+val <T> List<T>.plusNull: List<T?> get() = toList<T?>() + listOf(null)
