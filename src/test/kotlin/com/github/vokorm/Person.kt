@@ -48,9 +48,6 @@ data class Person(
     companion object : Dao<Person, Long>(Person::class.java) {
         val IGNORE_THIS_FIELD: Int = 0
     }
-
-    @Deprecated("no need")
-    fun withZeroNanos(): Person = this
 }
 
 enum class MaritalStatus {

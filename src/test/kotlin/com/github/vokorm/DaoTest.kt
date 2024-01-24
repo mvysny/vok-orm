@@ -15,12 +15,12 @@ fun DynaNodeGroup.dbDaoTests() {
             expect(null) { Person.findById(25) }
             val p = Person(name = "Albedo", age = 121)
             p.save()
-            expect(p.withZeroNanos()) { Person.findById(p.id!!)?.withZeroNanos() }
+            expect(p) { Person.findById(p.id!!) }
         }
         test("GetById") {
             val p = Person(name = "Albedo", age = 122)
             p.save()
-            expect(p.withZeroNanos()) { Person.getById(p.id!!).withZeroNanos() }
+            expect(p) { Person.getById(p.id!!) }
         }
         test("GetById fails if there is no such entity") {
             expectThrows<IllegalStateException>("There is no Person for id 25") {
@@ -31,7 +31,7 @@ fun DynaNodeGroup.dbDaoTests() {
             test("succeeds if there is exactly one matching entity") {
                 val p = Person(name = "Albedo", age = 123)
                 p.save()
-                expect(p.withZeroNanos()) { Person.singleBy { Person::name eq "Albedo" } .withZeroNanos() }
+                expect(p) { Person.singleBy { Person::name eq "Albedo" } }
             }
 
             test("fails if there is no such entity") {
@@ -95,7 +95,7 @@ fun DynaNodeGroup.dbDaoTests() {
             test("succeeds if there is exactly one matching entity") {
                 val p = Person(name = "Albedo", age = 130)
                 p.save()
-                expect(p.withZeroNanos()) { Person.findSingleBy { Person::name eq "Albedo" } ?.withZeroNanos() }
+                expect(p) { Person.findSingleBy { Person::name eq "Albedo" } }
             }
 
             test("returns null if there is no such entity") {
@@ -119,7 +119,9 @@ fun DynaNodeGroup.dbDaoTests() {
             test("test filter by date") {
                 val p = Person(name = "Albedo", age = 133, dateOfBirth = LocalDate.of(1980, 2, 2))
                 p.save()
-                expect(p.withZeroNanos()) { Person.findSingleBy { Person::dateOfBirth eq LocalDate.of(1980, 2, 2) } ?.withZeroNanos() }
+                expect(p) {
+                    Person.findSingleBy {Person::dateOfBirth eq LocalDate.of(1980, 2, 2) }
+                }
                 // here I don't care about whether it selects something or not, I'm only testing the database compatibility
                 Person.findSingleBy { Person::dateOfBirth eq Instant.now() }
                 Person.findSingleBy { Person::dateOfBirth eq Date() }

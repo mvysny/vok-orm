@@ -21,7 +21,7 @@ fun DynaNodeGroup.dbMappingTests() {
         p.save()
         expect(true) { p.id != null }
         p.ignored2 = null
-        expectList(p.withZeroNanos()) { Person.findAll().map { it.withZeroNanos() } }
+        expectList(p) { Person.findAll() }
     }
     group("Person") {
         group("save") {
@@ -43,7 +43,7 @@ fun DynaNodeGroup.dbMappingTests() {
                         handle.createQuery("select maritalStatus from Test").map(FieldMapper.of(Foo::class.java)).list().map { it.maritalStatus }
                     }
                 }
-                expect(p.withZeroNanos()) { db { Person.findAll()[0].withZeroNanos() } }
+                expect(p) { db { Person.findAll()[0] } }
             }
             test("SaveLocalDate") {
                 val p = Person(name = "Zaphod", age = 42, dateOfBirth = LocalDate.of(1990, 1, 14))

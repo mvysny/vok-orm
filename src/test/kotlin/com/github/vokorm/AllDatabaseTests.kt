@@ -52,7 +52,7 @@ fun DynaNodeGroup.dbFunTests() {
                 }
             }
         }
-        expect(listOf(person.withZeroNanos())) { db { Person.findAll().map { it.withZeroNanos() } } }
+        expect(listOf(person)) { db { Person.findAll() } }
     }
     test("exceptionRollsBackInNestedDbBlocks") {
         expectThrows(IOException::class) {
