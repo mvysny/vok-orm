@@ -1,6 +1,5 @@
 package com.github.vokorm
 
-import com.github.mvysny.vokdataloader.*
 import com.gitlab.mvysny.jdbiorm.condition.Condition
 import java.io.Serializable
 import kotlin.reflect.KProperty1
@@ -9,8 +8,8 @@ import com.gitlab.mvysny.jdbiorm.condition.Expression
 /**
  * Creates a [Condition] programmatically: `buildCondition { Person::age lt 25 }`
  */
-public inline fun <reified T : Any> buildCondition(block: FilterBuilder<T>.() -> Filter<T>): Filter<T> =
-    block(FilterBuilder(T::class.java))
+public inline fun <reified T : Any> buildCondition(block: ConditionBuilder<T>.() -> Condition): Condition =
+    block(ConditionBuilder(T::class.java))
 
 /**
  * Running block with this class as its receiver will allow you to write expressions like this:
@@ -21,7 +20,7 @@ public inline fun <reified T : Any> buildCondition(block: FilterBuilder<T>.() ->
  */
 public class ConditionBuilder<T : Any>(public val clazz: Class<T>) {
     /**
-     * Creates an condition where this property should be equal to [value]. Calls [Expression.eq].
+     * Creates a condition where this property should be equal to [value]. Calls [Expression.eq].
      */
     public infix fun <R : Serializable?> KProperty1<T, R>.eq(value: R): Condition = toProperty(clazz).eq(value)
 
@@ -100,8 +99,3 @@ public class ConditionBuilder<T : Any>(public val clazz: Class<T>) {
 
 public infix fun Condition.and(other: Condition): Condition = and(other)
 public infix fun Condition.or(other: Condition): Condition = or(other)
-
-/**
- * Returns a filter that represents the logical negation of this filter.
- */
-public operator fun Condition.not(): Condition = not()
