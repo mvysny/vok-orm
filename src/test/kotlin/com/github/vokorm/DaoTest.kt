@@ -106,14 +106,14 @@ fun DynaNodeGroup.dbDaoTests() {
 
             test("fails if there are two matching entities") {
                 repeat(2) { Person(name = "Albedo", age = 131).save() }
-                expectThrows(IllegalStateException::class, "too many rows matching Person: 'name = ") {
+                expectThrows(IllegalStateException::class, "too many rows matching Person: '(Test.name) = ") {
                     Person.findSingleBy { Person::name eq "Albedo" }
                 }
             }
 
             test("fails if there are ten matching entities") {
                 repeat(10) { Person(name = "Albedo", age = 132).save() }
-                expectThrows(IllegalStateException::class, "too many rows matching Person: 'name = ") {
+                expectThrows(IllegalStateException::class, "too many rows matching Person: '(Test.name) = ") {
                     Person.findSingleBy { Person::name eq "Albedo" }
                 }
             }
@@ -123,8 +123,8 @@ fun DynaNodeGroup.dbDaoTests() {
                 p.save()
                 expect(p.withZeroNanos()) { Person.findSingleBy { Person::dateOfBirth eq LocalDate.of(1980, 2, 2) } ?.withZeroNanos() }
                 // here I don't care about whether it selects something or not, I'm only testing the database compatibility
-                Person.findSingleBy { "dateOfBirth = :a"("a" to Instant.now()) }
-                Person.findSingleBy { "dateOfBirth = :a"("a" to Date()) }
+                Person.findSingleBy { Person::dateOfBirth eq Instant.now() }
+                Person.findSingleBy { Person::dateOfBirth eq Date() }
             }
         }
         group("exists") {
@@ -147,11 +147,6 @@ fun DynaNodeGroup.dbDaoTests() {
                 expect(false) { Person.existsById(p.id!! + 1) }
                 expect(false) { Person.existsBy { Person::age le 26 } }
             }
-        }
-        test("sql92 filter works") {
-            val p = Person(name = "Albedo", age = 136, dateOfBirth = LocalDate.of(1980, 2, 2), isAlive25 = true)
-            p.save()
-            expect(p.withZeroNanos()) { db { Person.findSingleBy(EqFilter("alive", true))?.withZeroNanos() } }
         }
         test("findAll sorting") {
             Person.findAll(Person::id.asc)

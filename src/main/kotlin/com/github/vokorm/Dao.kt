@@ -36,35 +36,14 @@ public fun <T : Any> DaoOfAny<T>.singleBy(block: ConditionBuilder<T>.() -> Condi
  * the entity does not exist.
  * @throws IllegalArgumentException if there are two or more matching entities.
  */
-public fun <T : Any> DaoOfAny<T>.findSingleBy(filter: Filter<T>): T? {
-    val sql: ParametrizedSql = filter.toParametrizedSql(entityClass, JdbiOrm.databaseVariant!!)
-    return findSingleBy(sql.sql92) { query: Query -> query.bind(sql) }
-}
-
-/**
- * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.
- * Fails if there are two or more entities matching the criteria.
- *
- * This function returns `null` if there is no such entity. Use [singleBy] if you wish an exception to be thrown in case that
- * the entity does not exist.
- * @throws IllegalArgumentException if there are two or more matching entities.
- */
-public fun <T : Any> DaoOfAny<T>.findSingleBy(block: FilterBuilder<T>.() -> Filter<T>): T? =
-        findSingleBy(block(FilterBuilder(entityClass)))
+public fun <T : Any> DaoOfAny<T>.findSingleBy(block: ConditionBuilder<T>.() -> Condition): T? =
+        findSingleBy(block(ConditionBuilder(entityClass)))
 
 /**
  * Counts all rows in given table which matches given [block] clause.
  */
-public fun <T : Any> DaoOfAny<T>.count(block: FilterBuilder<T>.() -> Filter<T>): Long =
-        count(FilterBuilder<T>(entityClass).block())
-
-/**
- * Counts all rows in given table which matches given [filter].
- */
-public fun <T : Any> DaoOfAny<T>.count(filter: Filter<T>): Long {
-    val sql: ParametrizedSql = filter.toParametrizedSql(entityClass, JdbiOrm.databaseVariant!!)
-    return countBy(sql.sql92) { query: Query -> query.bind(sql) }
-}
+public fun <T : Any> DaoOfAny<T>.count(block: ConditionBuilder<T>.() -> Condition): Long =
+        countBy(ConditionBuilder<T>(entityClass).block())
 
 /**
  * Allows you to delete rows by given where clause:
