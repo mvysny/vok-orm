@@ -27,12 +27,12 @@ public val Handle.quirks: Quirks get() = Quirks.from(this)
  * ```
  * However, it's also possible to use [buildCondition] for a more Kotlin-like Condition construction.
  */
-public inline val <reified T, V> KProperty1<T, V>.exp: TableProperty<T, V> get() = toExpression(T::class.java)
+public inline val <reified T, V> KProperty1<T, V>.exp: TableProperty<T, V> get() = toProperty(T::class.java)
 
 /**
  * Converts Kotlin [KProperty1] to JDBI-ORM Expression ([TableProperty]).
  */
-public fun <T, V> KProperty1<T, V>.toExpression(receiverClass: Class<T>): TableProperty<T, V> = TableProperty.of(receiverClass, name)
+public fun <T, V> KProperty1<T, V>.toProperty(receiverClass: Class<T>): TableProperty<T, V> = TableProperty.of(receiverClass, name)
 
 /**
  * Produces [OrderBy] suitable to be passed into [Dao.findAll]
@@ -40,7 +40,7 @@ public fun <T, V> KProperty1<T, V>.toExpression(receiverClass: Class<T>): TableP
  * dao.findAll(Person::id.asc)
  * ```
  */
-public val KProperty1<*, *>.asc: OrderBy get() = OrderBy(Property.Name(name), OrderBy.Order.ASC)
+public inline val <reified T> KProperty1<T, *>.asc: OrderBy get() = OrderBy(exp, OrderBy.Order.ASC)
 
 /**
  * Produces [OrderBy] suitable to be passed into [Dao.findAll]
@@ -48,7 +48,7 @@ public val KProperty1<*, *>.asc: OrderBy get() = OrderBy(Property.Name(name), Or
  * dao.findAll(Person::id.asc)
  * ```
  */
-public val KProperty1<*, *>.desc: OrderBy get() = OrderBy(Property.Name(name), OrderBy.Order.DESC)
+public inline val <reified T> KProperty1<T, *>.desc: OrderBy get() = OrderBy(exp, OrderBy.Order.DESC)
 
 public val LongRange.length: Long get() = if (isEmpty()) 0 else endInclusive - start + 1
 public val IntRange.length: Int get() = if (isEmpty()) 0 else endInclusive - start + 1

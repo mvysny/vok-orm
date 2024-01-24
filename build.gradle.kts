@@ -25,7 +25,7 @@ tasks.withType<KotlinCompile> {
 
 dependencies {
     api(kotlin("stdlib-jdk8"))
-    api("com.gitlab.mvysny.jdbiorm:jdbi-orm:2.4")
+    api("com.gitlab.mvysny.jdbiorm:jdbi-orm:2.5")
 
     // logging
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
