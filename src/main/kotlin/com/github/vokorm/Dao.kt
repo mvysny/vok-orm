@@ -1,15 +1,10 @@
 package com.github.vokorm
 
-import com.github.mvysny.vokdataloader.Filter
-import com.github.mvysny.vokdataloader.FilterBuilder
-import com.github.mvysny.vokdataloader.SortClause
 import com.github.mvysny.vokdataloader.length
 import com.gitlab.mvysny.jdbiorm.DaoOfAny
 import com.gitlab.mvysny.jdbiorm.EntityMeta
-import com.gitlab.mvysny.jdbiorm.JdbiOrm
 import com.gitlab.mvysny.jdbiorm.OrderBy
 import com.gitlab.mvysny.jdbiorm.condition.Condition
-import org.jdbi.v3.core.statement.Query
 
 internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta.of(entityClass)
 
@@ -143,19 +138,5 @@ public fun <T : Any> DaoOfAny<T>.findAllBy(
  * ```
  * @param block the filter to use.
  */
-public fun <T : Any> DaoOfAny<T>.existsBy(block: FilterBuilder<T>.() -> Filter<T>): Boolean =
-        existsBy(block(FilterBuilder(entityClass)))
-
-/**
- * Checks whether there is any instance matching given [filter].
- *
- * If you want more complex stuff or even joins, fall back and just write SQL:
- *
- * ```
- * db { con.createQuery("select count(1) from Foo where name = :name").addParameter("name", name).executeScalar(Long::class.java) > 0 }
- * ```
- */
-public fun <T : Any> DaoOfAny<T>.existsBy(filter: Filter<T>): Boolean {
-    val sql: ParametrizedSql = filter.toParametrizedSql(entityClass, JdbiOrm.databaseVariant!!)
-    return existsBy(sql.sql92) { query -> query.bind(sql) }
-}
+public fun <T : Any> DaoOfAny<T>.existsBy(block: ConditionBuilder<T>.() -> Condition): Boolean =
+        existsBy(block(ConditionBuilder(entityClass)))
