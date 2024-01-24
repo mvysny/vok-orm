@@ -97,3 +97,11 @@ public class ConditionBuilder<T : Any>(public val clazz: Class<T>) {
      */
     public val KProperty1<T, Boolean?>.isFalse: Condition get() = toProperty(clazz).isFalse
 }
+
+public infix fun Condition.and(other: Condition): Condition = and(other)
+public infix fun Condition.or(other: Condition): Condition = or(other)
+
+/**
+ * Returns a filter that represents the logical negation of this filter.
+ */
+public operator fun Condition.not(): Condition = not()

@@ -14,32 +14,19 @@ import org.jdbi.v3.core.statement.Query
 internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta.of(entityClass)
 
 /**
- * Retrieves single entity matching given [filter]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
- *
- * This function fails if there is no such entity or there are 2 or more. Use [findSingleBy] if you wish to return `null` in case that
- * the entity does not exist.
- * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
- */
-public fun <T : Any> DaoOfAny<T>.singleBy(filter: Filter<T>): T {
-    val sql: ParametrizedSql = filter.toParametrizedSql(entityClass, JdbiOrm.databaseVariant!!)
-    return singleBy(sql.sql92) { query: Query -> query.bind(sql) }
-}
-
-/**
  * Retrieves single entity matching given criteria [block]. Fails if there is no such entity, or if there are two or more entities matching the criteria.
  *
  * Example:
  * ```
- * Person.getSingleBy { "name = :name"("name" to "Albedo") }  // raw sql where clause with parameters, the preferred way
- * Person.getSingleBy { Person::name eq "Rubedo" }  // fancy type-safe criteria, useful when you need to construct queries programatically.
+ * Person.getSingleBy { Person::name eq "Rubedo" }
  * ```
  *
  * This function fails if there is no such entity or there are 2 or more. Use [findSingleBy] if you wish to return `null` in case that
  * the entity does not exist.
  * @throws IllegalArgumentException if there is no entity matching given criteria, or if there are two or more matching entities.
  */
-public fun <T : Any> DaoOfAny<T>.singleBy(block: FilterBuilder<T>.() -> Filter<T>): T =
-        singleBy(block(FilterBuilder(entityClass)))
+public fun <T : Any> DaoOfAny<T>.singleBy(block: ConditionBuilder<T>.() -> Condition): T =
+        singleBy(block(ConditionBuilder(entityClass)))
 
 /**
  * Retrieves specific entity matching given [filter]. Returns `null` if there is no such entity.

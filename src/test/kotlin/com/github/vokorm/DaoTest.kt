@@ -37,21 +37,21 @@ fun DynaNodeGroup.dbDaoTests() {
             }
 
             test("fails if there is no such entity") {
-                expectThrows<IllegalStateException>("no row matching Person: 'name = ") {
+                expectThrows<IllegalStateException>("no row matching Person: '(Test.name) = ") {
                     Person.singleBy { Person::name eq "Albedo" }
                 }
             }
 
             test("fails if there are two matching entities") {
                 repeat(2) { Person(name = "Albedo", age = 124).save() }
-                expectThrows<IllegalStateException>("too many rows matching Person: 'name = ") {
+                expectThrows<IllegalStateException>("too many rows matching Person: '(Test.name) = ") {
                     Person.singleBy { Person::name eq "Albedo" }
                 }
             }
 
             test("fails if there are ten matching entities") {
                 repeat(10) { Person(name = "Albedo", age = 125).save() }
-                expectThrows<IllegalStateException>("too many rows matching Person: 'name = ") {
+                expectThrows<IllegalStateException>("too many rows matching Person: '(Test.name) = ") {
                     Person.singleBy { Person::name eq "Albedo" }
                 }
             }
