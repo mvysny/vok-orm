@@ -59,13 +59,8 @@ public fun <T : Any> DaoOfAny<T>.count(block: ConditionBuilder<T>.() -> Conditio
  * db { con.createQuery("delete from Foo where name = :name").addParameter("name", name).executeUpdate() }
  * ```
  */
-public fun <T : Any> DaoOfAny<T>.deleteBy(block: FilterBuilder<T>.() -> Filter<T>) {
-    deleteBy(FilterBuilder<T>(entityClass).block())
-}
-
-public fun <T : Any> DaoOfAny<T>.deleteBy(filter: Filter<T>) {
-    val sql: ParametrizedSql = filter.toParametrizedSql(entityClass, JdbiOrm.databaseVariant!!)
-    deleteBy(sql.sql92) { query -> query.bind(sql) }
+public fun <T : Any> DaoOfAny<T>.deleteBy(block: ConditionBuilder<T>.() -> Condition) {
+    deleteBy(ConditionBuilder<T>(entityClass).block())
 }
 
 /**
