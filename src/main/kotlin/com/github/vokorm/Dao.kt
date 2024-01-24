@@ -82,10 +82,10 @@ public fun <T : Any> DaoOfAny<T>.deleteBy(block: ConditionBuilder<T>.() -> Condi
  * @param block the filter to use.
  */
 public fun <T : Any> DaoOfAny<T>.findAllBy(
-        vararg orderBy: SortClause = arrayOf(),
+        vararg orderBy: OrderBy = arrayOf(),
         range: IntRange = IntRange(0, Int.MAX_VALUE),
-        block: FilterBuilder<T>.() -> Filter<T>
-): List<T> = findAllBy(orderBy = orderBy, range = range, filter = block(FilterBuilder<T>(entityClass)))
+        block: ConditionBuilder<T>.() -> Condition
+): List<T> = findAllBy(orderBy = orderBy, range = range, condition = block(ConditionBuilder<T>(entityClass)))
 
 /**
  * Finds all rows in given table. Fails if there is no table in the database with the
@@ -117,15 +117,15 @@ public fun <T : Any> DaoOfAny<T>.findAll(
  * @param filter the filter to use.
  */
 public fun <T : Any> DaoOfAny<T>.findAllBy(
-            vararg orderBy: SortClause = arrayOf(),
-            range: IntRange = IntRange(0, Int.MAX_VALUE),
-            filter: Filter<T>
-    ): List<T> {
-    val sql: ParametrizedSql = filter.toParametrizedSql(entityClass, JdbiOrm.databaseVariant!!)
-    val offset: Long? = if (range == IntRange(0, Int.MAX_VALUE)) null else range.start.toLong()
-    val limit: Long? = if (range == IntRange(0, Int.MAX_VALUE)) null else range.length.toLong()
-    val orderByClause: String? = orderBy.toList().toSql92OrderByClause(entityClass)
-    return findAllBy(sql.sql92, orderByClause, offset, limit) { query: Query -> query.bind(sql) }
+    vararg orderBy: OrderBy = arrayOf(),
+    range: IntRange = IntRange(0, Int.MAX_VALUE),
+    condition: Condition
+): List<T> {
+    val offset: Long? =
+        if (range == IntRange(0, Int.MAX_VALUE)) null else range.start.toLong()
+    val limit: Long? =
+        if (range == IntRange(0, Int.MAX_VALUE)) null else range.length.toLong()
+    return findAllBy(condition, orderBy.toList(), offset, limit)
 }
 
 /**

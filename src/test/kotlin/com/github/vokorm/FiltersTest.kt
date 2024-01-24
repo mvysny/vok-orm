@@ -32,13 +32,11 @@ class FiltersTest : DynaTest({
 
 })
 
-val OrderBy.sortClause: SortClause get() = SortClause(name.name, order == OrderBy.Order.ASC)
-
 @DynaTestDsl
 fun DynaNodeGroup.dbFiltersTest(info: DatabaseInfo) {
     test("api test") {
         Person.findAll(Person::age.asc, Person::created.desc)
-        Person.findAllBy(Person::age.asc.sortClause, Person::created.desc.sortClause, filter = FullTextFilter<Person>("name", ""))
+        Person.findAllBy(Person::age.asc, Person::created.desc, condition = Person::age.exp.eq(5))
     }
 
     group("filter test") {
@@ -124,31 +122,31 @@ fun DynaNodeGroup.dbFiltersTest(info: DatabaseInfo) {
 
         if (info.supportsFullText) {
             test("smoke test") {
-                Person.findAllBy(filter = FullTextFilter<Person>("name", ""))
-                Person.findAllBy(filter = FullTextFilter<Person>("name", "a"))
-                Person.findAllBy(filter = FullTextFilter<Person>("name", "the"))
-                Person.findAllBy(filter = FullTextFilter<Person>("name", "Moby"))
+                Person.findAllBy(Person::name.exp.fullTextMatches(""))
+                Person.findAllBy(Person::name.exp.fullTextMatches("a"))
+                Person.findAllBy(Person::name.exp.fullTextMatches("the"))
+                Person.findAllBy(Person::name.exp.fullTextMatches("Moby"))
             }
 
             test("blank filter matches all records") {
                 val moby = Person(name = "Moby")
                 moby.create()
-                expectList(moby) { Person.findAllBy(filter = FullTextFilter<Person>("name", "")) }
+                expectList(moby) { Person.findAllBy(Person::name.exp.fullTextMatches("")) }
             }
 
             test("various queries matching/not matching Moby") {
                 val moby = Person(name = "Moby")
                 moby.create()
-                expectList() { Person.findAllBy(filter = FullTextFilter<Person>("name", "foo")) }
-                expectList(moby) { Person.findAllBy(filter = FullTextFilter<Person>("name", "Moby")) }
-                expectList() { Person.findAllBy(filter = FullTextFilter<Person>("name", "Jerry")) }
-                expectList() { Person.findAllBy(filter = FullTextFilter<Person>("name", "Jerry Moby")) }
+                expectList() { Person.findAllBy(Person::name.exp.fullTextMatches("foo")) }
+                expectList(moby) { Person.findAllBy(Person::name.exp.fullTextMatches("Moby")) }
+                expectList() { Person.findAllBy(Person::name.exp.fullTextMatches("Jerry")) }
+                expectList() { Person.findAllBy(Person::name.exp.fullTextMatches("Jerry Moby")) }
             }
 
             test("partial match") {
                 val moby = Person(name = "Moby")
                 moby.create()
-                expectList(moby) { Person.findAllBy(filter = FullTextFilter<Person>("name", "Mob")) }
+                expectList(moby) { Person.findAllBy(Person::name.exp.fullTextMatches("Mob")) }
             }
         }
     }
