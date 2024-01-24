@@ -25,7 +25,6 @@ tasks.withType<KotlinCompile> {
 
 dependencies {
     api(kotlin("stdlib-jdk8"))
-    api("com.github.mvysny.vokdataloader:vok-dataloader:0.9.1")
     api("com.gitlab.mvysny.jdbiorm:jdbi-orm:2.4")
 
     // logging

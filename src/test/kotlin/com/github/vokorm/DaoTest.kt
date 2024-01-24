@@ -3,12 +3,10 @@ package com.github.vokorm
 import com.github.mvysny.dynatest.DynaNodeGroup
 import com.github.mvysny.dynatest.DynaTestDsl
 import com.github.mvysny.dynatest.expectThrows
-import com.github.mvysny.vokdataloader.EqFilter
 import java.time.Instant
 import java.time.LocalDate
 import java.util.*
 import kotlin.test.expect
-import com.github.vokorm.deleteBy
 
 @DynaTestDsl
 fun DynaNodeGroup.dbDaoTests() {

@@ -1,6 +1,5 @@
 package com.github.vokorm
 
-import com.github.mvysny.vokdataloader.length
 import com.gitlab.mvysny.jdbiorm.DaoOfAny
 import com.gitlab.mvysny.jdbiorm.EntityMeta
 import com.gitlab.mvysny.jdbiorm.OrderBy

@@ -51,3 +51,4 @@ public val KProperty1<*, *>.asc: OrderBy get() = OrderBy(Property.Name(name), Or
 public val KProperty1<*, *>.desc: OrderBy get() = OrderBy(Property.Name(name), OrderBy.Order.DESC)
 
 public val LongRange.length: Long get() = if (isEmpty()) 0 else endInclusive - start + 1
+public val IntRange.length: Int get() = if (isEmpty()) 0 else endInclusive - start + 1
