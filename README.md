@@ -522,29 +522,10 @@ has validations enabled and all necessary jars included.
 
 The support for [Data Loader](https://gitlab.com/mvysny/vok-dataloader) is deprecated and removed.
 For Vaadin integration please see [jdbi-orm-vaadin](https://gitlab.com/mvysny/jdbi-orm-vaadin)
-which supports vok-orm too.
+which supports vok-orm too, and it provides support for all sorts of data providers including
+entity, POJO and joins/custom SQL statements.
 
-### SqlDataLoader
-
-The [SqlDataLoader](src/main/kotlin/com/github/vokorm/dataloader/SqlDataLoader.kt)
-is able to map the outcome of any SELECT command supplied by you,
-onto a bean. You can use `SqlDataLoader` to map the outcome of joins, stored procedure calls, anything. For example:
-
-```kotlin
-val provider = SqlDataLoader(DaoOfAny(CustomerAddress::class.java), """select c.name as customerName, a.street || ' ' || a.city as address
-   from Customer c inner join Address a on c.address_id=a.id where 1=1 {{WHERE}} order by 1=1{{ORDER}} {{PAGING}}""")
-val filter: Filter<CustomerAddress> = buildFilter<CustomerAddress> { "c.age<:age"("age" to 48) }
-val result: List<CustomerAddress> = provider.fetch(filter, sortBy = listOf("name".asc), range = 0L..20L)
-```
-
-The `SqlDataLoader` honors the `@ColumnName` annotation when mapping class instances
-from the outcome of the `SELECT *` clause. If you don't use SQL aliases
-but you stick to use `@ColumnName`, then you can use the `Filter` class
-hierarchy to filter out the results, and you can use `SortClause` to sort
-the results. Just keep in mind to pass in the database column name into the
-`Filter` and `SortClause`, and not the bean property name.
-
-### Full-Text Filters
+## Full-Text Filters
 
 In order for the `FullTextFilter` filter to work, you must create a proper full-text index
 in your database for the column being matched. Please see the documentation for
@@ -564,7 +545,7 @@ your database variant in `VokOrm.databaseVariant`. The default one is 'Unknown'
 and since there is no full-text matching in SQL92, by default all `FullTextFilter`
 conversion will fail.
 
-#### H2
+### H2
 
 Full-Text searches are supported. vok-orm uses FullTextLucene implementation since
 the native H2 implementation can't do partial matches (e.g. filter `car` won't match `carousel`).
@@ -601,7 +582,7 @@ Limitations:
 See [H2 Full-Text search](https://www.h2database.com/html/tutorial.html#fulltext) for
 more info.
 
-#### PostgreSQL
+### PostgreSQL
 
 The following WHERE clauses are produced by default:
 `to_tsvector('english', $databaseColumnName) @@ to_tsquery('english', 'fat:* cat:*')`.
@@ -613,7 +594,7 @@ however the performance will be horrible. I recommend to create the index, e.g.
 See [PostgreSQL Full-Text search](https://www.postgresql.org/docs/9.5/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX)
 for more info.
 
-#### MySQL/MariaDB
+### MySQL/MariaDB
 
 You'll need to create a [FULLTEXT index](https://dev.mysql.com/doc/refman/8.0/en/fulltext-search.html)
 for the column, otherwise MySQL will match nothing.
