@@ -32,9 +32,9 @@ data class Person(
 
     override fun save(validate: Boolean) {
         if (id == null) {
-            if (created == null) created = java.sql.Timestamp(System.currentTimeMillis())
+            if (created == null) created = java.sql.Timestamp(System.currentTimeMillis()).withZeroMillis
             // otherwise we can't test 'search by `modified`'
-            if (modified == null) modified = Instant.ofEpochMilli(1238123123L)
+            if (modified == null) modified = Instant.ofEpochMilli(1238123123L).withZeroNanos
         }
         super.save(validate)
     }
@@ -49,7 +49,8 @@ data class Person(
         val IGNORE_THIS_FIELD: Int = 0
     }
 
-    fun withZeroNanos(): Person = copy(created = created?.withZeroMillis, modified = modified?.withZeroNanos)
+    @Deprecated("no need")
+    fun withZeroNanos(): Person = this
 }
 
 enum class MaritalStatus {
