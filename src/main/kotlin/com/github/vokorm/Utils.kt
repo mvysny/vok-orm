@@ -44,12 +44,18 @@ internal fun DataLoaderPropertyName.toNativeColumnName(clazz: Class<*>): NativeP
 }
 
 /**
- * Converts Kotlin [KProperty1] to JDBI-ORM [TableProperty] which is an expression. That allows you to construct JDBI-ORM Conditions easily:
+ * Converts Kotlin [KProperty1] to JDBI-ORM Expression ([TableProperty]). That allows you to construct JDBI-ORM Conditions easily:
  * ```kotlin
  * dao.findAll(Person::id.exp.eq(25))
  * ```
+ * However, it's also possible to use [buildCondition] for a more Kotlin-like Condition construction.
  */
-public inline val <reified T, V> KProperty1<T, V>.exp: TableProperty<T, V> get() = TableProperty.of(T::class.java, name)
+public inline val <reified T, V> KProperty1<T, V>.exp: TableProperty<T, V> get() = toProperty(T::class.java)
+
+/**
+ * Converts Kotlin [KProperty1] to JDBI-ORM Expression ([TableProperty]).
+ */
+public fun <T, V> KProperty1<T, V>.toProperty(receiverClass: Class<T>): TableProperty<T, V> = TableProperty.of(receiverClass, name)
 
 /**
  * Produces [OrderBy] suitable to be passed into [Dao.findAll]
