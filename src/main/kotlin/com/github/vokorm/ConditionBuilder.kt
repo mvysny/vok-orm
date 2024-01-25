@@ -4,6 +4,7 @@ import com.gitlab.mvysny.jdbiorm.condition.Condition
 import java.io.Serializable
 import kotlin.reflect.KProperty1
 import com.gitlab.mvysny.jdbiorm.condition.Expression
+import com.gitlab.mvysny.jdbiorm.condition.NativeSQL
 
 /**
  * Creates a [Condition] programmatically: `buildCondition { Person::age lt 25 }`
@@ -100,7 +101,7 @@ public class ConditionBuilder<T : Any>(public val clazz: Class<T>) {
      * Allows for a native SQL query: `"age < :age_p"("age_p" to 60)`
      */
     public operator fun String.invoke(vararg params: Pair<String, Any?>): Condition =
-        NativeSQLCondition(this, mapOf(*params))
+        NativeSQL(this, mapOf(*params))
 }
 
 public infix fun Condition.and(other: Condition): Condition = and(other)
