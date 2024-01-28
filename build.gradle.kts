@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val slf4jVersion = "2.0.9"
-val testcontainersVersion = "1.19.3"
+val testcontainersVersion = "1.19.4" // check latest version at https://repo1.maven.org/maven2/org/testcontainers/testcontainers/
 
 plugins {
     kotlin("jvm") version "1.9.22"
@@ -31,7 +31,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
 
     // validation support
-    testImplementation("org.hibernate.validator:hibernate-validator:8.0.0.Final")
+    testImplementation("org.hibernate.validator:hibernate-validator:8.0.1.Final") // check latest version at https://repo1.maven.org/maven2/org/hibernate/validator/hibernate-validator/
     // EL is required: http://hibernate.org/validator/documentation/getting-started/
     testImplementation("org.glassfish:jakarta.el:4.0.2")
 
