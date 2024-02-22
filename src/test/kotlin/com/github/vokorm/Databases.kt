@@ -63,7 +63,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: PostgreSQLContainer<*>
     beforeGroup {
-        container = PostgreSQLContainer("postgres:15.2")
+        container = PostgreSQLContainer("postgres:16.2")
         container.start()
     }
     beforeGroup {
@@ -366,17 +366,17 @@ fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.(DatabaseInfo)->Unit) {
         println("Docker is not available, not running PostgreSQL/MySQL/MariaDB/MSSQL tests")
     } else {
         println("Docker is available, running PostgreSQL/MySQL/MariaDB tests")
-        group("PostgreSQL 10.3") {
+        group("PostgreSQL 16.2") {
             usingDockerizedPosgresql()
             block(DatabaseInfo(DatabaseVariant.PostgreSQL))
         }
 
-        group("MySQL 8.0.25") {
+        group("MySQL 8.0.33") {
             usingDockerizedMysql()
             block(DatabaseInfo(DatabaseVariant.MySQLMariaDB))
         }
 
-        group("MariaDB 10.1.31") {
+        group("MariaDB 10.11.2") {
             usingDockerizedMariaDB()
             block(DatabaseInfo(DatabaseVariant.MySQLMariaDB))
         }
