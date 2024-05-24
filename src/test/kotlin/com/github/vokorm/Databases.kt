@@ -107,7 +107,7 @@ private fun DynaNodeGroup.usingDockerizedCockroachDB() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: CockroachContainer
     beforeGroup {
-        container = CockroachContainer("cockroachdb/cockroach:v22.1.19")
+        container = CockroachContainer("cockroachdb/cockroach:v23.2.5")
         container.start()
     }
     beforeGroup {
