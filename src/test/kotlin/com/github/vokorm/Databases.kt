@@ -235,7 +235,7 @@ fun DynaNodeGroup.usingH2Database() {
 }
 
 fun PersistenceContext.ddl(@Language("sql") sql: String) {
-    handle.createUpdate(sql).execute()
+    handle.execute(sql)
 }
 
 @DynaTestDsl
