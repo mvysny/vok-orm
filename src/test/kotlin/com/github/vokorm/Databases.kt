@@ -290,9 +290,12 @@ private fun clearDb() {
     TypeMappingEntity.deleteAll()
 }
 
+private val isX86_64: Boolean get() = System.getProperty("os.arch") == "amd64"
+
 @DynaTestDsl
 private fun DynaNodeGroup.usingDockerizedMSSQL() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
+    check(isX86_64) { "MSSQL is only available on amd64: https://hub.docker.com/_/microsoft-mssql-server/ "}
     lateinit var container: MSSQLServerContainer<*>
     beforeGroup {
         container = MSSQLServerContainer("mcr.microsoft.com/mssql/server:2017-latest-ubuntu")
@@ -381,11 +384,13 @@ fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.(DatabaseInfo)->Unit) {
             block(DatabaseInfo(DatabaseVariant.MySQLMariaDB))
         }
 
-        group("MSSQL 2017 Express") {
-            usingDockerizedMSSQL()
-            // unfortunately the default Docker image doesn't support the FULLTEXT index:
-            // https://stackoverflow.com/questions/60489784/installing-mssql-server-express-using-docker-with-full-text-search-support
-            block(DatabaseInfo(DatabaseVariant.MSSQL, supportsFullText = false))
+        if (isX86_64) {
+            group("MSSQL 2017 Express") {
+                usingDockerizedMSSQL()
+                // unfortunately the default Docker image doesn't support the FULLTEXT index:
+                // https://stackoverflow.com/questions/60489784/installing-mssql-server-express-using-docker-with-full-text-search-support
+                block(DatabaseInfo(DatabaseVariant.MSSQL, supportsFullText = false))
+            }
         }
 
         group("CockroachDB") {
