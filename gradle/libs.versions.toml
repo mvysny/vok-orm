@@ -1,6 +1,6 @@
 [versions]
 # https://repo1.maven.org/maven2/org/slf4j/slf4j-api/
-slf4j = "2.0.12"
+slf4j = "2.0.13"
 lucene = "8.11.1"
 testcontainers = "1.19.4" # https://testcontainers.com/guides/getting-started-with-testcontainers-for-java
 
