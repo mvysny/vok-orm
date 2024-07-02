@@ -30,7 +30,7 @@ testcontainers-mssqlserver = { module = "org.testcontainers:mssqlserver", versio
 testcontainers-cockroachdb = { module = "org.testcontainers:cockroachdb", version.ref = "testcontainers" }
 jdbc-postgresql = "org.postgresql:postgresql:42.7.2" #  check newest at https://jdbc.postgresql.org/download/
 jdbc-mysql = "com.mysql:mysql-connector-j:8.2.0" # https://dev.mysql.com/downloads/connector/j/
-jdbc-mariadb = "org.mariadb.jdbc:mariadb-java-client:3.3.1" # https://mariadb.com/kb/en/about-mariadb-connector-j/
+jdbc-mariadb = "org.mariadb.jdbc:mariadb-java-client:3.3.3" # https://mariadb.com/kb/en/about-mariadb-connector-j/
 jdbc-mssql = "com.microsoft.sqlserver:mssql-jdbc:12.2.0.jre11"
 
 [bundles]
