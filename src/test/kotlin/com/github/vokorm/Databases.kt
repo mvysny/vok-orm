@@ -16,6 +16,14 @@ import org.testcontainers.containers.MySQLContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import java.util.*
 
+object DatabaseVersions {
+    val postgres = "16.3" // https://hub.docker.com/_/postgres/
+    val cockroach = "v23.2.6" // https://hub.docker.com/r/cockroachdb/cockroach
+    val mysql = "9.0.0" // https://hub.docker.com/_/mysql/
+    val mssql = "2017-latest-ubuntu"
+    val mariadb = "11.2.4" // https://hub.docker.com/_/mariadb
+}
+
 /**
  * Tests for https://github.com/mvysny/vok-orm/issues/7
  */
@@ -63,7 +71,7 @@ private fun DynaNodeGroup.usingDockerizedPosgresql() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: PostgreSQLContainer<*>
     beforeGroup {
-        container = PostgreSQLContainer("postgres:16.2")
+        container = PostgreSQLContainer("postgres:${DatabaseVersions.postgres}")
         container.start()
     }
     beforeGroup {
@@ -107,7 +115,7 @@ private fun DynaNodeGroup.usingDockerizedCockroachDB() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: CockroachContainer
     beforeGroup {
-        container = CockroachContainer("cockroachdb/cockroach:v23.2.5")
+        container = CockroachContainer("cockroachdb/cockroach:${DatabaseVersions.cockroach}")
         container.start()
     }
     beforeGroup {
@@ -151,7 +159,7 @@ fun DynaNodeGroup.usingDockerizedMysql() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: MySQLContainer<*>
     beforeGroup {
-        container = MySQLContainer("mysql:8.0.33")
+        container = MySQLContainer("mysql:${DatabaseVersions.mysql}")
         // disable SSL, to avoid SSL-related exceptions on github actions:
         // javax.net.ssl.SSLHandshakeException: No appropriate protocol (protocol is disabled or cipher suites are inappropriate)
         container.withUrlParam("useSSL", "false")
@@ -243,7 +251,7 @@ private fun DynaNodeGroup.usingDockerizedMariaDB() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
     lateinit var container: MariaDBContainer<*>
     beforeGroup {
-        container = MariaDBContainer("mariadb:10.11.2")
+        container = MariaDBContainer("mariadb:${DatabaseVersions.mariadb}")
         container.start()
     }
     beforeGroup {
@@ -298,7 +306,7 @@ private fun DynaNodeGroup.usingDockerizedMSSQL() {
     check(isX86_64) { "MSSQL is only available on amd64: https://hub.docker.com/_/microsoft-mssql-server/ "}
     lateinit var container: MSSQLServerContainer<*>
     beforeGroup {
-        container = MSSQLServerContainer("mcr.microsoft.com/mssql/server:2017-latest-ubuntu")
+        container = MSSQLServerContainer("mcr.microsoft.com/mssql/server:${DatabaseVersions.mssql}")
         container.start()
     }
     beforeGroup {
@@ -369,23 +377,23 @@ fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.(DatabaseInfo)->Unit) {
         println("Docker is not available, not running PostgreSQL/MySQL/MariaDB/MSSQL tests")
     } else {
         println("Docker is available, running PostgreSQL/MySQL/MariaDB tests")
-        group("PostgreSQL 16.2") {
+        group("PostgreSQL ${DatabaseVersions.postgres}") {
             usingDockerizedPosgresql()
             block(DatabaseInfo(DatabaseVariant.PostgreSQL))
         }
 
-        group("MySQL 8.0.33") {
+        group("MySQL ${DatabaseVersions.mysql}") {
             usingDockerizedMysql()
             block(DatabaseInfo(DatabaseVariant.MySQLMariaDB))
         }
 
-        group("MariaDB 10.11.2") {
+        group("MariaDB ${DatabaseVersions.mariadb}") {
             usingDockerizedMariaDB()
             block(DatabaseInfo(DatabaseVariant.MySQLMariaDB))
         }
 
         if (isX86_64) {
-            group("MSSQL 2017 Express") {
+            group("MSSQL ${DatabaseVersions.mssql}") {
                 usingDockerizedMSSQL()
                 // unfortunately the default Docker image doesn't support the FULLTEXT index:
                 // https://stackoverflow.com/questions/60489784/installing-mssql-server-express-using-docker-with-full-text-search-support
@@ -393,7 +401,7 @@ fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.(DatabaseInfo)->Unit) {
             }
         }
 
-        group("CockroachDB") {
+        group("CockroachDB ${DatabaseVersions.cockroach}") {
             usingDockerizedCockroachDB()
             // full-text search not yet supported: https://github.com/cockroachdb/cockroach/issues/41288
             block(DatabaseInfo(DatabaseVariant.PostgreSQL, supportsFullText = false))
