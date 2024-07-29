@@ -521,9 +521,18 @@ has validations enabled and all necessary jars included.
 ## Data Loaders
 
 The support for [Data Loader](https://gitlab.com/mvysny/vok-dataloader) is deprecated and removed.
+
+## Vaadin
+
 For Vaadin integration please see [jdbi-orm-vaadin](https://gitlab.com/mvysny/jdbi-orm-vaadin)
 which supports vok-orm too, and it provides support for all sorts of data providers including
 entity, POJO and joins/custom SQL statements.
+
+For Vaadin example apps, please take a look at:
+
+* [beverage-buddy-vok](https://github.com/mvysny/beverage-buddy-vok): A full-blown Vaadin Kotlin app which demoes vok-orm-based CRUD
+* [vok-security-demo](https://github.com/mvysny/vok-security-demo): uses vok-orm to load users
+* [vaadin-kotlin-pwa](https://github.com/mvysny/vaadin-kotlin-pwa): demoes Vaadin+Kotlin+CRUD as well
 
 ## Full-Text Filters
 
