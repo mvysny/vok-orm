@@ -42,7 +42,7 @@ dependencies {
     testImplementation(libs.bundles.jdbc)
     testImplementation(libs.bundles.testcontainers)
 
-    testRuntimeOnly(libs.junit.platform.launcher)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // IDEA language injections
     testImplementation(libs.jetbrains.annotations)
