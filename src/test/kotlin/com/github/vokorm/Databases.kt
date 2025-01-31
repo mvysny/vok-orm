@@ -290,7 +290,7 @@ private fun DynaNodeGroup.usingDockerizedMariaDB() {
     afterEach { clearDb() }
 }
 
-private fun clearDb() {
+fun clearDb() {
     Person.deleteAll()
     EntityWithAliasedId.deleteAll()
     NaturalPerson.deleteAll()
