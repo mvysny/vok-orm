@@ -16,6 +16,7 @@ import java.util.Date
 import kotlin.test.expect
 
 val isX86_64: Boolean get() = System.getProperty("os.arch") == "amd64"
+val isWindows: Boolean get() = System.getProperty("os.name").contains("Windows", ignoreCase = true)
 
 val gson: Gson = GsonBuilder().registerJavaTimeAdapters().create()
 
