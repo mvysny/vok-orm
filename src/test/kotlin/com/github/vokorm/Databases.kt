@@ -1,19 +1,12 @@
 package com.github.vokorm
 
-import com.github.mvysny.dynatest.DynaNodeGroup
-import com.github.mvysny.dynatest.DynaTestDsl
-import com.gitlab.mvysny.jdbiorm.*
+import com.gitlab.mvysny.jdbiorm.Dao
+import com.gitlab.mvysny.jdbiorm.JdbiOrm
 import com.gitlab.mvysny.jdbiorm.quirks.DatabaseVariant
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.intellij.lang.annotations.Language
 import org.jdbi.v3.core.mapper.reflect.ColumnName
-import org.testcontainers.DockerClientFactory
-import org.testcontainers.containers.CockroachContainer
-import org.testcontainers.containers.MSSQLServerContainer
-import org.testcontainers.containers.MariaDBContainer
-import org.testcontainers.containers.MySQLContainer
-import org.testcontainers.containers.PostgreSQLContainer
 import java.util.*
 
 object DatabaseVersions {
@@ -64,50 +57,6 @@ data class TypeMappingEntity(override var id: Long? = null,
                              var enumTest: MaritalStatus? = null
                              ) : KEntity<Long> {
     companion object : Dao<TypeMappingEntity, Long>(TypeMappingEntity::class.java)
-}
-
-@DynaTestDsl
-private fun DynaNodeGroup.usingDockerizedPosgresql() {
-    check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
-    lateinit var container: PostgreSQLContainer<*>
-    beforeGroup {
-        container = PostgreSQLContainer("postgres:${DatabaseVersions.postgres}")
-        container.start()
-    }
-    beforeGroup {
-        hikari {
-            minimumIdle = 0
-            maximumPoolSize = 30
-            // stringtype=unspecified : see https://github.com/mvysny/vok-orm/issues/12 for more details.
-            jdbcUrl = container.jdbcUrl.removeSuffix("loggerLevel=OFF") + "stringtype=unspecified"
-            username = container.username
-            password = container.password
-        }
-        db {
-            ddl("""create table if not exists Test (
-                id bigserial primary key,
-                name varchar(400) not null,
-                age integer not null,
-                dateOfBirth date,
-                created timestamp,
-                modified timestamp,
-                alive boolean,
-                maritalStatus varchar(200)
-                 )""")
-            ddl("""CREATE INDEX pgweb_idx ON Test USING GIN (to_tsvector('english', name));""")
-            ddl("""create table if not exists EntityWithAliasedId(myid bigserial primary key, name varchar(400) not null)""")
-            ddl("""create table if not exists NaturalPerson(id varchar(10) primary key, name varchar(400) not null, bytes bytea not null)""")
-            ddl("""create table if not exists LogRecord(id UUID primary key, text varchar(400) not null)""")
-            ddl("""CREATE TYPE marital_status AS ENUM ('Single', 'Married', 'Widowed', 'Divorced')""")
-            ddl("""CREATE TABLE IF NOT EXISTS TypeMappingEntity(id bigserial primary key, enumTest marital_status)""")
-        }
-    }
-
-    afterGroup { JdbiOrm.destroy() }
-    afterGroup { container.stop() }
-
-    beforeEach { clearDb() }
-    afterEach { clearDb() }
 }
 
 fun hikari(block: HikariConfig.() -> Unit) {
