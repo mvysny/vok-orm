@@ -10,6 +10,9 @@ import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
+import java.sql.Timestamp
+import java.time.Instant
+import java.util.Date
 import kotlin.test.expect
 
 val gson: Gson = GsonBuilder().registerJavaTimeAdapters().create()
@@ -48,3 +51,13 @@ fun Serializable?.serializeToBytes(): ByteArray = ByteArrayOutputStream().also {
 fun assumeDockerAvailable() {
     Assumptions.assumeTrue(DockerClientFactory.instance().isDockerAvailable(), "Docker not available")
 }
+
+// MSSQL nulls out millis for some reason when running on CI
+val Date.withZeroMillis: Date get() {
+    val result = Timestamp((this as Timestamp).time / 1000 * 1000)
+    result.nanos = 0
+    return result
+}
+
+val Instant.withZeroNanos: Instant get() = Instant.ofEpochMilli(toEpochMilli())
+val <T> List<T>.plusNull: List<T?> get() = toList<T?>() + listOf(null)
