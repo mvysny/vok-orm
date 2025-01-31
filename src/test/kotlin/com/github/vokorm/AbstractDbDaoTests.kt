@@ -1,8 +1,5 @@
 package com.github.vokorm
 
-import com.github.mvysny.dynatest.DynaNodeGroup
-import com.github.mvysny.dynatest.DynaTestDsl
-import com.github.mvysny.dynatest.expectThrows
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -105,14 +102,14 @@ abstract class AbstractDbDaoTests {
 
             @Test fun `fails if there are two matching entities`() {
                 repeat(2) { Person(name = "Albedo", age = 131).save() }
-                expectThrows(IllegalStateException::class, "too many rows matching Person: '(Test.name) = ") {
+                expectThrows<IllegalStateException>("too many rows matching Person: '(Test.name) = ") {
                     Person.findSingleBy { Person::name eq "Albedo" }
                 }
             }
 
             @Test fun `fails if there are ten matching entities`() {
                 repeat(10) { Person(name = "Albedo", age = 132).save() }
-                expectThrows(IllegalStateException::class, "too many rows matching Person: '(Test.name) = ") {
+                expectThrows<IllegalStateException>("too many rows matching Person: '(Test.name) = ") {
                     Person.findSingleBy { Person::name eq "Albedo" }
                 }
             }

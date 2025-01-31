@@ -1,16 +1,16 @@
 package com.github.vokorm
 
-import com.github.mvysny.dynatest.DynaTest
+import org.junit.jupiter.api.Test
 import kotlin.test.expect
 
-class ConditionBuilderTest : DynaTest({
-    test("smoke API tests") {
+class ConditionBuilderTest {
+    @Test fun `smoke API tests`() {
         buildCondition { Person::name eq "foo" }
         buildCondition { !(Person::name eq "foo") }
         buildCondition { (Person::name eq "foo") and (Person::id gt 25)}
         buildCondition { (Person::name eq "foo") or (Person::id gt 25)}
     }
-    test("produced condition") {
+    @Test fun `produced condition`() {
         expect("Person.name = foo") {
             buildCondition { Person::name eq "foo" } .toString()
         }
@@ -24,4 +24,4 @@ class ConditionBuilderTest : DynaTest({
             buildCondition { (Person::name eq "foo") or (Person::id gt 25)} .toString()
         }
     }
-})
+}

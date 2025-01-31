@@ -2,7 +2,6 @@
 
 package com.github.vokorm
 
-import com.github.mvysny.dynatest.*
 import org.jdbi.v3.core.mapper.reflect.FieldMapper
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -59,7 +58,7 @@ abstract class AbstractDbMappingTests() {
             }
             @Test fun `updating non-existing row fails`() {
                 val p = Person(id = 15, name = "Zaphod", age = 20, created = Date(1000), modified = Instant.ofEpochMilli(120398123))
-                expectThrows(IllegalStateException::class, "We expected to update only one row but we updated 0 - perhaps there is no row with id 15?") {
+                expectThrows<IllegalStateException>("We expected to update only one row but we updated 0 - perhaps there is no row with id 15?") {
                     p.save()
                 }
             }

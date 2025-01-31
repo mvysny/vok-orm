@@ -31,7 +31,6 @@ dependencies {
     testImplementation(libs.bundles.hibernate.validator)
 
     // tests
-    testImplementation(libs.dynatest)
     testImplementation(kotlin("test"))
     testImplementation(libs.junit.jupiter.engine)
     testImplementation(libs.bundles.gson)
