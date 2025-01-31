@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.1.0"
+    kotlin("jvm") version "2.1.10"
     `maven-publish`
     signing
 }
@@ -22,7 +22,6 @@ tasks.withType<KotlinCompile> {
 }
 
 dependencies {
-    api(kotlin("stdlib-jdk8"))
     api(libs.jdbiorm)
 
     // logging
