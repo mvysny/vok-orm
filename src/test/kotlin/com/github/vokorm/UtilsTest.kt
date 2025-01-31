@@ -1,11 +1,11 @@
 package com.github.vokorm
 
-import com.github.mvysny.dynatest.DynaTest
+import org.junit.jupiter.api.Test
 import kotlin.test.expect
 
-class UtilsTest : DynaTest({
-    test("implements") {
+class UtilsTest {
+    @Test fun implements() {
         expect(true) { Person::class.java.implements(KEntity::class.java) }
         expect(false) { String::class.java.implements(KEntity::class.java) }
     }
-})
+}
