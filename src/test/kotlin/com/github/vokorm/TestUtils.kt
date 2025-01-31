@@ -15,6 +15,8 @@ import java.time.Instant
 import java.util.Date
 import kotlin.test.expect
 
+val isX86_64: Boolean get() = System.getProperty("os.arch") == "amd64"
+
 val gson: Gson = GsonBuilder().registerJavaTimeAdapters().create()
 
 private fun GsonBuilder.registerJavaTimeAdapters(): GsonBuilder = apply {

@@ -298,8 +298,6 @@ fun clearDb() {
     TypeMappingEntity.deleteAll()
 }
 
-private val isX86_64: Boolean get() = System.getProperty("os.arch") == "amd64"
-
 @DynaTestDsl
 private fun DynaNodeGroup.usingDockerizedMSSQL() {
     check(DockerClientFactory.instance().isDockerAvailable()) { "Docker not available" }
