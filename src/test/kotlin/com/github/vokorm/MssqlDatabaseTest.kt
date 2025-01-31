@@ -13,7 +13,7 @@ class MssqlDatabaseTest {
         fun setup() {
             assumeDockerAvailable()
             Assumptions.assumeTrue(isX86_64) { "MSSQL is only available on amd64: https://hub.docker.com/_/microsoft-mssql-server/ " }
-            Assumptions.assumeFalse(true) { "MSSQL tests fail to run on Github; don't know why, don't care" }
+            Assumptions.assumeTrue(false) { "MSSQL tests fail to run on Github; don't know why, don't care" }
 
             container =
                 MSSQLServerContainer("mcr.microsoft.com/mssql/server:${DatabaseVersions.mssql}")
