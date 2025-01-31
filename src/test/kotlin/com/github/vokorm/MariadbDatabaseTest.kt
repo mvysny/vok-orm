@@ -11,6 +11,7 @@ class MariaDBDatabaseTest {
         private lateinit var container: MariaDBContainer<*>
         @BeforeAll @JvmStatic
         fun setup() {
+            Assumptions.assumeTrue(!h2only) { "Only H2 tests are running now" }
             assumeDockerAvailable()
 
             container = MariaDBContainer("mariadb:${DatabaseVersions.mariadb}")

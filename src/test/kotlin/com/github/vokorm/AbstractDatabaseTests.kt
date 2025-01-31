@@ -1,6 +1,5 @@
 package com.github.vokorm
 
-import com.github.vokorm.AbstractDbDaoTests
 import org.jdbi.v3.core.Handle
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -12,6 +11,7 @@ abstract class AbstractDatabaseTests(val info: DatabaseInfo) {
     @Nested inner class DbFunTests : AbstractDbFunTests()
     @Nested inner class MappingTests : AbstractDbMappingTests()
     @Nested inner class DbDaoTests : AbstractDbDaoTests()
+    @Nested inner class FiltersTests : AbstractFiltersTest(info)
 }
 
 /**

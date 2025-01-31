@@ -206,40 +206,6 @@ fun hikari(block: HikariConfig.() -> Unit) {
 
 @DynaTestDsl
 fun DynaNodeGroup.usingH2Database() {
-    beforeGroup {
-        hikari {
-            jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
-            username = "sa"
-            password = ""
-        }
-    }
-
-    afterGroup { JdbiOrm.destroy() }
-
-    beforeEach {
-        db {
-            ddl("DROP ALL OBJECTS")
-            ddl("""CREATE ALIAS IF NOT EXISTS FTL_INIT FOR "org.h2.fulltext.FullTextLucene.init";CALL FTL_INIT();""")
-            ddl("""create table Test (
-                id bigint primary key auto_increment,
-                name varchar not null,
-                age integer not null,
-                dateOfBirth date,
-                created timestamp,
-                modified timestamp,
-                alive boolean,
-                maritalStatus varchar
-                 )""")
-            ddl("""create table EntityWithAliasedId(myid bigint primary key auto_increment, name varchar not null)""")
-            ddl("""create table NaturalPerson(id varchar(10) primary key, name varchar(400) not null, bytes binary(16) not null)""")
-            ddl("""create table LogRecord(id UUID primary key, text varchar(400) not null)""")
-            ddl("""create table TypeMappingEntity(id bigint primary key auto_increment, enumTest ENUM('Single', 'Married', 'Divorced', 'Widowed'))""")
-            ddl("""CALL FTL_CREATE_INDEX('PUBLIC', 'TEST', 'NAME');""")
-        }
-    }
-    afterEach {
-        db { ddl("DROP ALL OBJECTS") }
-    }
 }
 
 fun PersistenceContext.ddl(@Language("sql") sql: String) {
@@ -364,11 +330,6 @@ WITH CHANGE_TRACKING AUTO            --Population type;  """)
 
 @DynaTestDsl
 fun DynaNodeGroup.withAllDatabases(block: DynaNodeGroup.(DatabaseInfo)->Unit) {
-    group("H2") {
-        usingH2Database()
-        block(DatabaseInfo(DatabaseVariant.H2))
-    }
-
     if (System.getProperty("h2only").toBoolean()) {
         println("`h2only` system property specified, skipping PostgreSQL/MySQL/MariaDB/MSSQL tests")
     } else if (!DockerClientFactory.instance().isDockerAvailable) {

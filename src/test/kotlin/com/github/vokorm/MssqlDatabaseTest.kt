@@ -11,6 +11,7 @@ class MssqlDatabaseTest {
         private lateinit var container: MSSQLServerContainer<*>
         @BeforeAll @JvmStatic
         fun setup() {
+            Assumptions.assumeTrue(!h2only) { "Only H2 tests are running now" }
             assumeDockerAvailable()
             Assumptions.assumeTrue(isX86_64) { "MSSQL is only available on amd64: https://hub.docker.com/_/microsoft-mssql-server/ " }
             Assumptions.assumeTrue(isWindows) { "MSSQL tests fail to run on GitHub+Linux; don't know why, don't care" }

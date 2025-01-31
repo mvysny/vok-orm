@@ -13,6 +13,7 @@ class MysqlDatabaseTest {
         @BeforeAll
         @JvmStatic
         fun runMysqlContainer() {
+            Assumptions.assumeTrue(!h2only) { "Only H2 tests are running now" }
             assumeDockerAvailable()
 
             container = MySQLContainer("mysql:${DatabaseVersions.mysql}")

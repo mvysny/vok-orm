@@ -12,6 +12,7 @@ class CockroachDatabaseTest {
         @BeforeAll
         @JvmStatic
         fun setup() {
+            Assumptions.assumeTrue(!h2only) { "Only H2 tests are running now" }
             assumeDockerAvailable()
 
             container =
