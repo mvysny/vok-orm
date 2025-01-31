@@ -1,6 +1,5 @@
 package com.github.vokorm
 
-import com.github.vokorm.AbstractDbMappingTests
 import org.jdbi.v3.core.Handle
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
