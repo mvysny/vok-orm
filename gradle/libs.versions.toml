@@ -5,7 +5,7 @@ lucene = "8.11.1"
 testcontainers = "1.20.4" # https://repo1.maven.org/maven2/org/testcontainers/postgresql/
 
 [libraries]
-jdbiorm = "com.gitlab.mvysny.jdbiorm:jdbi-orm:2.8"
+jdbiorm = "com.gitlab.mvysny.jdbiorm:jdbi-orm:2.10"
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 jetbrains-annotations = "org.jetbrains:annotations:24.1.0"
