@@ -779,6 +779,9 @@ will do that for us.
   `vok-orm` should not attempt to generate SELECTs on behalf of the programmer (except for the very basic ones related to CRUD);
   instead it should simply allow SELECTs to be passed as Strings, and then map the result
   to an object of programmer's choosing.
+* No plugins required, no generated code necessary. It's tricky to run the code generators,
+  it's questionable whether you want to commit generated stuff into git or not; if it's committed,
+  is it still up-to-date? Who knows? It's better to write it by hand and commit it to git.
 
 As such, `vok-orm` has much in common with the [ActiveJDBC](https://github.com/javalite/activejdbc) project, in terms
 of design principles. The advantage of `vok-orm` is that it doesn't require any instrumentation to work
