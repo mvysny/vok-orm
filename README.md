@@ -5,8 +5,7 @@
 # Vaadin-On-Kotlin database mapping library
 
 `vok-orm` allows you to load the data from database rows into objects (POJOs)
-and write the data back into the database. No JPA dirty tricks are used: no runtime
-enhancements, no lazy loading, no `DetachedExceptions`, no change tracking
+and write the data back into the database. No JPA dirty tricks are used: no runtime enhancements, no lazy loading, no `DetachedExceptions`, no change tracking
 behind the scenes - everything happens explicitly. No compiler
 plugin is needed - `vok-orm` uses Kotlin language features to add a standard
 set of finders to your entities. You can add any number of business logic methods as
@@ -794,14 +793,16 @@ mechanism to store/update the data back to the database.
 ## Comparison with other database-related libraries
 
 * [ActiveJDBC](https://javalite.io/activejdbc) has much in common with jdbi-orm; the advantage of jdbi-orm
-  is that we do not require any instrumentation to work (we use only Java language features).
+  is that we do not require any instrumentation to work (we use only Kotlin language features).
 * [JOOQ](https://www.jooq.org/) is great but requires initial generation of java code from your database scheme
-  (you write your entities by hand with jdbi-orm), and promotes type-safe query building instead of plain SQLs.
+  (you write your entities by hand with vok-orm), and promotes type-safe query building instead of plain SQLs.
   There's the usual set of problems coming with generated classes: you can't add your custom utility functions to those,
   you can't add validation annotations, etc.
   If you don't mind that, go for JOOQ - it's definitely more popular than jdbi-orm.
 * JPA: just no. We want real POJOs, not a dynamically-enhanced thing managed by the Entity Manager. Also see below.
 * Spring JdbcTemplate: not bad but it depends on Spring; jdbi-orm must be able to work on pure JVM, without Spring.
+* [ktorm](https://www.ktorm.org/) looks good, TODO comparison
+* [Exposed](https://github.com/JetBrains/Exposed) looks interesting too, TODO comparison.
 
 ## Why not JPA
 
