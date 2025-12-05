@@ -29,7 +29,6 @@ data class Person(
         var maritalStatus: MaritalStatus? = null
 
 ) : KEntity<Long> {
-
     override fun save(validate: Boolean) {
         if (id == null) {
             if (created == null) created = java.sql.Timestamp(System.currentTimeMillis()).withZeroMillis
@@ -47,6 +46,9 @@ data class Person(
 
     companion object : Dao<Person, Long>(Person::class.java) {
         val IGNORE_THIS_FIELD: Int = 0
+        val ID = tableProperty(Person::id)
+        val NAME = tableProperty(Person::name)
+        val AGE = tableProperty(Person::age)
     }
 }
 

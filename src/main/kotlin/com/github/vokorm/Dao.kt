@@ -3,7 +3,10 @@ package com.github.vokorm
 import com.gitlab.mvysny.jdbiorm.DaoOfAny
 import com.gitlab.mvysny.jdbiorm.EntityMeta
 import com.gitlab.mvysny.jdbiorm.OrderBy
+import com.gitlab.mvysny.jdbiorm.Property
+import com.gitlab.mvysny.jdbiorm.TableProperty
 import com.gitlab.mvysny.jdbiorm.condition.Condition
+import kotlin.reflect.KProperty1
 
 internal val <E> DaoOfAny<E>.meta: EntityMeta<E> get() = EntityMeta.of(entityClass)
 
@@ -139,3 +142,7 @@ public fun <T : Any> DaoOfAny<T>.findAllBy(
  */
 public fun <T : Any> DaoOfAny<T>.existsBy(block: ConditionBuilder<T>.() -> Condition): Boolean =
         existsBy(block(ConditionBuilder(entityClass)))
+
+public inline fun <reified T: Any, V> DaoOfAny<T>.tableProperty(propertyName: String): TableProperty<T, V> = TableProperty.of<T, V>(T::class.java, propertyName)
+public inline fun <reified T: Any, V> DaoOfAny<T>.tableProperty(property: KProperty1<T, V>): TableProperty<T, V> = TableProperty.of<T, V>(T::class.java, property.name)
+public inline fun <reified T: Any, V> DaoOfAny<T>.tableProperty(propertyName: Property.Name): TableProperty<T, V> = TableProperty.of<T, V>(T::class.java, propertyName)
